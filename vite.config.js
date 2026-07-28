@@ -9,13 +9,14 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      // injectManifest: use our custom sw.js — VitePWA will inject the
-      // precache manifest into it, and we handle push events ourselves.
+      // injectManifest: use our custom src/sw.js so push event handlers work.
+      // VitePWA injects the precache manifest into it at build time.
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.js',
 
-      registerType: 'autoUpdate',
+      // Do NOT set registerType here — we register the SW manually in main.jsx
+      // to avoid the virtual:pwa-register import that fails on Vercel/Netlify.
 
       includeAssets: [
         'favicon.svg',
