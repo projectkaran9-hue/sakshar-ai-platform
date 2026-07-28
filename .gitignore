@@ -1,0 +1,60 @@
+# ── Dependency directories ─────────────────────────────────────────────────
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+dist-ssr/
+dev-dist/
+build/
+
+# ── Environment & secrets ──────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── SQLite databases ───────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Logs ──────────────────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ── Editor / OS ────────────────────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ── Temporary / generated helper scripts ──────────────────────────────────
+clean_mojibake.cjs
+compile_code.cjs
+parse_matrix.cjs
+fix_mojibake.ps1
+search_db.ps1
+update_db.py
+generate_pwa_icons.py
+backend/generate_vapid_keys.py
+
+# ── Large compiled docs ────────────────────────────────────────────────────
+FULL_PROJECT_CODE.md
+CODEBASE_AND_STRUCTURE.md
+
+# ── Vite cache ─────────────────────────────────────────────────────────────
+.vite/
