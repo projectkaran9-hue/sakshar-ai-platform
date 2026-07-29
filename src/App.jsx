@@ -2399,43 +2399,30 @@ export default function App() {
       // Register the new user
       const data = await signUpUser(email, password, fullName, lang, educationalLevel, age);
       
-      if (data?.user) {
-        try {
-          await createUserProfile(data.user.id, {
-            fullName: fullName,
-            email: email,
-            age: age,
-            nativeLanguage: lang,
-            literacyLevel: educationalLevel
-          });
-        } catch (dbErr) {
-          console.error("Profiles table creation failing:", dbErr);
-        }
+      const newUserId = data?.user?.id || `local-${Date.now()}`;
+      setUserId(newUserId);
+      if (fullName) setFullName(fullName);
+      if (lang) setLang(lang);
+      if (educationalLevel) setEducationalLevel(educationalLevel);
+      if (age) setAge(age);
 
-        // Auto-login after registration and go straight to Initial Assessment
-        try {
-          const loginData = await signInUser(email, password);
-          if (loginData?.user?.id) {
-            setUserId(loginData.user.id);
-          }
-          if (loginData?.fullName) setFullName(loginData.fullName);
-          if (loginData?.language) setLang(loginData.language);
-          if (loginData?.age) setAge(loginData.age);
-          setView('initial-assessment');
-          return;
-        } catch (loginErr) {
-          // If auto-login fails (e.g. email confirmation required), go to login page
-          console.warn('Auto-login after signup failed:', loginErr);
-          alert('Account created! Please sign in to continue.');
-          setView('login');
-        }
-      } else {
-        // Supabase may require email confirmation — guide user to login
-        alert('Account created! Please check your email to confirm your account, then sign in.');
-        setView('login');
+      // Attempt profile creation (skipped gracefully if Supabase URL is placeholder)
+      try {
+        await createUserProfile(newUserId, {
+          fullName: fullName,
+          email: email,
+          age: age,
+          nativeLanguage: lang,
+          literacyLevel: educationalLevel
+        });
+      } catch (dbErr) {
+        console.warn("Profile db notice:", dbErr);
       }
+
+      // Go directly to Initial Placement Assessment for the newly registered learner
+      setView('initial-assessment');
     } catch (error) {
-      setAuthError(error.message || "Registration Failed. Please try again.");
+      setAuthError(error.message || "Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }

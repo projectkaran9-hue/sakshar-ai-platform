@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabase } from '../services/supabase';
+import { signUpUser } from '../services/auth';
 import { createUserProfile } from '../services/db';
 
 export default function Register({ onNavigateToLogin, onAuthSuccess }) {
@@ -59,12 +59,7 @@ export default function Register({ onNavigateToLogin, onAuthSuccess }) {
     setLoading(true);
 
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (authError) throw authError;
+      const authData = await signUpUser(email, password, fullName, nativeLanguage, literacyLevel);
 
       if (authData?.user) {
         await createUserProfile(authData.user.id, {
@@ -80,7 +75,7 @@ export default function Register({ onNavigateToLogin, onAuthSuccess }) {
         }
       }
     } catch (err) {
-      setErrorMsg(err.message || 'An unexpected structural system error occurred.');
+      setErrorMsg(err.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -89,13 +84,10 @@ export default function Register({ onNavigateToLogin, onAuthSuccess }) {
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-white text-[#1C2D1A]">
       
-      {/* Left split pane layout panel matching image_0ecb60.jpg */}
+      {/* Left split pane layout panel */}
       <div className="relative md:w-1/2 bg-gray-900 hidden md:flex flex-col justify-end p-12 text-white overflow-hidden">
         <div className="absolute inset-0 z-0 opacity-40 mix-blend-multiply bg-black" />
         
-        {/* Visual asset background layer */}
-        <div className="absolute inset-0 z-0 bg-cover bg-center opacity-40" style={{ backgroundImage: "url('/path-to-your-book-image.jpg')" }} />
-
         <div className="relative z-10 max-w-md space-y-4">
           <h1 className="text-3xl font-black tracking-tight leading-tight">
             Your journey to literacy starts here.
@@ -106,7 +98,7 @@ export default function Register({ onNavigateToLogin, onAuthSuccess }) {
         </div>
       </div>
 
-      {/* Right form submission panel matching image_0ecb60.jpg styling */}
+      {/* Right form submission panel */}
       <div className="flex-1 flex flex-col justify-center items-center px-6 py-12 sm:px-12 md:w-1/2 bg-white">
         <div className="w-full max-w-sm space-y-6">
           
@@ -222,7 +214,7 @@ export default function Register({ onNavigateToLogin, onAuthSuccess }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full pt-3 pb-3 bg-[#1C2D1A] text-white text-xs font-bold rounded-xl hover:bg-opacity-90 transition shadow-sm disabled:opacity-50 !mt-6"
+              className="w-full pt-3 pb-3 bg-[#1C2D1A] text-white text-xs font-bold rounded-xl hover:bg-opacity-90 transition shadow-sm disabled:opacity-50 !mt-6 cursor-pointer"
             >
               {loading ? 'Creating Account...' : 'Create Account →'}
             </button>
@@ -234,7 +226,7 @@ export default function Register({ onNavigateToLogin, onAuthSuccess }) {
               Already have an account?{' '}
               <button 
                 onClick={onNavigateToLogin}
-                className="text-gray-900 font-bold hover:underline ml-0.5"
+                className="text-gray-900 font-bold hover:underline ml-0.5 cursor-pointer"
               >
                 Sign In
               </button>
