@@ -5579,6 +5579,9 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
                         onClick={() => {
                           setSelectedModalCourse(les);
                           setIsCourseModalOpen(true);
+                          setModalActiveTab('video');
+                          setNodeQuizAnswers({});
+                          setNodeQuizResult(null);
                         }}
                       >
                         <div className="flex items-center gap-4">
