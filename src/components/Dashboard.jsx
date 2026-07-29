@@ -4,6 +4,8 @@ import { updateUserProfileTable } from '../services/db';
 import { supabase } from '../services/supabase';
 import { localStories, languagePhrases } from '../data/contentMatrix';
 import PushNotificationManager from './PushNotificationManager';
+import CourseFlow from './CourseFlow';
+import { LESSON_QUIZZES, getQuizForLesson } from '../data/lessonQuizzes';
 
 // ============================================================================
 // COMMUNITY GAME INVITES: shared, lightweight list of playable games used to
@@ -4236,7 +4238,9 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
   const [weekOffset, setWeekOffset] = useState(0); // 0 = current week, -1 = last week, +1 = next week
   const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
   const [selectedModalCourse, setSelectedModalCourse] = useState(null);
-  const [modalActiveTab, setModalActiveTab] = useState('vocabulary'); // 'vocabulary' | 'tracing' | 'exercises'
+  const [modalActiveTab, setModalActiveTab] = useState('video'); // 'video' | 'quiz' | 'vocabulary' | 'tracing' | 'exercises'
+  const [nodeQuizAnswers, setNodeQuizAnswers] = useState({});
+  const [nodeQuizResult, setNodeQuizResult] = useState(null);
   const [showModalVideo, setShowModalVideo] = useState(false); // inline YouTube embed toggle
   const [isGraderOpen, setIsGraderOpen] = useState(false);
   const [graderData, setGraderData] = useState(null);
@@ -6118,10 +6122,16 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
 
             <div className="flex border-b border-gray-200 mb-6 overflow-x-auto space-x-6 scrollbar-none">
               <button 
-                onClick={() => setActiveTab('lessons')}
-                className={`pb-3 text-sm font-bold border-b-2 transition whitespace-nowrap cursor-pointer ${activeTab === 'lessons' ? 'border-[#5C67F2] text-[#5C67F2]' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                onClick={() => setActiveTab('branch')}
+                className={`pb-3 text-sm font-bold border-b-2 transition whitespace-nowrap cursor-pointer ${activeTab === 'branch' || activeTab === 'lessons' ? 'border-[#5C67F2] text-[#5C67F2]' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
               >
-                {t.tabNativeModules || '📚 Native Syllabus Modules'}
+                🗺️ Step-Wise Branch Roadmap
+              </button>
+              <button 
+                onClick={() => setActiveTab('canvas')}
+                className={`pb-3 text-sm font-bold border-b-2 transition whitespace-nowrap cursor-pointer ${activeTab === 'canvas' ? 'border-[#5C67F2] text-[#5C67F2]' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+              >
+                {t.tabNativeModules || '📚 Interactive Map Canvas'}
               </button>
               <button 
                 onClick={() => setActiveTab('quizzes')}
@@ -6137,7 +6147,25 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
               </button>
             </div>
 
-            {activeTab === 'lessons' ? (
+            {(activeTab === 'branch' || activeTab === 'lessons') ? (
+              <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
+                <CourseFlow
+                  t={t}
+                  lessons={filteredLessons.length > 0 ? filteredLessons : LOCAL_LESSONS}
+                  completedLessons={completedLessons}
+                  educationalLevel={educationalLevel}
+                  fullName={fullName}
+                  loading={lessonsLoading}
+                  onOpenLesson={(les) => {
+                    setSelectedModalCourse(les);
+                    setIsCourseModalOpen(true);
+                    setModalActiveTab('video');
+                    setNodeQuizAnswers({});
+                    setNodeQuizResult(null);
+                  }}
+                />
+              </div>
+            ) : activeTab === 'canvas' ? (
               lessonsLoading ? (
                 <div className="text-center py-10 font-bold text-xs text-gray-400 animate-pulse uppercase tracking-wider">Loading courses list...</div>
               ) : filteredLessons.length === 0 ? (
@@ -8153,20 +8181,21 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
             {/* Modal Tabs selectors */}
             <div className="flex border-b border-gray-100 gap-1 text-xs font-bold text-gray-400 overflow-x-auto">
               {[
+                { id: 'video',      label: '▶ 1. Video Lecture' },
+                { id: 'quiz',       label: '📝 2. Lecture Quiz' },
                 { id: 'vocabulary', label: 'Vocabulary' },
                 { id: 'tracing',    label: 'Tracing' },
-                { id: 'exercises',  label: 'Exercises' },
-                ...(LESSON_YOUTUBE[selectedModalCourse.lesson_id]
-                  ? [{ id: 'video', label: '▶ Video Tutorial' }]
-                  : [])
+                { id: 'exercises',  label: 'Exercises' }
               ].map(tab => (
                 <button 
                   key={tab.id}
                   onClick={() => setModalActiveTab(tab.id)}
-                  className={`pb-2 px-1 whitespace-nowrap transition cursor-pointer border-b-2 ${
+                  className={`pb-2 px-2.5 whitespace-nowrap transition cursor-pointer border-b-2 ${
                     modalActiveTab === tab.id 
                       ? tab.id === 'video'
                         ? 'border-red-500 text-red-600 font-black'
+                        : tab.id === 'quiz'
+                        ? 'border-purple-600 text-purple-700 font-black'
                         : 'border-[#5C67F2] text-[#5C67F2] font-black' 
                       : 'border-transparent hover:text-gray-600'
                   }`}
@@ -8178,8 +8207,262 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
 
             {/* Tab content wrapper */}
             <div className="flex-1 overflow-y-auto pr-1">
+
+              {/* Tab 1: Video Tutorial — embedded YouTube player & Video Lecture */}
+              {modalActiveTab === 'video' && (
+                <div className="space-y-4">
+                  {/* Step header */}
+                  <div className="flex items-center justify-between bg-[#5C67F2]/10 border border-[#5C67F2]/20 rounded-2xl p-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-full bg-[#5C67F2] text-white text-xs font-black flex items-center justify-center shrink-0">1</span>
+                      <div>
+                        <p className="text-xs font-black text-gray-900">Step 1: Watch Video Lecture</p>
+                        <p className="text-[10px] text-gray-500 font-medium">Watch the tutorial to prepare for the lecture quiz</p>
+                      </div>
+                    </div>
+                    <span className="text-[9px] font-black px-2.5 py-1 rounded-full border bg-white text-[#5C67F2] border-[#5C67F2]/30 shadow-2xs">
+                      {completedLessons.has(selectedModalCourse.lesson_id) ? '✓ Node Completed' : '🔒 Quiz Required'}
+                    </span>
+                  </div>
+
+                  {LESSON_YOUTUBE[selectedModalCourse.lesson_id] ? (() => {
+                    const watchUrl = LESSON_YOUTUBE[selectedModalCourse.lesson_id];
+                    const videoId = watchUrl.includes('v=') 
+                      ? watchUrl.split('v=')[1].split('&')[0] 
+                      : watchUrl.split('/').pop();
+                    const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
+                    return (
+                      <div className="space-y-3">
+                        <div className="relative w-full rounded-2xl overflow-hidden shadow-lg border border-gray-100 bg-black" style={{ paddingTop: '56.25%' }}>
+                          <iframe
+                            key={videoId}
+                            src={embedUrl}
+                            title={selectedModalCourse.title}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                            className="absolute inset-0 w-full h-full border-none"
+                          />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <a
+                            href={watchUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[10px] font-bold text-gray-400 hover:text-red-600 transition-colors"
+                          >
+                            Open full screen on YouTube ↗
+                          </a>
+                          <span className="text-[10px] text-gray-400 font-semibold">Video Duration: ~5 mins</span>
+                        </div>
+                      </div>
+                    );
+                  })() : (
+                    <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 text-center space-y-2">
+                      <div className="text-3xl">🎥</div>
+                      <p className="text-xs font-bold text-gray-800">Interactive Lecture Tutorial</p>
+                      <p className="text-[10px] text-gray-500 font-medium">Review the key concepts and vocabulary for {selectedModalCourse.title} before starting your lecture quiz.</p>
+                    </div>
+                  )}
+
+                  {/* Proceed to Quiz CTA */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setModalActiveTab('quiz');
+                      setNodeQuizAnswers({});
+                      setNodeQuizResult(null);
+                    }}
+                    className="w-full py-3.5 bg-gradient-to-r from-[#5C67F2] to-[#7C3AED] text-white text-xs font-black rounded-xl hover:opacity-95 transition shadow-md flex items-center justify-center gap-2 cursor-pointer mt-2"
+                  >
+                    <span>▶ Complete Video & Take Lecture Quiz</span>
+                    <span>➔</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Tab 2: Interactive Lecture Quiz */}
+              {modalActiveTab === 'quiz' && (() => {
+                const quizQuestions = getQuizForLesson(selectedModalCourse);
+                const isSubmitted = nodeQuizResult !== null;
+                const isPassed = isSubmitted && nodeQuizResult.score >= 70;
+
+                // Find next node in course track for branch progression
+                const currentTrackLessons = filteredLessons.length > 0 ? filteredLessons : LOCAL_LESSONS;
+                const currentIndexInTrack = currentTrackLessons.findIndex(l => l.lesson_id === selectedModalCourse.lesson_id);
+                const nextNodeInTrack = (currentIndexInTrack !== -1 && currentIndexInTrack + 1 < currentTrackLessons.length)
+                  ? currentTrackLessons[currentIndexInTrack + 1]
+                  : null;
+
+                return (
+                  <div className="space-y-4">
+                    {/* Header step indicator */}
+                    <div className="flex items-center justify-between bg-purple-50 border border-purple-100 rounded-2xl p-3">
+                      <div className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-full bg-purple-600 text-white text-xs font-black flex items-center justify-center shrink-0">2</span>
+                        <div>
+                          <p className="text-xs font-black text-gray-900">Step 2: Lecture Quiz ({quizQuestions.length} Questions)</p>
+                          <p className="text-[10px] text-gray-500 font-medium">Score 70%+ to complete this node & unlock the next branch!</p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-black text-purple-700 bg-white px-2.5 py-1 rounded-full border border-purple-200 shadow-2xs">
+                        Pass mark: 70%
+                      </span>
+                    </div>
+
+                    {!isSubmitted ? (
+                      <div className="space-y-4">
+                        {quizQuestions.map((q, qIdx) => {
+                          const selectedOpt = nodeQuizAnswers[qIdx];
+                          return (
+                            <div key={qIdx} className="bg-gray-50 border border-gray-200 rounded-2xl p-4 space-y-2.5">
+                              <p className="text-xs font-black text-gray-900 flex items-start gap-2">
+                                <span className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">
+                                  {qIdx + 1}
+                                </span>
+                                <span>{q.question}</span>
+                              </p>
+                              <div className="grid grid-cols-1 gap-2 pl-7">
+                                {q.options.map((opt, optIdx) => {
+                                  const isChecked = selectedOpt === optIdx;
+                                  return (
+                                    <button
+                                      key={optIdx}
+                                      type="button"
+                                      onClick={() => {
+                                        setNodeQuizAnswers(prev => ({ ...prev, [qIdx]: optIdx }));
+                                      }}
+                                      className={`w-full text-left px-3.5 py-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-between cursor-pointer ${
+                                        isChecked
+                                          ? 'bg-[#5C67F2]/10 border-[#5C67F2] text-[#5C67F2] shadow-2xs'
+                                          : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-100'
+                                      }`}
+                                    >
+                                      <span>{opt}</span>
+                                      <span className={`w-4 h-4 rounded-full border flex items-center justify-center text-[10px] ${
+                                        isChecked ? 'bg-[#5C67F2] border-[#5C67F2] text-white font-black' : 'border-gray-300'
+                                      }`}>
+                                        {isChecked ? '✓' : ''}
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            let correct = 0;
+                            quizQuestions.forEach((q, idx) => {
+                              if (nodeQuizAnswers[idx] === q.correct) correct++;
+                            });
+                            const scorePct = Math.round((correct / quizQuestions.length) * 100);
+                            const passed = scorePct >= 70;
+                            setNodeQuizResult({ score: scorePct, passed, correctCount: correct, total: quizQuestions.length });
+
+                            if (passed) {
+                              if (!completedLessons.has(selectedModalCourse.lesson_id)) {
+                                handleToggleLesson(selectedModalCourse.lesson_id);
+                              }
+                            }
+                          }}
+                          disabled={Object.keys(nodeQuizAnswers).length < quizQuestions.length}
+                          className="w-full py-3.5 bg-[#5C67F2] text-white text-xs font-black rounded-xl hover:bg-opacity-95 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                          <span>Submit Quiz for Grading</span>
+                          <span>➔</span>
+                        </button>
+                      </div>
+                    ) : (
+                      /* Quiz Result & Next Branch Node Unlock View */
+                      <div className="space-y-4 animate-pop-in">
+                        <div className={`p-5 rounded-2xl border text-center space-y-2 ${
+                          isPassed
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                            : 'bg-rose-50 border-rose-200 text-rose-900'
+                        }`}>
+                          <div className="text-4xl">{isPassed ? '🎉' : '⚠️'}</div>
+                          <h4 className="text-base font-black">
+                            {isPassed ? 'Congratulations! Quiz Passed!' : 'Quiz Not Passed'}
+                          </h4>
+                          <p className="text-2xl font-black">
+                            Score: {nodeQuizResult.score}%
+                          </p>
+                          <p className="text-xs font-medium leading-relaxed">
+                            {isPassed
+                              ? `You answered ${nodeQuizResult.correctCount} of ${nodeQuizResult.total} questions correctly! This node is marked complete and the next branch node is now unlocked.`
+                              : `You answered ${nodeQuizResult.correctCount} of ${nodeQuizResult.total} questions correctly. A minimum of 70% is required to unlock the next node.`
+                            }
+                          </p>
+                        </div>
+
+                        {/* Progression action buttons */}
+                        {isPassed ? (
+                          <div className="space-y-2.5">
+                            {nextNodeInTrack ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedModalCourse(nextNodeInTrack);
+                                  setModalActiveTab('video');
+                                  setNodeQuizAnswers({});
+                                  setNodeQuizResult(null);
+                                }}
+                                className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-black rounded-xl hover:opacity-95 transition shadow-md flex items-center justify-center gap-2 cursor-pointer animate-pulse"
+                              >
+                                <span>🚀 Proceed to Next Node: {nextNodeInTrack.title}</span>
+                                <span>➔</span>
+                              </button>
+                            ) : (
+                              <div className="bg-emerald-100 border border-emerald-200 rounded-xl p-3 text-center text-xs font-bold text-emerald-800">
+                                🏆 You have completed all nodes in this curriculum branch!
+                              </div>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsCourseModalOpen(false);
+                                setSelectedModalCourse(null);
+                              }}
+                              className="w-full py-2.5 border border-gray-200 text-xs font-bold rounded-xl hover:bg-gray-50 text-gray-700 cursor-pointer"
+                            >
+                              Close & View Branch Roadmap
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setNodeQuizAnswers({});
+                                setNodeQuizResult(null);
+                              }}
+                              className="flex-1 py-3 bg-purple-600 text-white text-xs font-bold rounded-xl hover:bg-purple-700 transition cursor-pointer"
+                            >
+                              🔄 Retry Quiz
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setModalActiveTab('video');
+                                setNodeQuizAnswers({});
+                                setNodeQuizResult(null);
+                              }}
+                              className="flex-1 py-3 bg-gray-100 border border-gray-200 text-gray-800 text-xs font-bold rounded-xl hover:bg-gray-200 transition cursor-pointer"
+                            >
+                              📺 Re-watch Video
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
               
-              {/* Tab 1: Vocabulary phrases */}
+              {/* Tab 3: Vocabulary phrases */}
               {modalActiveTab === 'vocabulary' && (
                 <div className="space-y-4">
                   <p className="text-xs text-gray-500 font-medium">Study these core native vocabulary terms and daily regional phrases:</p>
@@ -8189,7 +8472,7 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
                       { word: "कमल (Lotus flower)", definition: "Used in lesson worksheets to trace stroke sequences." },
                       { word: "नल (Tap water)", definition: "Standard phonetic two-letter daily transaction term." }
                     ].map((item, idx) => (
-                      <div key={idx} className="bg-gray-50 border border-gray-150 rounded-2xl p-4 shadow-xs/5 space-y-1">
+                      <div key={idx} className="bg-gray-50 border border-gray-150 rounded-2xl p-4 shadow-2xs space-y-1">
                         <h4 className="text-xs font-black text-gray-900">{item.word}</h4>
                         <p className="text-[10px] text-gray-500 font-semibold leading-relaxed">{item.definition}</p>
                       </div>
@@ -8198,7 +8481,7 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
                 </div>
               )}
 
-              {/* Tab 2: Tracing speller card */}
+              {/* Tab 4: Tracing speller card */}
               {modalActiveTab === 'tracing' && (
                 <div className="space-y-4 flex flex-col items-center">
                   <p className="text-xs text-gray-500 font-medium text-center">Trace the character path inside the guide box for immediate matching analysis:</p>
@@ -8229,7 +8512,7 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
                     <button 
                       onClick={clearModalCanvas}
                       disabled={!hasModalDrawn}
-                      className="flex-1 py-2 border border-gray-200 text-xs font-bold rounded-xl hover:bg-gray-50 disabled:opacity-40 transition shadow-xs cursor-pointer"
+                      className="flex-1 py-2 border border-gray-200 text-xs font-bold rounded-xl hover:bg-gray-50 disabled:opacity-40 transition shadow-2xs cursor-pointer"
                     >
                       Clear
                     </button>
@@ -8240,7 +8523,7 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
                         clearModalCanvas();
                       }}
                       disabled={!hasModalDrawn}
-                      className="flex-1 py-2 bg-[#5C67F2] text-white text-xs font-black rounded-xl hover:bg-opacity-95 disabled:opacity-40 transition shadow-xs cursor-pointer"
+                      className="flex-1 py-2 bg-[#5C67F2] text-white text-xs font-black rounded-xl hover:bg-opacity-95 disabled:opacity-40 transition shadow-2xs cursor-pointer"
                     >
                       Grader Review
                     </button>
@@ -8248,7 +8531,7 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
                 </div>
               )}
 
-              {/* Tab 3: Unlock exercises */}
+              {/* Tab 5: Unlock exercises */}
               {modalActiveTab === 'exercises' && (
                 <div className="space-y-4">
                   <p className="text-xs text-gray-500 font-medium">Unlock full immersive modules based on your placement score:</p>
@@ -8276,47 +8559,6 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
                   </div>
                 </div>
               )}
-
-              {/* Tab 4: Video Tutorial — embedded YouTube player */}
-              {modalActiveTab === 'video' && LESSON_YOUTUBE[selectedModalCourse.lesson_id] && (() => {
-                // Convert watch URL → embed URL
-                const watchUrl = LESSON_YOUTUBE[selectedModalCourse.lesson_id];
-                const videoId = watchUrl.includes('v=') 
-                  ? watchUrl.split('v=')[1].split('&')[0] 
-                  : watchUrl.split('/').pop();
-                const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
-                return (
-                  <div className="space-y-3">
-                    <p className="text-xs text-gray-500 font-medium">
-                      Watch this tutorial video for <span className="font-black text-gray-700">{selectedModalCourse.title}</span>:
-                    </p>
-                    {/* 16:9 responsive iframe wrapper */}
-                    <div className="relative w-full rounded-2xl overflow-hidden shadow-lg border border-gray-100 bg-black" style={{ paddingTop: '56.25%' }}>
-                      <iframe
-                        key={videoId}
-                        src={embedUrl}
-                        title={selectedModalCourse.title}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowFullScreen
-                        className="absolute inset-0 w-full h-full"
-                        style={{ border: 'none' }}
-                      />
-                    </div>
-                    {/* Fallback open-on-YouTube link */}
-                    <a
-                      href={watchUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-[10px] font-bold text-gray-400 hover:text-red-600 transition-colors"
-                    >
-                      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                      </svg>
-                      Open full screen on YouTube ↗
-                    </a>
-                  </div>
-                );
-              })()}
 
             </div>
           </div>

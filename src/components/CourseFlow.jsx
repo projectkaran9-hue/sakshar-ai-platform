@@ -142,9 +142,20 @@ const CourseFlow = ({
                     </h4>
                     <StatusBadge status={status} />
                   </div>
-                  <p className="text-[10px] font-bold text-gray-400 mt-1.5 uppercase tracking-wider">
-                    Lesson {idx + 1} of {total} · {LEVEL_LABELS[les.level] || les.level || 'General'}
-                  </p>
+                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      Lesson {idx + 1} of {total} · {LEVEL_LABELS[les.level] || les.level || 'General'}
+                    </p>
+                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
+                      status === 'completed' ? 'bg-green-100 text-green-700' :
+                      status === 'current' ? 'bg-purple-100 text-purple-700 animate-pulse' :
+                      'bg-gray-100 text-gray-400'
+                    }`}>
+                      {status === 'completed' ? '✓ Lecture & Quiz Passed' :
+                       status === 'current' ? '▶ Video Lecture & Quiz Required' :
+                       '🔒 Locked'}
+                    </span>
+                  </div>
                 </button>
               </div>
             );
