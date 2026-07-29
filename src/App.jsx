@@ -3142,7 +3142,38 @@ export default function App() {
                   </button>
                 </form>
 
-                <div className="relative my-10 animate-auth-field" style={{ animationDelay: '0.24s' }}>
+                {/* Instant Demo Sign In Fallback */}
+                <div className="mt-3 animate-auth-field" style={{ animationDelay: '0.21s' }}>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setIsLoading(true);
+                      setAuthError('');
+                      setTimeout(() => {
+                        const demoId = `demo-${Date.now()}`;
+                        setFullName('Sakshar Learner');
+                        setLang('english');
+                        setEducationalLevel('none');
+                        setUserId(demoId);
+                        localStorage.setItem('sakshar_demo_user', JSON.stringify({
+                          user: { id: demoId, email: 'learner@sakshar.ai' },
+                          fullName: 'Sakshar Learner',
+                          language: 'english',
+                          educationalLevel: 'none',
+                          initialAssessmentCompleted: true
+                        }));
+                        setIsLoading(false);
+                        setView('dashboard');
+                      }, 300);
+                    }}
+                    disabled={isLoading}
+                    className="w-full bg-gradient-to-r from-emerald-800 to-teal-800 text-white py-3 rounded-xl font-bold hover:opacity-95 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-md text-xs uppercase tracking-wider"
+                  >
+                    ⚡ Instant Demo Sign In (Explore Platform)
+                  </button>
+                </div>
+
+                <div className="relative my-6 animate-auth-field" style={{ animationDelay: '0.24s' }}>
                   <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
                   <div className="relative flex justify-center text-sm"><span className="px-3 bg-[#FBFBFA] text-gray-500">{t.or}</span></div>
                 </div>

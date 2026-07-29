@@ -5,7 +5,11 @@ import { supabase } from '../services/supabase';
 import { localStories, languagePhrases } from '../data/contentMatrix';
 import PushNotificationManager from './PushNotificationManager';
 import CourseFlow from './CourseFlow';
+import LessonPage from './LessonPage';
 import { LESSON_QUIZZES, getQuizForLesson } from '../data/lessonQuizzes';
+import { LESSON_YOUTUBE } from '../data/lessonVideos';
+
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
 
 // ============================================================================
 // COMMUNITY GAME INVITES: shared, lightweight list of playable games used to
@@ -156,7 +160,7 @@ function EvaluationHistoryLogs({ refreshKey, userId }) {
   const fetchHistory = async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
     try {
-      const url = userId ? `http://127.0.0.1:5000/api/analytics/history?user_id=${userId}` : 'http://127.0.0.1:5000/api/analytics/history';
+      const url = userId ? `${API_BASE_URL}/api/analytics/history?user_id=${userId}` : `${API_BASE_URL}/api/analytics/history`;
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 3000);
       const res = await fetch(url, { signal: controller.signal });
@@ -367,7 +371,7 @@ function LevelAssessmentView({ userId, level, lang, onBack, onComplete }) {
       saveHistoryToLocal(userId, 'assessment', `Literacy Quiz (${level})`, directUpdatedScore, lang);
       await logToSupabaseAssessments(userId, directUpdatedScore);
       // Try Flask in background — don't block completion
-      fetch('http://127.0.0.1:5000/api/assessment', {
+      fetch('${API_BASE_URL}/api/assessment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -503,7 +507,7 @@ function ReadingPracticeView({ lang, t, getLanguageNativeLabel, handleBack, onAs
     saveHistoryToLocal(userId, 'reading', storyTitle, vocabScore, lang);
     await logToSupabaseAssessments(userId, vocabScore);
     // Try Flask in background — don't block completion
-    fetch('http://127.0.0.1:5000/api/assessment/reading', {
+    fetch('${API_BASE_URL}/api/assessment/reading', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -723,7 +727,7 @@ function WritingPracticeView({ lang, t, getLanguageNativeLabel, handleBack, onAs
     const dataUrl = canvas.toDataURL('image/png');
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/assessment/writing', {
+      const response = await fetch('${API_BASE_URL}/api/assessment/writing', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -913,7 +917,7 @@ function SpeakingAssessmentView({ lang, t, getLanguageNativeLabel, handleBack, o
       saveHistoryToLocal(userId, 'speaking', targetPhrase.substring(0, 25), calculatedAccuracy, lang);
       await logToSupabaseAssessments(userId, calculatedAccuracy);
       // Try Flask in background — don't block completion
-      fetch('http://127.0.0.1:5000/api/voice_assessment', {
+      fetch('${API_BASE_URL}/api/voice_assessment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1028,50 +1032,6 @@ const targetLanguages = [
 ];
 
 // 20 level-specific fallback lessons matching the database structure
-// YouTube video links curated per lesson (Hindi/English literacy content)
-const LESSON_YOUTUBE = {
-  l1_vowels:        "https://youtu.be/RUSCz41aDug?si=dWyrI5DOWSZvvFD7&t=1",
-  l1_consonants:    "https://www.youtube.com/embed/VdbQR8mAmcc?autoplay=1&mute=1",
-  l1_phonetics:     "https://www.youtube.com/watch?v=xJSVrq-6-jc",
-  l1_sightwords:    "https://www.youtube.com/watch?v=YkXoHh72xrg",
-  l1_strokes:       "https://www.youtube.com/watch?v=Q_1iZgQbDl4",
-  l1_capsmall:      "https://www.youtube.com/watch?v=evVx1_h764g",
-  l1_numbers:       "https://www.youtube.com/watch?v=FvXRAnUhpGQ",
-  l1_colors:        "https://www.youtube.com/watch?v=0wJHPJGBhTU",
-  l1_shapes:        "https://www.youtube.com/watch?v=SOBCQ7pJjiA",
-  l1_daysmonths:    "https://www.youtube.com/watch?v=10yhyUT2lgA",
-  l1_weather:       "https://www.youtube.com/watch?v=he4nzgFjPk8",
-  l1_family:        "https://www.youtube.com/watch?v=24GWC1dDyUM",
-  l1_bodyparts:     "https://www.youtube.com/watch?v=G-7AMnZLOCM",
-  l1_animals:       "https://www.youtube.com/watch?v=kwGklumycWc",
-  l1_fruits:        "https://www.youtube.com/watch?v=rTYftexzl7c",
-  l1_vegetables:    "https://www.youtube.com/watch?v=LiWmzpDoHQ8",
-  l1_vehicles:      "https://www.youtube.com/watch?v=W6QrQkj8xAo",
-  l1_greetings:     "https://www.youtube.com/watch?v=ZbSZCBYKfHk",
-  l1_opposites:     "https://www.youtube.com/watch?v=ABrZ3IRoUBE",
-  l1_questionwords: "https://www.youtube.com/watch?v=mRLo96ix9pA",
-  l1_rhyming:       "https://www.youtube.com/watch?v=4PW3_LErVZk",
-  l1_emotions:      "https://www.youtube.com/watch?v=MeNY-RxDJig",
-  l1_household:     "https://www.youtube.com/watch?v=2U5KDmPtLeY",
-  l1_classroom:     "https://www.youtube.com/watch?v=UJwkR6g0H7k",
-  l1_safety:        "https://www.youtube.com/watch?v=Evb9K6U37E4",
-  l2_spelling:      "https://www.youtube.com/watch?v=9T-O4EzWhrg",
-  l2_vocab:         "https://www.youtube.com/watch?v=DUagMRtVdA4",
-  l2_reading:       "https://www.youtube.com/watch?v=ua2f9-xxgG0",
-  l2_pronounce:     "https://www.youtube.com/watch?v=kpC2FdTmjwc",
-  l2_grammar:       "https://www.youtube.com/watch?v=IaTw1ol2QJM",
-  l3_grammar:       "https://www.youtube.com/watch?v=a4SyiKqb-YA",
-  l3_reading:       "https://www.youtube.com/watch?v=xmO6dS1K2Zc",
-  l3_writing:       "https://www.youtube.com/watch?v=NM6CFQQY9SA",
-  l3_comm:          "https://www.youtube.com/watch?v=lvFd80UnUrk",
-  l3_functional:    "https://www.youtube.com/watch?v=WogJHVXW5Zs",
-  l4_comprehension: "https://www.youtube.com/watch?v=E82FnJa2Vfo",
-  l4_sentences:     "https://www.youtube.com/watch?v=A5_g-iUMbT4",
-  l4_digital:       "https://www.youtube.com/watch?v=vKauB_ui598",
-  l4_speech:        "https://www.youtube.com/watch?v=by1QAoRcc-U",
-  l4_critical:      "https://www.youtube.com/watch?v=DCln1DF0_vo",
-};
-
 const LOCAL_LESSONS = [
   // Level 1: Foundational (none) - 25 customized lessons
   { lesson_id: "l1_vowels", title: "Alphabet Basics & Vowel Sounds", level: "none" },
@@ -3711,7 +3671,7 @@ export default function Dashboard({ userId, fullName, lang, educationalLevel, ag
 
       const fetchOnboardingWelcome = async () => {
         try {
-          const res = await fetch('http://127.0.0.1:5000/api/tutor/chat', {
+          const res = await fetch('${API_BASE_URL}/api/tutor/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -3821,8 +3781,8 @@ export default function Dashboard({ userId, fullName, lang, educationalLevel, ag
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 3000);
       Promise.all([
-        fetch(`http://127.0.0.1:5000/api/lessons?level=${educationalLevel}&lang=${lang}`, { signal: controller.signal }).then(r => r.json()).catch(() => ({ success: false })),
-        fetch(`http://127.0.0.1:5000/api/progress?user_id=${userId}`, { signal: controller.signal }).then(r => r.json()).catch(() => ({ success: false }))
+        fetch(`${API_BASE_URL}/api/lessons?level=${educationalLevel}&lang=${lang}`, { signal: controller.signal }).then(r => r.json()).catch(() => ({ success: false })),
+        fetch(`${API_BASE_URL}/api/progress?user_id=${userId}`, { signal: controller.signal }).then(r => r.json()).catch(() => ({ success: false }))
       ])
         .then(([lessonsData, progressData]) => {
           clearTimeout(timeout);
@@ -3862,7 +3822,7 @@ export default function Dashboard({ userId, fullName, lang, educationalLevel, ag
         setRecReason(cachedReason || '');
       }
       // Also try Flask for fresher data
-      fetch(`http://127.0.0.1:5000/api/recommendations?user_id=${userId}`)
+      fetch(`${API_BASE_URL}/api/recommendations?user_id=${userId}`)
         .then(r => r.json())
         .then(data => {
           if (data.success && data.recommendations?.length > 0) {
@@ -3877,7 +3837,7 @@ export default function Dashboard({ userId, fullName, lang, educationalLevel, ag
   // Load History for stats calculation (with localStorage fallback when Flask is offline)
   const fetchHistoryForStats = async () => {
     try {
-      const url = userId ? `http://127.0.0.1:5000/api/analytics/history?user_id=${userId}` : 'http://127.0.0.1:5000/api/analytics/history';
+      const url = userId ? `${API_BASE_URL}/api/analytics/history?user_id=${userId}` : `${API_BASE_URL}/api/analytics/history`;
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 3000);
       const res = await fetch(url, { signal: controller.signal });
@@ -3991,7 +3951,7 @@ export default function Dashboard({ userId, fullName, lang, educationalLevel, ag
     });
 
     try {
-      await fetch('http://127.0.0.1:5000/api/progress', {
+      await fetch('${API_BASE_URL}/api/progress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -4043,7 +4003,7 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
           localStorage.setItem(`sakshar_rec_${userId}`, text);
           localStorage.setItem(`sakshar_rec_reason_${userId}`, reasonStr);
           // Also try to save to Flask in background (non-blocking)
-          fetch('http://127.0.0.1:5000/api/recommendations', {
+          fetch('${API_BASE_URL}/api/recommendations', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: userId, name: fullName, language: lang, educational_level: getEduLevelLabel(educationalLevel), recent_score: averageScore || 100 })
@@ -4058,7 +4018,7 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
 
     // Fallback: try Flask backend
     try {
-      const recRes = await fetch('http://127.0.0.1:5000/api/recommendations', {
+      const recRes = await fetch('${API_BASE_URL}/api/recommendations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -4214,6 +4174,7 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
   // States for dynamic redesigned dashboard layout
   const [currentNav, setCurrentNav] = useState('dashboard');
   const [activeLessonIndex, setActiveLessonIndex] = useState(null); // index into filteredLessons for the one-by-one lesson player
+  const [lessonPlayerReturnTo, setLessonPlayerReturnTo] = useState('foundational'); // which screen to return to when the lesson page closes
   const [searchQuery, setSearchQuery] = useState('');
   const [communityMessages, setCommunityMessages] = useState([
     { id: 1, sender: "Ramesh Kumar", text: "Just finished the alphabet tracing block — 95% accuracy! Feeling amazing 🔥", time: "Just now", avatar: "👨‍🎓" },
@@ -4631,7 +4592,7 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
     setIsTutorLoading(true);
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/tutor/chat', {
+      const response = await fetch('${API_BASE_URL}/api/tutor/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -4694,7 +4655,7 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
     setIsTutorLoading(true);
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/tutor/chat', {
+      const response = await fetch('${API_BASE_URL}/api/tutor/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -5907,6 +5868,7 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
                         className={`relative overflow-hidden bg-gradient-to-br ${theme.grad} bg-white border-2 rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 active:scale-[0.98] transition-all duration-200 flex items-center gap-4 cursor-pointer group ${isDone ? 'border-emerald-300' : theme.ring}`}
                         onClick={() => {
                           setActiveLessonIndex(idx);
+                          setLessonPlayerReturnTo('foundational');
                           setCurrentNav('lessonPlayer');
                         }}
                       >
@@ -5960,107 +5922,32 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
           )
         )}
 
-        {/* DEDICATED PAGE: ONE-BY-ONE LESSON PLAYER — plays the YouTube video for a single foundational lesson, with Next/Previous */}
-        {currentNav === 'lessonPlayer' && (
-          educationalLevel !== 'none' || activeLessonIndex === null || !filteredLessons[activeLessonIndex] ? (
+        {/* DEDICATED PAGE: ONE-BY-ONE LESSON PLAYER — video lecture + quiz + automatic mark-complete for a single lesson */}
+        {currentNav === 'lessonPlayer' && (() => {
+          const playerLessons = filteredLessons.length > 0 ? filteredLessons : LOCAL_LESSONS;
+          return activeLessonIndex === null || !playerLessons[activeLessonIndex] ? (
             <div className="flex-1 flex flex-col items-center justify-center space-y-4 animate-fade-in">
               <p className="text-sm font-bold text-gray-400">No lesson selected.</p>
               <button
-                onClick={() => setCurrentNav('foundational')}
+                onClick={() => setCurrentNav(lessonPlayerReturnTo)}
                 className="px-5 py-2.5 bg-[#1C2D1A] text-white text-xs font-black rounded-xl hover:bg-[#2c4429] transition cursor-pointer"
               >
-                ← Back to Foundational Adventure
+                ← Back
               </button>
             </div>
-          ) : (() => {
-            const les = filteredLessons[activeLessonIndex];
-            const isDone = completedLessons.has(les.lesson_id);
-            const total = filteredLessons.length;
-            const watchUrl = LESSON_YOUTUBE[les.lesson_id];
-            const videoId = watchUrl
-              ? (watchUrl.includes('v=') ? watchUrl.split('v=')[1].split('&')[0] : watchUrl.split('/').pop())
-              : null;
-            const embedUrl = videoId ? `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1` : null;
-
-            return (
-              <div className="space-y-5 overflow-y-auto pr-0 sm:pr-1 scrollbar-none animate-fade-in flex-1">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <button
-                    onClick={() => setCurrentNav('foundational')}
-                    className="text-xs font-black text-gray-400 hover:text-gray-600 transition cursor-pointer flex items-center gap-1"
-                  >
-                    ← All Foundational Lessons
-                  </button>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-[#5C67F2] bg-[#5C67F2]/10 px-3 py-1 rounded-full">
-                    Lesson {activeLessonIndex + 1} of {total}
-                  </span>
-                </div>
-
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-black text-gray-900 leading-snug">{les.title}</h2>
-                  <p className="text-xs text-gray-400 font-medium mt-1">Watch the video below, then mark it complete when you're ready for the next one.</p>
-                </div>
-
-                {embedUrl ? (
-                  <div className="relative w-full rounded-3xl overflow-hidden shadow-lg border border-gray-100 bg-black" style={{ paddingTop: '56.25%' }}>
-                    <iframe
-                      key={videoId}
-                      src={embedUrl}
-                      title={les.title}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                      className="absolute inset-0 w-full h-full"
-                      style={{ border: 'none' }}
-                    />
-                  </div>
-                ) : (
-                  <div className="text-center py-10 font-medium text-xs text-gray-400 border border-dashed border-gray-100 p-6 rounded-2xl bg-[#FBFBFA]">No video linked for this lesson yet.</div>
-                )}
-
-                {watchUrl && (
-                  <a
-                    href={watchUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-[10px] font-bold text-gray-400 hover:text-red-600 transition-colors"
-                  >
-                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                    </svg>
-                    Open full screen on YouTube ↗
-                  </a>
-                )}
-
-                {/* Mark complete + Prev/Next controls */}
-                <div className="flex items-center justify-between flex-wrap gap-3 pt-2 border-t border-gray-100">
-                  <button
-                    onClick={() => handleToggleLesson(les.lesson_id)}
-                    className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer ${isDone ? 'bg-gradient-to-br from-yellow-300 to-amber-400 text-white shadow-md' : 'bg-white border-2 border-dashed border-gray-200 text-gray-400 hover:border-amber-300 hover:text-amber-500'}`}
-                  >
-                    ⭐ {isDone ? 'Completed!' : 'Mark as complete'}
-                  </button>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setActiveLessonIndex(i => Math.max(0, i - 1))}
-                      disabled={activeLessonIndex === 0}
-                      className="px-4 py-2.5 rounded-xl text-xs font-black bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
-                    >
-                      ← Previous
-                    </button>
-                    <button
-                      onClick={() => setActiveLessonIndex(i => Math.min(total - 1, i + 1))}
-                      disabled={activeLessonIndex >= total - 1}
-                      className="px-4 py-2.5 rounded-xl text-xs font-black bg-[#5C67F2] text-white hover:bg-[#4E56D1] disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
-                    >
-                      Next Lesson →
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })()
-        )}
+          ) : (
+            <LessonPage
+              lessons={playerLessons}
+              activeIndex={activeLessonIndex}
+              completedLessons={completedLessons}
+              onComplete={(lessonId) => {
+                if (!completedLessons.has(lessonId)) handleToggleLesson(lessonId);
+              }}
+              onNavigateIndex={(idx) => setActiveLessonIndex(idx)}
+              onBack={() => setCurrentNav(lessonPlayerReturnTo)}
+            />
+          );
+        })()}
 
         {/* TABS B: MY CLASS / PEER LEADERBOARD */}
         {currentNav === 'leaderboard' && (
@@ -6160,11 +6047,11 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
                   fullName={fullName}
                   loading={lessonsLoading}
                   onOpenLesson={(les) => {
-                    setSelectedModalCourse(les);
-                    setIsCourseModalOpen(true);
-                    setModalActiveTab('video');
-                    setNodeQuizAnswers({});
-                    setNodeQuizResult(null);
+                    const trackLessons = filteredLessons.length > 0 ? filteredLessons : LOCAL_LESSONS;
+                    const idx = trackLessons.findIndex(l => l.lesson_id === les.lesson_id);
+                    setActiveLessonIndex(idx !== -1 ? idx : 0);
+                    setLessonPlayerReturnTo('courses');
+                    setCurrentNav('lessonPlayer');
                   }}
                 />
               </div>
@@ -6237,6 +6124,7 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
                         {filteredLessons.map((les, i) => {
                           const isDone = completedLessons.has(les.lesson_id);
                           const isCurrent = i === firstIncompleteIdx;
+                          const isLocked = !isDone && !isCurrent;
                           const lv = levelColors[les.level] || levelColors.none;
                           const p = pts[i];
                           return (
@@ -6253,17 +6141,21 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    setSelectedModalCourse(les);
-                                    setIsCourseModalOpen(true);
+                                    if (isLocked) return;
+                                    setActiveLessonIndex(i);
+                                    setLessonPlayerReturnTo('courses');
+                                    setCurrentNav('lessonPlayer');
                                   }}
-                                  className={`relative w-16 h-16 rounded-full flex items-center justify-center text-xl font-black shadow-md border-4 border-white transition-all duration-200 cursor-pointer hover:scale-110 active:scale-95 ${isCurrent ? 'ring-4' : ''}`}
+                                  disabled={isLocked}
+                                  title={isLocked ? 'Complete the previous node to unlock this lesson' : undefined}
+                                  className={`relative w-16 h-16 rounded-full flex items-center justify-center text-xl font-black shadow-md border-4 border-white transition-all duration-200 ${isLocked ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:scale-110 active:scale-95'} ${isCurrent ? 'ring-4' : ''}`}
                                   style={{
                                     background: isDone ? '#059669' : isCurrent ? lv.bg : '#E5E7EB',
                                     color: isDone || isCurrent ? '#fff' : '#9CA3AF',
                                     ringColor: isCurrent ? `${lv.ring}33` : 'transparent',
                                   }}
                                 >
-                                  {isDone ? '✓' : i + 1}
+                                  {isDone ? '✓' : isLocked ? '🔒' : i + 1}
                                 </button>
 
                                 {/* Mark-complete toggle badge */}
@@ -6283,10 +6175,12 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
                               {/* Label chip */}
                               <div
                                 onClick={() => {
-                                  setSelectedModalCourse(les);
-                                  setIsCourseModalOpen(true);
+                                  if (isLocked) return;
+                                  setActiveLessonIndex(i);
+                                  setLessonPlayerReturnTo('courses');
+                                  setCurrentNav('lessonPlayer');
                                 }}
-                                className="mt-2.5 bg-white border border-gray-100 rounded-xl px-3 py-2 shadow-xs hover:shadow-md hover:border-gray-200 transition-all duration-200 cursor-pointer text-center w-full"
+                                className={`mt-2.5 bg-white border border-gray-100 rounded-xl px-3 py-2 shadow-xs transition-all duration-200 text-center w-full ${isLocked ? 'opacity-60 cursor-not-allowed' : 'hover:shadow-md hover:border-gray-200 cursor-pointer'}`}
                               >
                                 <span
                                   className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded"
@@ -6295,7 +6189,7 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
                                   {lv.tag}
                                 </span>
                                 <p className="text-xs font-extrabold text-gray-900 mt-1 leading-snug line-clamp-2">{les.title}</p>
-                                {LESSON_YOUTUBE[les.lesson_id] && (
+                                {LESSON_YOUTUBE[les.lesson_id] && !isLocked && (
                                   <a
                                     href={LESSON_YOUTUBE[les.lesson_id]}
                                     target="_blank"
