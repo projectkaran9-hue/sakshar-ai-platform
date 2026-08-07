@@ -1,18 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl     = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || import.meta.env.SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.SUPABASE_PUBLISHABLE_KEY;
 
-// Guard: if env vars are missing (e.g. Vercel env not configured),
-// create a dummy client that won't crash the app at module load time.
-// Auth calls will simply fail gracefully rather than white-screening.
-const safeUrl  = supabaseUrl  || 'https://placeholder.supabase.co';
-const safeKey  = supabaseAnonKey || 'placeholder-anon-key';
+export const isSupabaseConfigured = Boolean(
+  supabaseUrl &&
+  supabaseAnonKey &&
+  supabaseUrl !== 'https://placeholder.supabase.co' &&
+  !supabaseUrl.includes('placeholder.supabase.co') &&
+  supabaseAnonKey !== 'placeholder-anon-key'
+);
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error(
-    '[Supabase] Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY.\n' +
-    'Add them to your Vercel project settings under Environment Variables.'
+const safeUrl  = isSupabaseConfigured ? supabaseUrl : 'https://placeholder.supabase.co';
+const safeKey  = isSupabaseConfigured ? supabaseAnonKey : 'placeholder-anon-key';
+
+if (!isSupabaseConfigured) {
+  console.info(
+    '[Sakshar AI] Local Mode active. VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY not set.\n' +
+    'To enable real-time cloud database syncing, add your Supabase credentials to your Vercel Environment Variables.'
   );
 }
 

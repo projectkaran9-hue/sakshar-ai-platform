@@ -1,6 +1,7 @@
 import Dashboard from './components/Dashboard';
 import InitialAssessment from './components/InitialAssessment';
 import Premium from './components/Premium';
+import AdminDashboard from './components/AdminDashboard';
 import SplashScreen from './components/SplashScreen';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -96,7 +97,39 @@ const translations = {
     speakingSubMiddle: "Deliver conversational structural segments into the automatic speech parser.",
     readingSubHigh: "Engage with analytical text structures, modern digital literacy items, and summaries.",
     writingSubHigh: "Draft continuous sentences and freeform communication strings.",
-    speakingSubHigh: "Execute complex phrase structures for high-accuracy articulation assessments."
+    speakingSubHigh: "Execute complex phrase structures for high-accuracy articulation assessments.",
+    aiCompanionBadge: "The AI Literacy Companion",
+    landingTitleLine1: "Empowering Literacy",
+    landingTitleLine2: "Through AI Intelligence",
+    navApproach: "Approach",
+    navFeatures: "Features",
+    navImpact: "Impact",
+    tryLiveDemo: "Try Live Demo",
+    analyzeBtn: "Analyze",
+    clearBtn: "Clear",
+    voiceDetectorLabel: "AI Voice Language Selector",
+    voiceListeningPrompt: "Speak now in your mother tongue…",
+    voiceInviteText: "Click the mic and speak a few words in your language — we'll detect it instantly.",
+    drawInsideBox: "Draw inside the box",
+    literacyGapTitle: "The literacy gap is human",
+    literacyGapBody: "Millions of adults speak fluently but were never taught to read or write. That's not a technology problem — it's a human one to design for, with patience and dignity.",
+    oneSizeFitsTitle: "One size fits no one",
+    oneSizeFitsBody: "Traditional classes assume a starting point. Sakshar begins with a short assessment and shapes a path that adapts to the learner's own pace, language and level.",
+    aiListensTitle: "AI that listens back",
+    aiListensBody: "Real-time pronunciation feedback, character tracing and applied reasoning turn passive lessons into a two-way conversation — patient, private and always available.",
+    fluencyMotherTitle: "Fluency in the mother tongue",
+    fluencyMotherBody: "Learning lands deepest in the language you dream in. Sakshar teaches across 20+ Indian regional languages, detecting your voice from the very first tap.",
+    ourApproachBadge: "Our Approach",
+    whyWeBuiltTitle: "Why we built",
+    whyWeBuiltHighlight: "Sakshar",
+    approachSubtitle: "Four beliefs that shape every lesson, every prompt and every line of feedback on the platform.",
+    thePlatformBadge: "The Platform",
+    platformTitle: "A classroom that adapts to every learner",
+    platformSubtitle: "Three intelligent modules work together to build reading, writing and speaking — one confident step at a time.",
+    impactBadge: "Real Impact",
+    impactTitle: "Built for those left behind by traditional education",
+    impactSubtitle: "Every feature is designed with first-generation learners at the centre.",
+    footerTagline: "AI-powered literacy for every Indian learner."
   },
   hindi: {
     home: "होम", signIn: "साइन इन करें", createAccount: "खाता बनाएं", welcomeBack: "आपका स्वागत है",
@@ -184,12 +217,99 @@ const translations = {
     speakingSubMiddle: "स्वचालित वाक् पहचान में संवादात्मक अंश बोलें।",
     readingSubHigh: "विश्लेषणात्मक पाठ संरचनाओं, डिजिटल साक्षरता और सारांशों से जुड़ें।",
     writingSubHigh: "निरंतर वाक्य और स्वतंत्र संचार लेख तैयार करें।",
-    speakingSubHigh: "उच्च-सटीकता उच्चारण मूल्यांकन हेतु जटिल वाक्यांश बोलें।"
+    speakingSubHigh: "उच्च-सटीकता उच्चारण मूल्यांकन हेतु जटिल वाक्यांश बोलें।",
+    aiCompanionBadge: "एआई साक्षरता साथी", landingTitleLine1: "साक्षरता को सशक्त बनाना",
+    landingTitleLine2: "एआई बुद्धिमत्ता", navApproach: "दृष्टिकोण", navFeatures: "विशेषताएं",
+    navImpact: "प्रभाव", tryLiveDemo: "लाइव डेमो आज़माएं", analyzeBtn: "विश्लेषण करें",
+    clearBtn: "साफ़ करें", voiceDetectorLabel: "एआई आवाज़ भाषा चयनकर्ता",
+    voiceListeningPrompt: "अब अपनी मातृभाषा में बोलें…",
+    voiceInviteText: "माइक दबाएं और अपनी भाषा में कुछ शब्द बोलें — हम तुरंत पहचान लेंगे।",
+    drawInsideBox: "बॉक्स के अंदर लिखें",
+    literacyGapTitle: "साक्षरता की खाई मानवीय है", literacyGapBody: "लाखों वयस्क धाराप्रवाह बोलते हैं लेकिन कभी पढ़ना या लिखना नहीं सीखा। यह एक मानवीय समस्या है जिसे धैर्य और गरिमा के साथ हल करना है।",
+    oneSizeFitsTitle: "एक ही आकार किसी के लिए नहीं", oneSizeFitsBody: "पारंपरिक कक्षाएं एक शुरुआती बिंदु मान लेती हैं। सक्षर एक लघु मूल्यांकन से शुरू होता है और शिक्षार्थी की गति और स्तर के अनुसार रास्ता बनाता है।",
+    aiListensTitle: "एआई जो वापस सुनता है", aiListensBody: "वास्तविक समय उच्चारण फीडबैक, अक्षर ट्रेसिंग और तर्क आधारित शिक्षण निष्क्रिय पाठों को द्विपक्षीय बातचीत में बदल देते हैं।",
+    fluencyMotherTitle: "मातृभाषा में प्रवाह", fluencyMotherBody: "सीखना उसी भाषा में गहराई से उतरता है जिसमें आप सपने देखते हैं। सक्षर 20+ भारतीय भाषाओं में सिखाता है।",
+    ourApproachBadge: "हमारा दृष्टिकोण", whyWeBuiltTitle: "हमने क्यों बनाया", whyWeBuiltHighlight: "सक्षर",
+    approachSubtitle: "चार विश्वास जो प्लेटफ़ॉर्म के हर पाठ, हर प्रॉम्प्ट और हर फ़ीडबैक को आकार देते हैं।",
+    thePlatformBadge: "प्लेटफ़ॉर्म", platformTitle: "एक कक्षा जो हर शिक्षार्थी के अनुसार ढलती है",
+    platformSubtitle: "तीन बुद्धिमान मॉड्यूल मिलकर पढ़ने, लिखने और बोलने का निर्माण करते हैं।",
+    impactBadge: "वास्तविक प्रभाव", impactTitle: "उन लोगों के लिए बनाया जिन्हें पारंपरिक शिक्षा ने पीछे छोड़ दिया",
+    impactSubtitle: "हर सुविधा पहली पीढ़ी के शिक्षार्थियों को केंद्र में रखकर बनाई गई है।",
+    footerTagline: "हर भारतीय शिक्षार्थी के लिए एआई-संचालित साक्षरता।",
+    exitBtn: "बाहर निकलें",
+    backBtn: "वापस",
+    exitAssessmentTitle: "मूल्यांकन से बाहर निकलें",
+    initialAssessmentLabel: "प्रारंभिक प्लेसमेंट मूल्यांकन",
+    section1Reading: "खंड 1 का 4 (पठन)",
+    section2Writing: "खंड 2 का 4 (लेखन)",
+    section3Speaking: "खंड 3 का 4 (वाचन)",
+    section4Reasoning: "खंड 4 का 4 (तर्क क्षमता)",
+    secReading: "पठन",
+    secWriting: "लेखन",
+    secSpeaking: "वाचन",
+    secReasoning: "तर्क क्षमता",
+    secReadingTitle: "खंड 1: पठन कौशल",
+    secWritingTitle: "खंड 2: लेखन कौशल",
+    secSpeakingTitle: "खंड 3: वाचन एवं उच्चारण कौशल",
+    secReasoningTitle: "खंड 4: व्यावहारिक तर्क क्षमता",
+    readingInst: "नीचे दिए गए पाठ को ध्यान से पढ़ें, फिर प्रश्न का उत्तर दें।",
+    writingInst: "नीचे दिए गए कैनवास बॉक्स में लिखें।",
+    drawEnvelopeInst: "नीचे दिए गए कैनवास बॉक्स में लिखें।",
+    targetWordLabel: "लक्ष्य शब्द",
+    drawHerePrompt: "यहाँ लिखें",
+    clearCanvasBtn: "कैनवास साफ़ करें",
+    analyzingState: "विश्लेषण हो रहा है...",
+    speakingInst: "रिकॉर्डिंग के लिए माइक्रोफ़ोन दबाएं।",
+    readAloudHeader: "जोर से पढ़ें",
+    listeningPrompt: "आपकी आवाज़ सुनी जा रही है...",
+    clickToRecordPrompt: "माइक दबाएं और बोलें",
+    weHeardLabel: "हमने सुना:",
+    accuracyLabel: "सटीकता:",
+    reasoningInst: "नीचे दी गई स्थिति पढ़ें, फिर सही विकल्प चुनें।",
+    realLifeSituationHeader: "व्यावहारिक स्थिति",
+    startAssessmentBtn: "मूल्यांकन शुरू करें →",
+    nextQuestionBtn: "अगला प्रश्न →",
+    submitSectionBtn: "खंड जमा करें और आगे बढ़ें →",
+    finishAssessmentBtn: "मूल्यांकन पूरा करें और परिणाम देखें →",
+    assessmentSummaryTitle: "मूल्यांकन सारांश",
+    overallCompetencyLabel: "कुल योग्यता",
+    dynamicCourseAssigned: "आवंटित पाठ्यक्रम स्तर:",
+    courseAssignedDesc: "आपके स्कोर के आधार पर व्यक्तिगत पाठ्यक्रम तैयार किया गया है।",
+    aiEvaluationReport: "एआई मूल्यांकन रिपोर्ट",
+    engineVersion: "साक्षर एआई इंजन v2 · विस्तृत विश्लेषण",
+    aiVerdictHeader: "एआई निष्कर्ष",
+    skillBreakdown: "कौशल विश्लेषण",
+    topStrength: "मुख्य ताकत",
+    focusArea: "सुधार का क्षेत्र",
+    overallScoreLabel: "कुल स्कोर",
+    aiInsightsLabel: "एआई विश्लेषण",
+    cognitiveStyleLabel: "सीखने की शैली",
+    paceEstimateLabel: "सीखने की गति",
+    estimatedMasteryLabel: "अनुमानित समय",
+    recommendedPathLabel: "अनुशंसित अध्ययन मार्ग",
+    verifiedBadge: "सत्यापित",
+    enterDashboardBtn: "प्रोफ़ाइल सहेजें और डैशबोर्ड में प्रवेश करें →",
+    exitModalTitle: "क्या आप प्रारंभिक मूल्यांकन छोड़ना चाहते हैं?",
+    exitModalDesc: "आपकी वर्तमान प्रगति मिट जाएगी। क्या आप बाहर निकलना चाहते हैं?",
+    cancelBtn: "रद्द करें",
+    yesExitBtn: "हाँ, बाहर निकलें",
+    liveSandboxBadge: "लाइव एआई सैंडबॉक्स",
+    liveSandboxTitle: "अक्षर अनुरेखण का परीक्षण करें",
+    selectScriptProfile: "स्क्रिप्ट प्रोफ़ाइल चुनें:",
+    drawInsideBoxPrompt: "बॉक्स के अंदर लिखें",
+    accuracyMatch: "सटीकता मिलान",
+    aiVerified: "एआई द्वारा सत्यापित",
+    beginYourJourney: "अपनी यात्रा शुरू करें",
+    everyWordLearned: "आपके द्वारा सीखा गया हर शब्द",
+    opensADoor: "एक नया दरवाजा खोलता है।",
+    getStartedFree: "मुफ्त में शुरू करें",
+    watchDemo: "डेमो देखें"
   },
   telugu: {
     home: "హోమ్", signIn: "సైన్ ఇన్ చేయండి", createAccount: "ఖాతాను సృష్టించండి", welcomeBack: "తిరిగి స్వాగతం",
     signInSub: "మీ అభ్యాస ప్రయాణాన్ని కొనసాగించడానికి సైన్ ఇన్ చేయండి.", email: "✉️ ఇమెయిల్ చిరునామా", password: "🔒 పాస్‌వర్డ్", fullName: "👤 పూర్తి పేరు", or: "లేదా",
     googleSignIn: "గూగుల్‌తో కొనసాగండి", newHere: "ఇక్కడ కొత్తవారా?", alreadyHaveAccount: "ఇప్పటికే खाता ఉందా?", landingTitle: "AI ద్వారా అักษరాస్యత సాధికారత",
+    landingTitleLine1: "అక్షరాస్యత సాధికారత", landingTitleLine2: "AI మేధస్సు ద్వారా",
     landingSub: "ప్రాంతীয় భాషలలో ప్రాథమిక పఠనం, రాయడం మరియు మాట్లాడే నైపుణ్యాలను పొందడంలో పెద్దలు మరియు మొదటి తരം అభ్యాసకులకు సహాయపడటానికి రూపొందించబడిన వ్యక్తిగతీకరించిన అభ్యాస సహచరుడు.",
     getStarted: "ప్రారంభించండి", registerTitle: "మీ ఖాతాన్ని సృష్టించండి", registerSub: "మా సంఘంలో చేరండి మరియు మీ అభ్యాస పరిధులను విస్తృతం చేసుకోండి.",
     languageLabel: "🌐 ఇష్టపడే మాతృభాష", registerLeftTitle: "మీ అักษరాస్యత ప్రయాణం ఇక్కడే ప్రారంభమవుతుంది.",
@@ -278,6 +398,7 @@ const translations = {
     home: "ਹੋਮ", signIn: "ਸਾਈਨ ਇਨ", createAccount: "ਖਾਤਾ ਬਣਾਓ", welcomeBack: "ਜੀ ਆਇਆਂ ਨੂੰ",
     signInSub: "ਆਪਣੀ ਸਿੱਖਣ ਦੀ ਯਾਤਰਾ ਜਾਰੀ ਰੱਖਣ ਲਈ ਸਾਈਨ ਇਨ ਕਰੋ।", email: "✉️ ਈਮੇਲ ਪਤਾ", password: "🔒 ਪਾਸਵਰਡ", fullName: "👤 ਪੂਰਾ ਨਾਮ", or: "ਜਾਂ",
     googleSignIn: "ਗੂਗਲ ਨਾਲ ਜਾਰੀ ਰੱਖੋ", newHere: "ਇੱਥੇ ਨਵੇਂ ਹੋ?", alreadyHaveAccount: "ਖਾਤਾ ਹੈਗਾ ਹੈ?", landingTitle: "ਵਿਅਕਤੀਗਤ AI ਰਾਹੀਂ ਸਾਖਰਤਾ ਦਾ ਸਸ਼ਕਤੀਕਰਨ",
+    landingTitleLine1: "ਸਾਖਰਤਾ ਦਾ ਸਸ਼ਕਤੀਕਰਨ", landingTitleLine2: "AI ਬੁੱਧੀ ਰਾਹੀਂ",
     landingSub: "ਇੱਕ ਅਨੁਕੂਲ ਸਿੱਖਣ ਪਲੇਟਫਾਰਮ ਜੋ ਬਾਲਗਾਂ ਅਤੇ ਪਹਿਲੀ ਪੀੜ੍ਹੀ ਦੇ ਸਿੱਖਣ ਵਾਲਿਆਂ ਨੂੰ ਉਹਨਾਂ ਦੀਆਂ ਖੇਤਰੀ ਮਾਤ੍ਰਭਾਸ਼ਾਵਾਂ ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਮੁਢਲੀ ਪੜ੍ਹਨ, ਲਿਖਣ ਅਤੇ ਬੋਲਣ ਦਾ ਵਿਸ਼ਵਾਸ ਹਾਸਲ ਕਰਨ ਵਿੱਚ ਮਦਦ ਕਰਦਾ ਹੈ।",
     getStarted: "ਸ਼ੁਰੂ ਕਰੋ", registerTitle: "ਆਪਣੀ ਪ੍ਰੋਫਾਈਲ ਬਣਾਓ", registerSub: "ਸਾਡੇ ਭਾਈਚਾਰੇ ਵਿੱਚ ਸਭਲ ਹੋਵੋ ਅਤੇ ਆਪਣੇ ਸਿੱਖਣ ਦੇ ਦਾਇਰੇ ਦਾ ਵਿਸਤਾਰ ਕਰੋ।",
     languageLabel: "🌐 ਪਸੰਦੀਦਾ ਮਾਤਭਾਸ਼ਾ", registerLeftTitle: "ਤੁਹਾਡੀ ਸਾਖਰਤਾ ਦੀ ਯਾਤਰਾ ਇੱਥੋਂ ਸੁਰੂ ਹੁੰਦੀ ਹੈ।",
@@ -366,6 +487,7 @@ const translations = {
     home: "হোম", signIn: "সাইন ইন", createAccount: "অ্যাকাউন্ট তৈরি করুন", welcomeBack: "স্বাগতম",
     signInSub: "আপনার শেখার যাত্রা চালিয়ে যেতে সাইন ইন করুন।", email: "✉️ ইমেল ঠিকানা", password: "🔒 পাসওয়ার্ড", fullName: "👤 পুরো নাম", or: "অথবা",
     googleSignIn: "গুগল এর সাথে এগিয়ে যান", newHere: "এখানে নতুন?", alreadyHaveAccount: "ইতিমধ্যে অ্যাকাউন্ট আছে?", landingTitle: "এআই এর মাধ্যমে সাক্ষরতার ক্ষমতায়ন",
+    landingTitleLine1: "সাক্ষরতার ক্ষমতায়ন", landingTitleLine2: "AI বুদ্ধিমত্তার মাধ্যমে",
     landingSub: "একটি ব্যক্তিগতকৃত শেখার সঙ্গী যা প্রাপ্তবয়স্ক এবং প্রথম প্রজন্মের শিক্ষার্থীদের আঞ্চলিক ভাষায় মৌলিক পড়া, লেখা এবং বলার দক্ষতা অর্জন করতে সহায়তা করার জন্য ডিজাইন করা হয়েছে।",
     getStarted: "শুরু করুন", registerTitle: "আপনার অ্যাকাউন্ট তৈরি করুন", registerSub: "আমাদের সম্প্রদায়ে যোগ দিন এবং আপনার শেখার দিগন্ত প্রসারসার করুন।",
     languageLabel: "🌐 পছন্দের মাতৃভাষা", registerLeftTitle: "আপনার সাক্ষরতার যাত্রা এখানেই শুরু।",
@@ -454,6 +576,7 @@ const translations = {
     home: "होम", signIn: "साइन इन", createAccount: "खाते तयार करा", welcomeBack: "स्वागत आहे",
     signInSub: "तुमचा शिकण्याचा प्रवास सुरू ठेवण्यासाठी साइन इन करा.", email: "✉️ ईमेल पत्ता", password: "🔒 पासवर्ड", fullName: "👤 पूर्ण नाव", or: "किंवा",
     googleSignIn: "गुगलसह आगेकूच", newHere: "नवीन आहात?", alreadyHaveAccount: "आधीच खाते आहे का?", landingTitle: "एआई द्वारे साक्षरतेचे सक्षमीकरण",
+    landingTitleLine1: "साक्षरता सक्षमीकरण", landingTitleLine2: "एआई बुद्धिमत्तेद्वारे",
     landingSub: "एक वैयक्तिकृत शिक्षण सोबती जो प्रौढ आणि पहिल्या पिढीतील शिकणाऱ्यांना प्रादेशिक भाषांमध्ये मूलभूत वाचन, लेखन आणि बोलण्याचे कौशल्य आत्मसात करण्यास मदत करण्यासाठी डिझाइन केलेले है.",
     getStarted: "सुरू करा", registerTitle: "तुमचे खाते तयार करा", registerSub: "आमच्या समुदायात सामील व्हा आणि तुमच्या शिकण्याच्या कक्षा रुंदावा.",
     languageLabel: "🌐 पसंतीची मातृभाषा", registerLeftTitle: "तुमचा साक्षरतेचा प्रवास इथून सुरू होतो.",
@@ -542,6 +665,7 @@ const translations = {
     home: "முகப்பு", signIn: "உள்நுழை", createAccount: "கணக்கை உருவாக்கு", welcomeBack: "நல்வரவு",
     signInSub: "உங்கள் கற்றல் பயணத்தைத் தொடர உள்நுழையவும்.", email: "✉️ மின்னஞ்சல் முகவரி", password: "🔒 கடவுச்சொல்", fullName: "👤 முழு பெயர்", or: "அல்லது",
     googleSignIn: "கூகிள் மூலம் தொடரவும்", newHere: "புதியவரா?", alreadyHaveAccount: "ஏற்கனவே கணக்கு உள்ளதா?", landingTitle: "AI மூலம் எழுத்தறிவு மேம்பாடு",
+    landingTitleLine1: "எழுத்தறிவு மேம்பாடு", landingTitleLine2: "AI நுண்ணறிவின் மூலம்",
     landingSub: "பெரியவர்கள் மற்றும் முதல் தலைமுறை கற்பவர்கள் பிராந்திய மொழிகளில் அடிப்படை வாசிப்பு, எழுதுதல் மற்றும் பேசும் திறன்களைப் பெற உதவும் வகையில் வடிவமைக்கப்பட்ட தனிப்பயனாக்கப்பட்ட கற்றல் துணை.",
     getStarted: "தொடங்குங்கள்", registerTitle: "உங்கள் கணக்கை உருவாக்கவும்", registerSub: "எங்கள் சமூகத்தில் இணைந்து உங்கள் கற்றல் எல்லையை விரிவுபடுத்துங்கள்.",
     languageLabel: "🌐 விருப்பமான தாய்மொழி", registerLeftTitle: "உங்கள் எழுத்தறிவு பயணம் இங்கே தொடங்குகிறது.",
@@ -630,6 +754,7 @@ const translations = {
     home: "હોм", signIn: "સાઇન ઇન", createAccount: "ખાતું બનાવો", welcomeBack: "સ્વાગત છે",
     signInSub: "તમારી શીખવાની યાત્રા ਚਾਲੂ રાખવા માટે સાઇન ઇન કરો.", email: "✉️ ઇમેઇલ સરનામું", password: "🔒 પાસવર્ડ", fullName: "👤 પૂરું નામ", or: "અથવા",
     googleSignIn: "ગુગલ સાથે ચાલુ રાખો", newHere: "અહીં નવા છો?", alreadyHaveAccount: "પહેલેથી ખાતું છે?", landingTitle: "AI દ્વારા સાક્ષરતા સશક્તિકરણ",
+    landingTitleLine1: "સાક્ષરતા સશક્તિકરણ", landingTitleLine2: "AI બુદ્ધિ દ્વારા",
     landingSub: "એક વ્યક્તિગત શિક્ષણ સાથી જે પુખ્ત વયના લોકો અને પ્રથમ પેઢીના શીખનારાઓને પ્રાદેશિક ભાષાઓમાં પાયાના વાંચન, લેખન અને બોલવાના કૌશલ્યો પ્રાપ્ત કરવામાં મદદ કરવા માટે રચાયેલ છે.",
     getStarted: "શરૂ કરો", registerTitle: "તમારું ખાતું બનાવો", registerSub: "અમારા સમુદાયમાં જોડાઓ અને તમારી શીખવાની ક્ષિતિજોનો વિસ્તાર કરો.",
     languageLabel: "🌐 પસંદગીની માતૃભાષા", registerLeftTitle: "તમારી સાક્ષરતાની સફર અહીંથી શરૂ થાય છે.",
@@ -718,6 +843,7 @@ const translations = {
     home: "ಹೋಮ್", signIn: "ಸೈನ್ ಇನ್", createAccount: "ಖಾತೆ ರಚಿಸಿ", welcomeBack: "ಸ್ವಾಗತ",
     signInSub: "ನಿಮ್ಮ ಕಲಿಕೆಯ ಪ್ರಯಾಣವನ್ನು ಮುಂದುವರಿಸಲು ಸೈನ್ ಇನ್ ಮಾಡಿ.", email: "✉️ ಇಮೇಲ್ ವಿಳಾಸ", password: "🔒 ಪಾಸ್‌ವರ್ಡ್", fullName: "👤 ಪೂರ್ಣ ಹೆಸರು", or: "ಅಥವಾ",
     googleSignIn: "ಗೂಗಲ್‌ನೊಂದಿಗೆ ಮುಂದುವರಿಯಿರಿ", newHere: "ಇಲ್ಲಿ ಹೊಸಬರೇ?", alreadyHaveAccount: "ಈಗಾಗಲೇ ಖಾತೆ ಹೊಂದಿದ್ದೀರಾ?", landingTitle: "AI ಮೂಲಕ ಸಾಕ್ಷರತೆಯ ಸಬಲೀಕರಣ",
+    landingTitleLine1: "ಸಾಕ್ಷರತೆಯ ಸಬಲೀಕರಣ", landingTitleLine2: "AI ಬುದ್ಧಿಮತ್ತೆ ಮೂಲಕ",
     landingSub: "ವಯಸ್ಕರು ಮತ್ತು ಮೊದಲ ತಲೆಮಾರಿನ ಕಲಿಯುವವರಿಗೆ ಪ್ರಾದೇಶಿಕ ಭಾಷೆಗಳಲ್ಲಿ ಮೂಲಭೂತ ಓದುವಿಕೆ, ಬರವಣಿಗೆ ಮತ್ತು ಮಾತನಾಡುವ ಕೌಶಲ್ಯಗಳನ್ನು ಪಡೆಯಲು ಸಹಾಯ ಮಾಡಲು ವಿನ್ಯಾಸಗೊಳಿಸಲಾದ ವೈಯಕ್ಕೀಕರಿಸಿದ ಕಲಿಕೆಯ ಒಡನಾಡಿ.",
     getStarted: "ಪ್ರಾರಂಭಿಸಿ", registerTitle: "ನಿಮ್ಮ ಖಾತೆಯನ್ನು ರಚಿಸಿ", registerSub: "ನಮ್ಮ ಸಮುದಾಯಕ್ಕೆ ಸೇರಿ ಮತ್ತು ನಿಮ್ಮ ಕಲಿಕೆಯ ಪರಿಧಿಯನ್ನು ವಿಸ್ತರಿಸಿ.",
     languageLabel: "🌐 ಆದ್ಯತೆಯ ಮಾತೃಭಾಷೆ", registerLeftTitle: "ನಿಮ್ಮ ಸಾಕ್ಷರತೆಯ ಪ್ರಯಾಣ ಇಲ್ಲಿಂದ ಪ್ರಾರಂಭವಾಗುತ್ತದೆ.",
@@ -806,6 +932,7 @@ const translations = {
     home: "ഹോം", signIn: "സൈൻ ഇൻ", createAccount: "അക്കൗണ്ട് സൃഷ്ടിക്കുക", welcomeBack: "സ്വാഗതം",
     signInSub: "നിങ്ങളുടെ പഠന യാത്ര തുടരാൻ സൈൻ ഇൻ ചെയ്യുക.", email: "✉️ ഇമെയിൽ വിലാസം", password: "🔒 പാസ്‌വേഡ്", fullName: "👤 പൂർണ്ണ നാമം", or: "അല്ലെങ്കിൽ",
     googleSignIn: "ഗൂഗിൾ ഉപയോഗിച്ച് തുടരുക", newHere: "പുതിയതാണോ?", alreadyHaveAccount: "നിലവിൽ അക്കൗണ്ട് ഉണ്ടോ?", landingTitle: "AI വഴിയുള്ള സാക്ഷരതാ ശാക്തീകരണം",
+    landingTitleLine1: "സാക്ഷരതാ ശാക്തീകരണം", landingTitleLine2: "AI ബുദ്ധി വഴി",
     landingSub: "മുതിർന്നവർക്കും ആദ്യതലമുറ പഠിതാക്കൾക്കും പ്രാദേശിക ഭാഷകളിൽ അടിസ്ഥാന വായന, എഴുത്ത്, സംസാര കഴിവുകൾ എന്നിവ നേടിയെടുക്കാൻ സഹായിക്കുന്നതിനായി രൂപകൽപ്പന ചെയ്ത ഒരു വ്യക്തിഗത പഠന സഹായി.",
     getStarted: "ആരംഭിക്കുക", registerTitle: "നിങ്ങളുടെ അക്കൗണ്ട് സൃഷ്ടിക്കുക", registerSub: "ഞങ്ങളുടെ കമ്മ്യൂണിറ്റിയിൽ ചേരുക, നിങ്ങളുടെ പഠന ചക്രവാളങ്ങൾ വികസിപ്പിക്കുക.",
     languageLabel: "🌐 താൽപ്പര്യമുള്ള മാതൃഭാഷ", registerLeftTitle: "നിങ്ങളുടെ സാക്ഷരതാ യാത്ര ഇവിടെ ആരംഭിക്കുന്നു.",
@@ -894,6 +1021,7 @@ const translations = {
     home: "ହୋମ୍", signIn: "ସାଇନ୍ ଇନ୍", createAccount: "ଆକaଉଣ୍ଟ୍ ତିଆରି କରନ୍ତু", welcomeBack: "ସ୍ୱାଗତ",
     signInSub: "ଆପଣଙ୍କର ଶิକ୍ଷା ଯାତ୍ରା ଜାରି ରଖିବା ପାଇଁ ସାଇନ୍ ଇନ୍ କରନ୍ତୁ ।", email: "✉️ ଇମେଲ୍ ଠିକଣା", password: "🔒 ପାସୱାର୍ଡ", fullName: "👤 ପୂରା ନାମ", or: "କିମ୍ବା",
     googleSignIn: "ଗୁଗଲ୍ ସହିତ ଆଗକୁ ବଢନ୍ତୁ", newHere: "ଏଠାରେ ନୂଆ କି?", alreadyHaveAccount: "ପୂର୍ବରୁ ଆକାଉଣ୍ଟ୍ ଅଛି କି?", landingTitle: "AI ମାଧ୍ୟମରେ ସାକ୍ଷରତା ସଶକ୍ତିକରଣ",
+    landingTitleLine1: "ସାକ୍ଷରତା ସଶକ୍ତିକରଣ", landingTitleLine2: "AI ଜ୍ଞାନ ଦ୍ୱାରା",
     landingSub: "ଏକ ବ୍ୟକ୍ତିଗତ ଶିକ୍ଷଣ ସାଥୀ ଯାହା ବୟସ୍କ ଏବଂ ପ୍ରଥମ ପିଢ଼ିର ଶିକ୍ଷାର୍ଥୀମାନଙ୍କୁ ଆଞ୍ଚଳിക ଭାଷାରେ ମୌଳିକ ପଢିବା, ଲେଖିବା ଏବଂ କହିବା ଦକ୍ଷତା ହାସଲ କରିବାରେ ସାହାଯ୍ୟ କରେ ।",
     getStarted: "ଆରମ୍ଭ କରନ୍ତু", registerTitle: "ଆପଣଙ୍କ ଆକାଉଣ୍ଟ୍ ତିଆରି କରନ୍ତু", registerSub: "ଆମ ସମୁଦାୟରେ ଯୋଗ ଦିଅନ୍ତು ଏବଂ ଶିକ୍ଷାର ପରିସରକୁ ବୃଦ୍ଧି କରନ୍ତু ।",
     languageLabel: "🌐 ପସନ୍ଦର ମାତୃଭାଷା", registerLeftTitle: "ଆପଣଙ୍କର ସାକ୍ଷରତା ଯାତ୍ରା ଏଠାରୁ ଆରମ୍ଭ ହୁଏ ।",
@@ -981,7 +1109,8 @@ const translations = {
   urdu: {
     home: "ہوم", signIn: "سائن ان", createAccount: "اکاؤنٹ بنائیں", welcomeBack: "خوش آمدید",
     signInSub: "اپنا سیکھنے کا سفر جاری رکھنے کے لیے سائن ان کریں۔", email: "✉️ ای میل ایڈریس", password: "🔒 پاس ورڈ", fullName: "👤 پورا نام", or: "یا",
-    googleSignIn: "گوگل کے ساتھ جاری رکھیں", newHere: "یہاں نئے ہیں؟", alreadyHaveAccount: "پہلے سے اکاؤنٹ ہے؟", landingTitle: "AI کے ذریعے ناخواندگی کا خاتمہ",
+    googleSignIn: "گوگل کے ساتھ جاری رکھیں", newHere: "یہاں نئے ہیں؟", alreadyHaveAccount: "پہلے سے اکاؤنٹ ہے؟", landingTitle: "AI کے ذریعے خواندگی کا فروغ",
+    landingTitleLine1: "خواندگی کا فروغ", landingTitleLine2: "AI ذہانت کے ذریعے",
     landingSub: "ایک ذاتی نوعیت کا تعلیمی ساتھی جو بالغوں اور پہلی نسل کے سیکھنے والوں کو علاقائی زبانوں میں بنیادی پڑھنے، لکھنے اور بولنے کی مہارت حاصل کرنے میں مدد کرتا ہے۔",
     getStarted: "شروع کریں۔", registerTitle: "اپنا اکاؤنٹ بنائیں", registerSub: "ہماری کمیونٹی میں شامل ہوں اور اپنے سیکھنے کے افق کو وسعت دیں۔",
     languageLabel: "🌐 پسندیدہ مادری زبان", registerLeftTitle: "آپ کا پڑھنے کا سفر یہاں سے شروع ہوتا ہے۔",
@@ -1070,6 +1199,7 @@ const translations = {
     home: "হোম", signIn: "সাইন ইন", createAccount: "একাউণ্ট খোলক", welcomeBack: "স্বাগতম",
     signInSub: "আপোনাৰ শিকন যাত্ৰা অব্যাহত ৰাখিবলৈ ছাইন ইন কৰক।", email: "✉️ ইমেইল ঠিকনা", password: "🔒 পাছৱৰ্ড", fullName: "👤 সম্পূৰ্ণ নাম", or: "অথবা",
     googleSignIn: "গুগলৰ সৈতে আগবাঢ়ক", newHere: "ইয়াত নতুন নেকি?", alreadyHaveAccount: "ইতিমধ্যে এককাউণ্ট আছে নেকি?", landingTitle: "AI ৰ জৰিয়তে সাক্ষরতা সবলীকৰণ",
+    landingTitleLine1: "সাক্ষৰতা সবলীকৰণ", landingTitleLine2: "AI বুদ্ধিৰ জৰিয়তে",
     landingSub: "একটা ব্যক্তিগতকৃত শিক্ষণ সহযোগী যি প্ৰাপ্তবছৰীয়া আৰু প্ৰথম প্ৰজন্মৰ শিক্ষাৰ্থীক আঞ্চলিক ভাষাত মৌলিক পঢ়া, লিখা আৰু কোৱাৰ দক্ষতা অৰ্জন কৰাত সহায় কৰিবলৈ ডিজাইন কৰা হৈছে।",
     getStarted: "আৰম্ভ কৰক", registerTitle: "আপোনাৰ এককাউণ্ট খোলক", registerSub: "আমাৰ সমাজত যোগদান কৰক আৰু আপোনাৰ শিক্ষাৰ পৰিসৰ বৃদ্ধি কৰক।",
     languageLabel: "🌐 পছন্দৰ মাতৃভাষা", registerLeftTitle: "আপোনাৰ সাক্ষরতাৰ যাত্ৰা ইয়াতেই আৰম্ভ হৈছে।",
@@ -1158,6 +1288,7 @@ const translations = {
     home: "होम", signIn: "साइन इन", createAccount: "खाता बनाउ", welcomeBack: "स्वागत अछि",
     signInSub: "अपन सीखबाक यात्रा जारी रखबाक लेल साइन in करू।", email: "✉️ ईमेल पता", password: "🔒 पासवर्ड", fullName: "👤 पूरा नाम", or: "वा",
     googleSignIn: "गूगलक संग जारी राखू", newHere: "एतय नव छी?", alreadyHaveAccount: "पहले सं खाता अछि?", landingTitle: "AI क माध्यम सं साक्षरताक सशक्तिकरण",
+    landingTitleLine1: "साक्षरताक सशक्तिकरण", landingTitleLine2: "AI बुद्धिमत्ता द्वारा",
     landingSub: "एकटा व्यक्तिगत शिक्षण साथी जे वयस्क आ पहिल पीढ़िक सीखनिहार लोकनिकेँ क्षेत्रीय भाषामे बुनियादी पढ़ब, लिखब आ बाजबाक कौशल हासिल करबामे मद्दत करबाक लेल बनाओल गेल अछि।",
     getStarted: "शुरू करू", registerTitle: "अपन खाता बनाउ", registerSub: "हमर समुदायमे शामिल होऊ आ अपन सीखबाक दायरा बढाउ।",
     languageLabel: "🌐 पसंदीदा मातृभाषा", registerLeftTitle: "अहाँक साक्षरताक यात्रा एतय सं शुरू होइत अछि।",
@@ -1246,6 +1377,7 @@ const translations = {
     home: "ᱦᱳᱢ", signIn: "ᱥᱟᱭᱤᱱ 🇮🇳", createAccount: "ᱠᱷᱟᱛﺎ ᱵᱮᱱᱟᱣ", welcomeBack: "ᱥᱟᱹᱜᱩն ᱫtransition",
     signInSub: "Aᱢᱟᱜ ᱪեదᱚᱜ ᱦᱚᱨᱟ ᱞᱟਹา 🇮🇩 ᱞᱟᱹᱜིᱫ ᱥᱟᱭᱤն 🇮🇳 ᱢੇ ᱾", email: "✉️ ਈਮੇਲ ਟੀਕੇ", password: "🔒 ᱯᱟᱥᱣᱟरᱰ", fullName: "👤 ᱯᱩᱨᱟᱹ ᱧᱩᱛᱩມ", or: "ᱪᱮ",
     googleSignIn: "ᱜᱩᱜᱚᱞ ᱥᱟᱶ ᱞᱟᱦาᱜ ᱢᱮ", newHere: "ᱱᱚᱸᱰେ ᱱﺎᱣา ᱜᱮᱭᱟᱢ?", alreadyHaveAccount: "ᱞᱟਹา ᱠᱷᱚն ᱠᱷᱟᱛᱟ ᱢେᱱᱟᱜ-า?", landingTitle: "AI ᱛᱮ ᱚլ ᱯᱟᱲհาဝ် ᱞᱟᱦาन्ति",
+    landingTitleLine1: "ᱚᱞ ᱯᱟᱲᱦᱟᱣ", landingTitleLine2: "AI ᱫᱚ ᱵᱩᱫᱷᱤ ᱛᱮ",
     landingSub: "ᱢᱤᱫ ᱟପնար ᱪեదᱚᱜ གﺎᱛᱮ ᱡﺎᱦᱟᱸᱭ ᱫᱚ ᱦᱟᱨa ᱵᱩᱨᱩ ᱟᱨ ᱯᱩᱭᱞᱩ ᱯᱤᱲਹਿ ᱪեదᱚᱜ ᱠᱚ ᱟᱠᱚᱣาᱜ ᱟᱭᳵ ᱟᱲᱟᱝ ᱛᱮ ᱚլ, ᱯᱟᱲհาဝ် ᱟᱨ ᱨᱚᱲ ᱪեదᱚᱜ ᱨᱮ ᱜᱚᱲᱚ ᱮਮา ᱠᱚৱᱟ ᱾",
     getStarted: "ᱮܗۆᱵ ᱢᱮ", registerTitle: "Aᱢᱟᱜ ᱠᱷᱟᱛา ᱵᱮնาᱣ ᱢᱮ", registerSub: "Aᱞᱮ ᱥᱟᱶ ᱡᱩᱲᱟᱹᱣ ᱢᱮ ᱟᱨ ᱟᱢาᱜ ᱜᱮᱭᱟն ᱯᱟᱥնᱟᱣ ᱢᱮ ᱾",
     languageLabel: "🌐 ᱠᱩᱥᱤᱭᱟᱜ ᱟᱭᳵ ᱟᱲᱟᱝ", registerLeftTitle: "Aᱢᱟᱜ ᱥᱮଚᱮᱫ ᱦᱚᱨᱟ ᱱᱚᱸᳰେ ᱠᱷᱚն ᱮܗᱚᱵᱚᱜ-ᱟ ᱾",
@@ -1333,7 +1465,8 @@ const translations = {
   kashmiri: {
     home: "ہوم", signIn: "سائن ان", createAccount: "اکاؤنٹ بنایو", welcomeBack: "خوش آمدید",
     signInSub: "پنُن تعلیمی سفر جاری تھونہ خاطرہ کٔریو سائن ان۔", email: "✉️ ای میل پتہ", password: "🔒 پاس ورڈ", fullName: "👤 پۆرو ناؤ", or: "یا",
-    googleSignIn: "گوگل پیتھ کٔریو جاری", newHere: "نۆو چُھا？", alreadyHaveAccount: "برونہہ پؠٹھے چُھا اکاؤنٹ？", landingTitle: "AI ذریہ تعلیمی بیداری",
+    googleSignIn: "گوگل پیتھ کٔریو جاری", newHere: "نۆو چُھا؟", alreadyHaveAccount: "برونہہ پؠٹھے چُھا اکاؤنٹ؟", landingTitle: "AI ذریہ تعلیمی بیداری",
+    landingTitleLine1: "تعلیمی بیداری", landingTitleLine2: "AI ذہانت ذریہ",
     landingSub: "اکھ پنُن تعلیمی مددگار یُס वडिरन تۂ گوڈنچہ نسلِ ہندین پرن والین ہنز مادری زبانن منز پراز پرنس، لیکھنس تۂ بولنس منز مدد کران چُھ।",
     getStarted: "شروع کٔریو", registerTitle: "پنُن اکاؤنٹ بنایو", registerSub: "سٲنس برادری منز شمل کٔریو تۂ پنُن علم بڑھایو।",
     languageLabel: "🌐 مادری زبان", registerLeftTitle: "تُہند پرنُک سفر چُھ یتنے شروع سپدان।",
@@ -1422,6 +1555,7 @@ const translations = {
     home: "होम", signIn: "साइन इन", createAccount: "खाता सिर्जना गर्नुहोस्", welcomeBack: "स्वागत छ",
     signInSub: "आफ्नो सिकाई यात्रा जारी राख्न साइन इन गर्नुहोस्।", email: "✉️ इमेल ठेगाना", password: "🔒 पासवर्ड", fullName: "👤 पूरा नाम", or: "वा",
     googleSignIn: "गुगलसँग जारी राख्नुहोस्", newHere: "यहाँ नयाँ हुनुहुन्छ?", alreadyHaveAccount: "पहिले नै खाता छ?", landingTitle: "AI मार्फत साक्षरता सशक्तिकरण",
+    landingTitleLine1: "साक्षरता सशक्तिकरण", landingTitleLine2: "AI बुद्धिमत्ता मार्फत",
     landingSub: "एक व्यक्तिगत सिकाइ साथी जुन वयस्कहरू र पहिलो पुस्ताका शिक्षार्थीहरूलाई क्षेत्रीय भाषाहरूमा आधारभूत पढ्न, लेख्न र बोल्ने सीपहरू प्राप्त गर्न मद्दत गर्न डिजाइन गरिएको हो।",
     getStarted: "सुरु गर्नुहोस्", registerTitle: "आफ्नो खाता सिर्जना गर्नुहोस्", registerSub: "हाम्रो समुदायमा सामेल हुनुहोस् र आफ्नो सिकाई क्षितिज विस्तार गर्नुहोस्।",
     languageLabel: "🌐 रुचाइएको मातृभाषा", registerLeftTitle: "तपाईंको साक्षरता यात्रा यहाँबाट सुरु हुन्छ।",
@@ -1510,6 +1644,7 @@ const translations = {
     home: "होम", signIn: "साइन इन", createAccount: "खाता कीम", welcomeBack: "सगताम",
     signInSub: "नीवा कलीना वेद्द्ता लोप्पे साइन इन कीम।", email: "✉️ ईमेल पता", password: "🔒 पासवर्ड", fullName: "👤 आक्खे पुदिर", or: "बाले",
     googleSignIn: "गूगल तोड़े सांगे मंत", newHere: "पुना मंत्या?", alreadyHaveAccount: "मुन्ने ने खाता मंता?", landingTitle: "AI ना वळته साक्षरता विकास",
+    landingTitleLine1: "साक्षरता विकास", landingTitleLine2: "AI बुद्धि वळते",
     landingSub: "ऊंद मने कलीना तोड़े जश वयस्क और पहिल्या पीढ़ी ना कलीवाला न तोड़े भाषा ते वाचना, लीहना और वळना कली क कींत।",
     getStarted: "शुरू कीम", registerTitle: "नीवा खाता कीम", registerSub: "मावा गोट्टे ते कली और गियान वाधाय कीम।",
     languageLabel: "🌐 यालोळ नाटो भासा", registerLeftTitle: "नीवा साक्षरता कलीना इग्गने शुरू माता।",
@@ -1598,6 +1733,7 @@ const translations = {
     home: "هوم", signIn: "سائن ان", createAccount: "खातो ٺاهيو", welcomeBack: "ڀلي ڪري آيا",
     signInSub: "پنهنجو سکڻ جو سفر جاري رکڻ لاءِ سائن ان ڪريو.", email: "✉️ اي ميل پتو", password: "🔒 پاسورڊ", fullName: "👤 پورو نالو", or: "يا",
     googleSignIn: "گوگل سان جاري رکو", newHere: "هتي نوان آهيو？", alreadyHaveAccount: "پهرين کان खाتو آهي？", landingTitle: "AI جي ذريعي تعليم جي سجاڳي",
+    landingTitleLine1: "تعليم جي سجاڳي", landingTitleLine2: "AI ذہانت ذريعي",
     landingSub: "هڪ ذاتي سکيا جو ساٿي جيڪو وڏن ۽ پهرين نسل جي سکندڙن کي علائقائي ٻولين ۾ بنيادي پڙهڻ, لکڻ ۽ ڳالهائڻ جي صلاحيت حاصل ڪرڻ ۾ مدد ڪري ٿو.",
     getStarted: "شروع ڪريو", registerTitle: "پنهنجو खातो ٺاهيو", registerSub: "اسان جي برادري ۾ شامل ٿيو ۽ پنهنجي سکيا جو دائرو وڌايو.",
     languageLabel: "🌐 پسنديده مادري ٻولي", registerLeftTitle: "توهان جو سکڻ جو سفر هتان شروع ٿئي ٿو.",
@@ -1686,6 +1822,7 @@ const translations = {
     home: "होम", signIn: "साइन इन", createAccount: "खातें तयार करात", welcomeBack: "येवकार",
     signInSub: "तुमची शिकपाची भोंवड जारी दवरपाक साइन इन करात.", email: "✉️ ईमेल पत्तो", password: "🔒 पासवर्ड", fullName: "👤 पूर्ण नांव", or: "वा",
     googleSignIn: "गूगल वांगडा फुडे वचात", newHere: "नवे आहात?", alreadyHaveAccount: "पयलींच खातें आसा?", landingTitle: "AI वरवीं साक्षरता उदरगत",
+    landingTitleLine1: "साक्षरता उदरगत", landingTitleLine2: "AI बुद्धिमत्ता वरवीं",
     landingSub: "एक खाजगी शिकपाचो सांगाती जो जाणट्यांक आनी पयल्या पिळगेच्या शिकप्यांक थळाव्या भासांनी बुनियादी वाचन, लेखन आनी उलोवपाचीं कौशल्यां मेळोવपाक मदत करता.",
     getStarted: "सुरू करात", registerTitle: "तुमचें खातें तयार करात", registerSub: "आमच्या पंगडांत आस्पावन तुमचें शिकप वाडयात.",
     languageLabel: "🌐 पसंतीची आवयभास", registerLeftTitle: "तुमची साक्षरतेची भोंवड हांगासून सुरू जाता.",
@@ -1869,8 +2006,47 @@ export default function App() {
     }
   }, []);
 
-  const [view, setView] = useState('landing');
-  const [lang, setLang] = useState('english'); 
+  const [view, setView] = useState(() => {
+    try {
+      if (window.location.hash === '#admin' || window.location.search.includes('admin=true')) {
+        return 'admin';
+      }
+    } catch (e) {}
+    return 'landing';
+  });
+  // English is the default landing page language until explicitly changed by user
+  const [lang, setLang] = useState(() => {
+    try {
+      return localStorage.getItem('sakshar_user_selected_lang') || 'english';
+    } catch {
+      return 'english';
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('sakshar_lang', lang);
+    } catch {
+      // storage unavailable
+    }
+  }, [lang]);
+
+  const [targetLang, setTargetLang] = useState(() => {
+    try {
+      return localStorage.getItem('sakshar_target_lang') || 'hindi';
+    } catch {
+      return 'hindi';
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('sakshar_target_lang', targetLang);
+    } catch {
+      // storage unavailable
+    }
+  }, [targetLang]);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -2115,7 +2291,7 @@ export default function App() {
       console.log('[Voice L3] Sending transcript to Bedrock text classifier:', transcript);
       setVoiceToast({ label: 'Analyzing...', native: `"${transcript}"` });
       try {
-        const res = await fetch('http://127.0.0.1:5000/api/voice/identify-text', {
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000'}/api/voice/identify-text`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ transcript }),
@@ -2219,7 +2395,7 @@ export default function App() {
     const dataUrl = canvas.toDataURL('image/png');
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/assessment/writing', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000'}/api/assessment/writing`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -2271,26 +2447,10 @@ export default function App() {
         if (existingProfile.language) setLang(existingProfile.language);
         if (existingProfile.educational_level) setEducationalLevel(existingProfile.educational_level);
       }
-
-        const isCompleted = metadata.initial_assessment_completed ||
-          localStorage.getItem(`sakshar_initial_assessment_completed_${user.id}`) === 'true';
-
-      if (isCompleted) {
-        setView('dashboard');
-        return;
-      }
     } catch (err) {
       console.warn("Profile fetch error in hydration:", err);
     }
-
-    const isCompletedFallback = metadata.initial_assessment_completed ||
-      localStorage.getItem(`sakshar_initial_assessment_completed_${user.id}`) === 'true';
-
-    if (isCompletedFallback) {
-      setView('dashboard');
-    } else {
-      setView('initial-assessment');
-    }
+    // Hydrate user profile data into React state, but preserve landing view when opening the app
   };
 
   // Persistent Initial Session Checker Hook
@@ -2484,6 +2644,35 @@ export default function App() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    setAuthError('');
+    try {
+      const res = await signInWithGoogle();
+      if (res?.user || res?.isDemoSession) {
+        const uid = res?.user?.id || `google-${Date.now()}`;
+        setUserId(uid);
+        if (res?.fullName) setFullName(res.fullName);
+        else setFullName('Google Learner');
+        if (res?.language) setLang(res.language);
+        if (res?.educationalLevel) setEducationalLevel(res.educationalLevel);
+
+        const isCompleted = res?.initialAssessmentCompleted ||
+          localStorage.getItem(`sakshar_initial_assessment_completed_${uid}`) === 'true';
+
+        setIsLoading(false);
+        if (isCompleted) {
+          setView('dashboard');
+        } else {
+          setView('initial-assessment');
+        }
+      }
+    } catch (err) {
+      setAuthError(err.message || 'Google sign-in failed. Please try again.');
+      setIsLoading(false);
+    }
+  };
+
   const handleLogoutAction = () => {
     setView('landing');
     setEmail('');
@@ -2522,7 +2711,7 @@ export default function App() {
               <img src="/logo.png" alt="SaksharAI Logo" className="h-14 sm:h-16 w-auto object-contain" />
             </div>
             <div className="hidden md:flex items-center gap-10">
-              {[['Approach', 'sak-approach-section'], ['Features', 'sak-features-section'], ['Impact', 'sak-impact-section']].map(([label, id]) => (
+              {[[t.navApproach || 'Approach', 'sak-approach-section'], [t.navFeatures || 'Features', 'sak-features-section'], [t.navImpact || 'Impact', 'sak-impact-section']].map(([label, id]) => (
                 <button
                   key={id}
                   onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })}
@@ -2533,6 +2722,23 @@ export default function App() {
               ))}
             </div>
             <div className="flex items-center gap-3 sm:gap-4">
+              {/* Language switcher on landing page */}
+              <select
+                value={lang}
+                onChange={(e) => { const l = e.target.value; setLang(l); try { localStorage.setItem('sakshar_user_selected_lang', l); } catch {} }}
+                className="bg-gray-50 border border-gray-200 text-xs font-semibold rounded-lg px-2.5 py-1.5 text-gray-700 focus:ring-1 focus:ring-[#1C2D1A] cursor-pointer outline-none hidden sm:block"
+              >
+                {targetLanguages.map((l) => (
+                  <option key={l.value} value={l.value}>{l.native}</option>
+                ))}
+              </select>
+              <button 
+                onClick={() => setView('admin')} 
+                className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-3 py-1.5 rounded-full transition-colors cursor-pointer"
+              >
+                <span>🛡️</span>
+                <span>Admin Portal</span>
+              </button>
               <button onClick={() => setView('login')} className="hidden sm:inline text-xs font-bold text-gray-700 hover:text-emerald-800 transition-colors cursor-pointer">
                 {t.signIn}
               </button>
@@ -2562,7 +2768,7 @@ export default function App() {
               <div className="relative">
                 <select
                   value={lang}
-                  onChange={(e) => setLang(e.target.value)}
+                  onChange={(e) => { const l = e.target.value; setLang(l); try { localStorage.setItem('sakshar_user_selected_lang', l); } catch {} }}
                   disabled={isLoading}
                   className="bg-gray-50 border border-gray-200 text-xs font-semibold rounded-lg px-2.5 py-1.5 text-gray-700 focus:ring-1 focus:ring-[#1C2D1A] cursor-pointer outline-none"
                 >
@@ -2650,12 +2856,14 @@ export default function App() {
 
                   <div className="flex items-center gap-3">
                     <span className="w-8 h-px bg-emerald-500" />
-                    <span className="text-[11px] font-black tracking-[0.3em] text-emerald-800 uppercase">The AI Literacy Companion</span>
+                    <span className="text-[11px] font-black tracking-[0.3em] text-emerald-800 uppercase">{t.aiCompanionBadge || 'The AI Literacy Companion'}</span>
                   </div>
 
                   <h1 className="sak-serif text-5xl sm:text-6xl md:text-7xl leading-[1.08] text-[#1C2D1A]">
-                    Empowering Literacy<br />
-                    Through <em className="italic text-emerald-600 font-black" style={{ textShadow: '0 0 30px rgba(16,185,129,0.2)' }}>AI Intelligence</em>
+                    {t.landingTitleLine1 || 'Empowering Literacy'}<br />
+                    <em className="italic text-emerald-600 font-black" style={{ textShadow: '0 0 30px rgba(16,185,129,0.2)' }}>
+                      {t.landingTitleLine2 || 'Through AI Intelligence'}
+                    </em>
                   </h1>
 
                   <p className="text-gray-700 text-base sm:text-lg max-w-xl leading-relaxed font-semibold">
@@ -2701,12 +2909,12 @@ export default function App() {
                     <div className="flex-1 min-w-0">
                       <p className="text-[10px] font-black tracking-wider uppercase text-emerald-800 mb-0.5 flex items-center gap-2 text-left">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        {isVoiceListening ? 'Listening…' : 'AI Voice Language Selector'}
+                        {isVoiceListening ? (t.listening || 'Listening…') : (t.voiceDetectorLabel || 'AI Voice Language Selector')}
                       </p>
                       <div className="min-h-9 flex items-center text-left">
                         <span className="text-gray-900 text-sm font-black leading-snug">
                           {isVoiceListening ? (
-                            <span className="text-red-600 animate-pulse">Speak now in your mother tongue…</span>
+                            <span className="text-red-600 animate-pulse">{t.voiceListeningPrompt || 'Speak now in your mother tongue…'}</span>
                           ) : voiceDetectedLang ? (
                             <span>Detected: <strong className="text-emerald-700 capitalize">{voiceDetectedLang}</strong>!</span>
                           ) : (
@@ -2729,7 +2937,7 @@ export default function App() {
                       onClick={() => document.getElementById('sak-demo-section')?.scrollIntoView({ behavior: 'smooth' })}
                       className="px-8 py-4 border-2 border-emerald-800/20 text-emerald-950 bg-white/90 hover:bg-white font-black rounded-full shadow-sm hover:border-emerald-700/40 transition-all duration-200 text-center cursor-pointer text-sm"
                     >
-                      Try Live Demo
+                      {t.tryLiveDemo || 'Try Live Demo'}
                     </button>
                   </div>
 
@@ -2852,14 +3060,14 @@ export default function App() {
                 <div id="interactive-demo-widget" className="bg-white/90 backdrop-blur-xl border border-gray-200/80 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 relative overflow-hidden">
                   <div className="flex items-center justify-between border-b border-white/10 pb-4">
                     <div>
-                      <span className="text-[10px] font-black uppercase tracking-wider text-indigo-300 bg-indigo-500/10 px-2.5 py-1 rounded-md border border-indigo-400/20">Live AI Sandbox</span>
-                      <h3 className="sak-serif text-xl text-white mt-2">Test Character Tracing</h3>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-indigo-300 bg-indigo-500/10 px-2.5 py-1 rounded-md border border-indigo-400/20">{t.liveSandboxBadge || "Live AI Sandbox"}</span>
+                      <h3 className="sak-serif text-xl text-white mt-2">{t.liveSandboxTitle || "Test Character Tracing"}</h3>
                     </div>
                     <span className="text-2xl">✨</span>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-gray-400 block text-left">Select Script Profile:</label>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-gray-400 block text-left">{t.selectScriptProfile || "Select Script Profile:"}</label>
                     <div className="grid grid-cols-4 gap-2">
                       {[
                         { code: 'hindi', char: 'अ', label: 'Hindi' },
@@ -2905,7 +3113,7 @@ export default function App() {
                       {!hasDemoDrawn && (
                         <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-gray-400 gap-1.5">
                           <span className="text-2xl">✏️</span>
-                          <p className="text-[10px] font-black uppercase tracking-wider">Draw '{demoScript.char}' inside box</p>
+                          <p className="text-[10px] font-black uppercase tracking-wider">{t.drawInsideBox || 'Draw'} '{demoScript.char}'</p>
                         </div>
                       )}
                     </div>
@@ -2913,8 +3121,8 @@ export default function App() {
                     {demoFeedback && (
                       <div className="w-full max-w-[240px] mt-4 p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-400/20 text-indigo-100 animate-scale-up text-left">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-black">{demoFeedback.score}% Accuracy Match</span>
-                          <span className="text-[8px] uppercase tracking-wider text-indigo-200 bg-white/10 px-1.5 py-0.5 rounded font-black border border-white/10">AI Verified</span>
+                          <span className="text-xs font-black">{demoFeedback.score}% {t.accuracyMatch || "Accuracy Match"}</span>
+                          <span className="text-[8px] uppercase tracking-wider text-indigo-200 bg-white/10 px-1.5 py-0.5 rounded font-black border border-white/10">{t.aiVerified || "AI Verified"}</span>
                         </div>
                         <p className="text-[10px] font-bold leading-relaxed">{demoFeedback.message}</p>
                       </div>
@@ -2927,7 +3135,7 @@ export default function App() {
                         disabled={!hasDemoDrawn || isDemoSubmitting}
                         className="flex-1 py-2.5 border border-white/10 text-xs font-bold rounded-xl text-gray-300 hover:bg-white/[0.06] disabled:opacity-40 transition cursor-pointer"
                       >
-                        Clear
+                        {t.clearBtn || 'Clear'}
                       </button>
                       <button
                         type="button"
@@ -2938,10 +3146,10 @@ export default function App() {
                         {isDemoSubmitting ? (
                           <>
                             <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                            <span>Checking...</span>
+                            <span>{t.checking || 'Checking...'}</span>
                           </>
                         ) : (
-                          'Analyze'
+                          t.analyzeBtn || 'Analyze'
                         )}
                       </button>
                     </div>
@@ -2954,21 +3162,21 @@ export default function App() {
             <section id="sak-approach-section" className="bg-black px-6 py-24 border-t border-white/10">
               <div className="max-w-6xl mx-auto grid md:grid-cols-12 gap-12">
                 <div className="md:col-span-4 space-y-4">
-                  <span className="text-[11px] font-bold tracking-[0.3em] text-gray-400 uppercase">Our Approach</span>
+                  <span className="text-[11px] font-bold tracking-[0.3em] text-gray-400 uppercase">{t.ourApproachBadge || 'Our Approach'}</span>
                   <h2 className="sak-serif text-4xl sm:text-5xl text-white leading-tight">
-                    Why we built<br /><em className="italic text-amber-400">Sakshar</em>
+                    {t.whyWeBuiltTitle || 'Why we built'}<br /><em className="italic text-amber-400">{t.whyWeBuiltHighlight || 'Sakshar'}</em>
                   </h2>
                   <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
-                    Four beliefs that shape every lesson, every prompt and every line of feedback on the platform.
+                    {t.approachSubtitle || 'Four beliefs that shape every lesson, every prompt and every line of feedback on the platform.'}
                   </p>
                 </div>
 
                 <div className="md:col-span-8 divide-y divide-white/10">
                   {[
-                    { n: '01', title: 'The literacy gap is human', body: "Millions of adults speak fluently but were never taught to read or write with confidence. That's not a technology problem to route around — it's a human one to design for, with patience and dignity." },
-                    { n: '02', title: 'One size fits no one', body: 'Traditional classes assume a starting point. Sakshar begins with a short assessment and shapes a path that adapts to the learner\u2019s own pace, language and level.' },
-                    { n: '03', title: 'AI that listens back', body: 'Real-time pronunciation feedback, character tracing and applied reasoning turn passive lessons into a two-way conversation — patient, private and always available.' },
-                    { n: '04', title: 'Fluency in the mother tongue', body: 'Learning lands deepest in the language you dream in. Sakshar teaches across 20+ Indian regional languages, detecting your voice from the very first tap.' },
+                    { n: '01', title: t.literacyGapTitle || 'The literacy gap is human', body: t.literacyGapBody || "Millions of adults speak fluently but were never taught to read or write with confidence. That's not a technology problem to route around — it's a human one to design for, with patience and dignity." },
+                    { n: '02', title: t.oneSizeFitsTitle || 'One size fits no one', body: t.oneSizeFitsBody || 'Traditional classes assume a starting point. Sakshar begins with a short assessment and shapes a path that adapts to the learner\'s own pace, language and level.' },
+                    { n: '03', title: t.aiListensTitle || 'AI that listens back', body: t.aiListensBody || 'Real-time pronunciation feedback, character tracing and applied reasoning turn passive lessons into a two-way conversation — patient, private and always available.' },
+                    { n: '04', title: t.fluencyMotherTitle || 'Fluency in the mother tongue', body: t.fluencyMotherBody || 'Learning lands deepest in the language you dream in. Sakshar teaches across 20+ Indian regional languages, detecting your voice from the very first tap.' },
                   ].map((item) => (
                     <div key={item.n} className="py-8 first:pt-0 grid sm:grid-cols-[3rem_1fr] gap-4">
                       <span className="text-amber-400 text-sm font-bold tracking-wider">{item.n}</span>
@@ -2987,13 +3195,13 @@ export default function App() {
               <div className="max-w-6xl mx-auto space-y-14">
                 <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                   <div className="space-y-3">
-                    <span className="text-[11px] font-bold tracking-[0.3em] text-emerald-400/80 uppercase">The Platform</span>
+                    <span className="text-[11px] font-bold tracking-[0.3em] text-emerald-400/80 uppercase">{t.thePlatformBadge || 'The Platform'}</span>
                     <h2 className="sak-serif text-4xl sm:text-5xl text-white leading-tight">
-                      A classroom that adapts to<br />every learner
+                      {t.platformTitle || 'A classroom that adapts to every learner'}
                     </h2>
                   </div>
                   <p className="text-gray-400 text-sm leading-relaxed max-w-sm">
-                    Three intelligent modules work together to build reading, writing and speaking — one confident step at a time.
+                    {t.platformSubtitle || 'Three intelligent modules work together to build reading, writing and speaking — one confident step at a time.'}
                   </p>
                 </div>
 
@@ -3027,7 +3235,7 @@ export default function App() {
             {/* ══════════════════ FINAL CTA ══════════════════ */}
             <section className="bg-[#0d140f] px-6 py-24 border-t border-white/10">
               <div className="max-w-4xl mx-auto">
-                <span className="text-[11px] font-bold tracking-[0.3em] text-gray-400 uppercase">Begin Your Journey</span>
+                <span className="text-[11px] font-bold tracking-[0.3em] text-gray-400 uppercase">{t.beginYourJourney || "Begin Your Journey"}</span>
                 <h2 className="sak-serif text-4xl sm:text-6xl text-white leading-tight mt-4 mb-8">
                   Every word you learn<br /><em className="italic text-amber-400">opens a door.</em>
                 </h2>
@@ -3036,13 +3244,13 @@ export default function App() {
                     onClick={() => setView('login')}
                     className="px-8 py-3.5 bg-indigo-500 hover:bg-indigo-400 text-white font-bold rounded-full shadow-lg shadow-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all duration-200 text-center cursor-pointer text-sm"
                   >
-                    Get Started Free
+                    {t.getStartedFree || "Get Started Free"}
                   </button>
                   <button
                     onClick={() => document.getElementById('sak-demo-section')?.scrollIntoView({ behavior: 'smooth' })}
                     className="px-8 py-3.5 border border-white/20 text-white bg-white/[0.03] hover:bg-white/[0.08] font-bold rounded-full transition-all duration-200 text-center cursor-pointer text-sm"
                   >
-                    Watch the Demo
+                    {t.watchDemo || "Watch the Demo"}
                   </button>
                 </div>
               </div>
@@ -3055,7 +3263,7 @@ export default function App() {
                   <img src="/logo.png" alt="SaksharAI Logo" className="h-12 w-auto object-contain bg-white/90 p-1.5 rounded-lg" />
                 </div>
                 <span className="text-[10px] font-bold tracking-[0.2em] text-gray-500 uppercase text-center">
-                  Literacy for every voice · Built with intelligence
+                  {t.footerTagline || "Literacy for every voice · Built with intelligence"}
                 </span>
               </div>
             </footer>
@@ -3166,17 +3374,9 @@ export default function App() {
                 </div>
 
                 <button 
-                  onClick={async () => {
-                    try {
-                      setIsLoading(true);
-                      await signInWithGoogle();
-                    } catch (err) {
-                      setAuthError(err.message || 'Google sign-in failed.');
-                      setIsLoading(false);
-                    }
-                  }}
+                  onClick={handleGoogleSignIn}
                   disabled={isLoading} 
-                  className="w-full bg-white border border-gray-200 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] animate-auth-field"
+                  className="w-full bg-white border border-gray-200 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] animate-auth-field cursor-pointer shadow-sm"
                   style={{ animationDelay: '0.29s' }}
                 >
                   <img src="https://authjs.dev/img/providers/google.svg" alt="Google" className="h-5 w-5" />
@@ -3257,12 +3457,31 @@ export default function App() {
                     <input type="number" min="1" max="120" placeholder="Your age" value={age} onChange={(e) => setAge(e.target.value)} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-[#1C2D1A] outline-none transition-shadow" required disabled={isLoading} />
                   </div>
 
-                  {/* 20-Language Unified Matrix Selector Dropdown */}
+                  {/* 20-Language Unified Matrix Selector Dropdown (Preferred UI Language) */}
                   <div className="animate-auth-field" style={{ animationDelay: '0.25s' }}>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.languageLabel}</label>
                     <select 
                       value={lang}
-                      onChange={(e) => setLang(e.target.value)}
+                      onChange={(e) => { const l = e.target.value; setLang(l); try { localStorage.setItem('sakshar_user_selected_lang', l); } catch {} }}
+                      disabled={isLoading}
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-white text-gray-900 font-medium focus:ring-2 focus:ring-[#1C2D1A] cursor-pointer outline-none disabled:opacity-50 transition-shadow"
+                    >
+                      {targetLanguages.map((l) => (
+                        <option key={l.value} value={l.value}>
+                          {l.native} ({l.label})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Want to Learn Language Dropdown (Subject Language for Assessment & Practice) */}
+                  <div className="animate-auth-field" style={{ animationDelay: '0.28s' }}>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      {t.wantToLearnLabel || '🎯 Language You Want to Learn'}
+                    </label>
+                    <select 
+                      value={targetLang}
+                      onChange={(e) => setTargetLang(e.target.value)}
                       disabled={isLoading}
                       className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-white text-gray-900 font-medium focus:ring-2 focus:ring-[#1C2D1A] cursor-pointer outline-none disabled:opacity-50 transition-shadow"
                     >
@@ -3295,6 +3514,21 @@ export default function App() {
                   </button>
                 </form>
 
+                <div className="relative my-6 animate-auth-field" style={{ animationDelay: '0.36s' }}>
+                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
+                  <div className="relative flex justify-center text-sm"><span className="px-3 bg-[#FBFBFA] text-gray-500">{t.or}</span></div>
+                </div>
+
+                <button 
+                  onClick={handleGoogleSignIn}
+                  disabled={isLoading} 
+                  className="w-full bg-white border border-gray-200 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] animate-auth-field cursor-pointer shadow-sm"
+                  style={{ animationDelay: '0.38s' }}
+                >
+                  <img src="https://authjs.dev/img/providers/google.svg" alt="Google" className="h-5 w-5" />
+                  {t.googleSignIn}
+                </button>
+
                 <p className="text-center text-sm text-gray-600 mt-8 animate-auth-field" style={{ animationDelay: '0.4s' }}>
                   {t.alreadyHaveAccount} <button onClick={() => { setView('login'); setAuthError(''); }} disabled={isLoading} className="font-semibold text-[#1C2D1A] hover:underline disabled:opacity-50">{t.signIn}</button>
                 </p>
@@ -3307,7 +3541,8 @@ export default function App() {
           <Dashboard 
             userId={userId}
             fullName={fullName} 
-            lang={lang} 
+            lang={lang}
+            targetLang={targetLang} 
             educationalLevel={educationalLevel} 
             age={age}
             tutorVoiceUri={tutorVoiceUri}
@@ -3328,7 +3563,37 @@ export default function App() {
         {view === 'premium' && (
           <Premium
             fullName={fullName}
+            lang={lang}
+            t={t}
             onBack={() => setView('dashboard')}
+          />
+        )}
+
+        {view === 'admin' && (
+          <AdminDashboard
+            onBackToPlatform={() => setView('landing')}
+            t={t}
+            currentLearner={{
+              userId,
+              fullName,
+              lang,
+              targetLang,
+              educationalLevel,
+              age,
+              tutorVoiceUri
+            }}
+            onUpdateLearnerProfile={({ fullName: newName, language: newLang, educationalLevel: newEdu, age: newAge }) => {
+              if (newName !== undefined) setFullName(newName);
+              if (newLang !== undefined) setLang(newLang);
+              if (newEdu !== undefined) setEducationalLevel(newEdu);
+              if (newAge !== undefined) setAge(newAge);
+            }}
+            onResetLearnerAssessment={() => {
+              if (userId) {
+                localStorage.removeItem(`sakshar_initial_assessment_completed_${userId}`);
+              }
+              setView('initial-assessment');
+            }}
           />
         )}
 
@@ -3337,6 +3602,7 @@ export default function App() {
             userId={userId}
             fullName={fullName}
             lang={lang}
+            targetLang={targetLang}
             age={age}
             selectedLevel={educationalLevel}
             onComplete={(assessedLevel) => {

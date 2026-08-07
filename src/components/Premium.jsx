@@ -18,7 +18,7 @@ const STUDY_GAMES = [
     name: 'Word Scramble',
     desc: 'Rearrange jumbled letters to form valid words before time runs out.',
     type: 'Vocabulary',
-    color: '#F4B942'
+    color: '#f7bd49'
   },
   {
     id: 'picture-match',

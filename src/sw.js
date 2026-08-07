@@ -43,7 +43,7 @@ registerRoute(
 
 // ── Runtime: Supabase / API — network-first ───────────────────────────────
 registerRoute(
-  ({ url }) => url.hostname.includes('supabase.co') || url.pathname.startsWith('/api/'),
+  ({ url }) => (url.hostname.includes('supabase.co') && !url.hostname.includes('placeholder.supabase.co')) || url.pathname.startsWith('/api/'),
   new NetworkFirst({ cacheName: 'api-cache', networkTimeoutSeconds: 5 })
 );
 
@@ -144,7 +144,7 @@ self.addEventListener('pushsubscriptionchange', (event) => {
           method : 'POST',
           headers: { 'Content-Type': 'application/json' },
           body   : JSON.stringify({ subscription: newSubscription }),
-        });
+        }).catch((err) => console.warn('[SW] Push resubscription skipped:', err));
       })
   );
 });

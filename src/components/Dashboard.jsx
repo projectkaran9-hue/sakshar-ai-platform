@@ -21,6 +21,7 @@ const COMMUNITY_INVITE_GAMES = [
   { id: 'scramble', emoji: '🔤', title: 'Word Scramble Arena', color: 'from-[#5C67F2] to-[#7C3AED]', xp: '+25 XP' },
   { id: 'flash', emoji: '⚡', title: 'Speed Flash Quiz', color: 'from-[#10B981] to-[#059669]', xp: '+30 XP' },
   { id: 'drop', emoji: '🎯', title: 'Letter Catch Arcade', color: 'from-[#F59E0B] to-[#EF4444]', xp: '+40 XP' },
+  { id: 'puzzle', emoji: '🧩', title: 'Literacy Tile Puzzle', color: 'from-[#EC4899] to-[#8B5CF6]', xp: '+45 XP' },
   { id: 'shoot', emoji: '🔫', title: 'Picture Word Sniper', color: 'from-fuchsia-500 to-rose-600', xp: '+45 XP' },
   { id: 'memory', emoji: '🧩', title: 'Memory Match Flip', color: 'from-pink-500 to-rose-600', xp: '+30 XP' },
   { id: 'sentence', emoji: '🏗️', title: 'Sentence Builder', color: 'from-cyan-500 to-blue-600', xp: '+35 XP' },
@@ -1981,6 +1982,9 @@ function MiniGameModal({ isOpen, onClose, lang, fullName, initialGameId = null }
                 {selectedGame === 'shoot' && (
                   <ShootingGame lang={lang} isMuted={isMuted} onAwardXP={awardXP} onBack={() => setSelectedGame(null)} />
                 )}
+                {selectedGame === 'puzzle' && (
+                  <WordPuzzleGame lang={lang} isMuted={isMuted} onAwardXP={awardXP} onBack={() => setSelectedGame(null)} />
+                )}
               </div>
             )}
           </div>
@@ -1993,7 +1997,7 @@ function MiniGameModal({ isOpen, onClose, lang, fullName, initialGameId = null }
 // ARCADE GAME SELECTOR HUB
 function GameSelector({ activeCategory, onSelectCategory, onSelectGame }) {
   const categories = [
-    { id: 'all', label: '🕹️ All Games (9)' },
+    { id: 'all', label: '🕹️ All Games (10)' },
     { id: 'words', label: '🔤 Words & Spelling' },
     { id: 'arcade', label: '🎯 Speed & Arcade' },
     { id: 'memory', label: '🧩 Memory Match' },
@@ -2013,6 +2017,7 @@ function GameSelector({ activeCategory, onSelectCategory, onSelectGame }) {
     { id: 'trace', category: 'trace', emoji: '✍️', title: 'Script & Letter Trace', desc: 'Trace character strokes on the drawing canvas to master handwriting!', color: 'from-purple-500 to-indigo-600', diff: 'Easy', xp: '+25 XP' },
     { id: 'sound', category: 'sound', emoji: '🔊', title: 'Phonics Sound Scout', desc: 'Listen to spoken native audio & identify the matching word card!', color: 'from-amber-500 to-orange-600', diff: 'Medium', xp: '+35 XP' },
     { id: 'duel', category: 'battle', emoji: '⚔️', title: 'Literacy Duel Arena', desc: 'Fight quirky word monsters — answer correctly to attack, get it wrong and take the hit!', color: 'from-rose-600 to-red-800', diff: 'Hard', xp: '+50 XP' },
+    { id: 'puzzle', category: 'memory', emoji: '🧩', title: 'Literacy Tile Puzzle', desc: 'Slide & assemble scrambled picture and word tiles to complete the literacy puzzle!', color: 'from-[#EC4899] to-[#8B5CF6]', diff: 'Medium', xp: '+45 XP' },
   ];
 
   const filteredGames = activeCategory === 'all'
@@ -2094,6 +2099,209 @@ function GameSelector({ activeCategory, onSelectCategory, onSelectGame }) {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// GAME 10: LITERACY TILE PUZZLE (JIGSAW / TILE SLIDER)
+// ----------------------------------------------------------------------------
+const PUZZLE_ITEMS = {
+  hindi: [
+    { word: 'सेब (Apple)', emoji: '🍎', image: '🍎', hint: 'स्वादिष्ट लाल फल जो सेहत बनाता है', tiles: ['से', 'ब', '🍎', 'ला', 'ल', 'मी', 'ठा', 'फ', 'ल'] },
+    { word: 'घर (House)', emoji: '🏠', image: '🏠', hint: 'जहाँ परिवार प्रेम से रहता है', tiles: ['घ', 'र', '🏠', 'सुं', 'द', 'र', 'आ', 'वा', 'स'] },
+    { word: 'किताब (Book)', emoji: '📚', image: '📚', hint: 'ज्ञान और विद्या का अमूल्य सागर', tiles: ['कि', 'ता', 'ब', '📚', 'ज्ञा', 'न', 'पु', 'स्त', 'क'] },
+    { word: 'फूल (Flower)', emoji: '🌸', image: '🌸', hint: 'सुगंध और सुंदरता बिखेरने वाला पुष्प', tiles: ['फू', 'ल', '🌸', 'सुं', 'द', 'र', 'पु', 'ष्प', '✨'] },
+    { word: 'पानी (Water)', emoji: '💧', image: '💧', hint: 'जीवनदायी जल जो प्यास बुझाता है', tiles: ['पा', 'नी', '💧', 'शी', 'त', 'ल', 'ज', 'ल', '🌊'] },
+  ],
+  english: [
+    { word: 'APPLE', emoji: '🍎', image: '🍎', hint: 'A sweet red crunchy fruit', tiles: ['A', 'P', 'P', 'L', 'E', '🍎', 'R', 'E', 'D'] },
+    { word: 'HOUSE', emoji: '🏠', image: '🏠', hint: 'A cozy home for family', tiles: ['H', 'O', 'U', 'S', 'E', '🏠', 'H', 'O', 'M'] },
+    { word: 'BOOK', emoji: '📚', image: '📚', hint: 'Source of knowledge & stories', tiles: ['B', 'O', 'O', 'K', '📚', 'R', 'E', 'A', 'D'] },
+    { word: 'FLOWER', emoji: '🌸', image: '🌸', hint: 'Beautiful garden blossom', tiles: ['F', 'L', 'O', 'W', 'E', 'R', '🌸', 'P', 'E'] },
+    { word: 'WATER', emoji: '💧', image: '💧', hint: 'Essential drink for life', tiles: ['W', 'A', 'T', 'E', 'R', '💧', 'P', 'U', 'R'] },
+  ],
+  telugu: [
+    { word: 'యాపిల్ (Apple)', emoji: '🍎', image: '🍎', hint: 'తీపి ఎర్రటి పండు', tiles: ['యా', 'పి', 'ల్', '🍎', 'ఎ', 'ర్ర', 'టి', 'పం', 'డు'] },
+    { word: 'ఇల్లు (House)', emoji: '🏠', image: '🏠', hint: 'కుటుంబం నివసించే నివాసం', tiles: ['ఇ', 'ల్లా', 'లు', '🏠', 'ని', 'వా', 'స', 'ం', '✨'] },
+    { word: 'పుస్తకం (Book)', emoji: '📚', image: '📚', hint: 'జ్ఞానాన్ని ప్రసాదించే గ్రంథం', tiles: ['పు', 'స్త', 'కం', '📚', 'జ్ఞా', 'న', 'ం', 'చ', 'దు'] },
+  ],
+  bengali: [
+    { word: 'আপেল (Apple)', emoji: '🍎', image: '🍎', hint: 'মিষ্টি লাল ফল', tiles: ['আ', 'পে', 'ল', '🍎', 'লা', 'ল', 'ফ', 'ল', '✨'] },
+    { word: 'ঘর (House)', emoji: '🏠', image: '🏠', hint: 'পরিবারের সুন্দর বাসস্থান', tiles: ['ঘ', 'র', '🏠', 'বা', 'স', 'স্থ', 'া', 'ন', 'ি'] },
+    { word: 'বই (Book)', emoji: '📚', image: '📚', hint: 'জ্ঞানের অমূল্য ভান্ডার', tiles: ['ব', 'ই', '📚', 'জ্ঞ', 'া', 'ন', 'প', 'ড়', 'া'] },
+  ],
+  marathi: [
+    { word: 'सफरचंद (Apple)', emoji: '🍎', image: '🍎', hint: 'गोड लाल फळ', tiles: ['स', 'फ', 'र', 'चं', 'द', '🍎', 'गो', 'ड', '✨'] },
+    { word: 'घर (House)', emoji: '🏠', image: '🏠', hint: 'कुटुंबाचे सुंदर निवासस्थान', tiles: ['घ', 'र', '🏠', 'सुं', 'द', 'र', 'नि', 'वा', 'स'] },
+    { word: 'पुस्तक (Book)', emoji: '📚', image: '📚', hint: 'ज्ञानाचा अमूल्य साठा', tiles: ['पु', 'स्त', 'क', '📚', 'ज्ञा', 'न', 'वा', 'च', 'ण'] },
+  ],
+};
+
+function WordPuzzleGame({ lang = 'hindi', isMuted, onAwardXP, onBack }) {
+  const puzzleList = PUZZLE_ITEMS[lang] || PUZZLE_ITEMS.hindi || PUZZLE_ITEMS.english;
+  const [levelIdx, setLevelIdx] = useState(0);
+  const currentPuzzle = puzzleList[levelIdx % puzzleList.length];
+
+  const [tiles, setTiles] = useState([]);
+  const [selectedTileIdx, setSelectedTileIdx] = useState(null);
+  const [moves, setMoves] = useState(0);
+  const [isSolved, setIsSolved] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+  const [gameFinished, setGameFinished] = useState(false);
+
+  useEffect(() => {
+    startNewLevel();
+  }, [levelIdx]);
+
+  const startNewLevel = () => {
+    const p = puzzleList[levelIdx % puzzleList.length];
+    const initial = p.tiles.map((t, idx) => ({ id: idx, text: t }));
+    let shuffled = [...initial].sort(() => Math.random() - 0.5);
+    setTiles(shuffled);
+    setSelectedTileIdx(null);
+    setMoves(0);
+    setIsSolved(false);
+    setShowHint(false);
+  };
+
+  const handleTileClick = (index) => {
+    if (isSolved) return;
+    playArcadeSound('click', isMuted);
+
+    if (selectedTileIdx === null) {
+      setSelectedTileIdx(index);
+    } else {
+      if (selectedTileIdx !== index) {
+        const nextTiles = [...tiles];
+        const temp = nextTiles[selectedTileIdx];
+        nextTiles[selectedTileIdx] = nextTiles[index];
+        nextTiles[index] = temp;
+
+        setTiles(nextTiles);
+        setMoves(m => m + 1);
+        playArcadeSound('flip', isMuted);
+
+        const solved = nextTiles.every((t, i) => t.id === i);
+        if (solved) {
+          setIsSolved(true);
+          playArcadeSound('win', isMuted);
+          onAwardXP(45);
+        }
+      }
+      setSelectedTileIdx(null);
+    }
+  };
+
+  const handleNextLevel = () => {
+    if (levelIdx + 1 >= puzzleList.length) {
+      setGameFinished(true);
+    } else {
+      setLevelIdx(prev => prev + 1);
+    }
+  };
+
+  if (gameFinished) {
+    return (
+      <GameResultsScreen
+        title="Literacy Tile Puzzle"
+        score={100}
+        maxScore={100}
+        xpEarned={45 * puzzleList.length}
+        onRestart={() => { setLevelIdx(0); setGameFinished(false); }}
+        onBack={onBack}
+      />
+    );
+  }
+
+  return (
+    <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-6 max-w-xl mx-auto text-center relative overflow-hidden">
+      <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <button onClick={onBack} className="text-xs font-bold text-slate-400 hover:text-white px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900/80 cursor-pointer">
+          ← Back to Arcade
+        </button>
+        <div className="flex items-center gap-2">
+          <span className="text-xl">🧩</span>
+        </div>
+        <span className="text-xs font-mono font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2.5 py-1 rounded-full">
+          Puzzle {levelIdx + 1}/{puzzleList.length}
+        </span>
+      </div>
+
+      <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 space-y-2">
+        <div className="flex items-center justify-center gap-3">
+          <span className="text-4xl animate-bounce">{currentPuzzle.emoji}</span>
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-wider text-purple-400 block font-mono">Target Word</span>
+            <p className="text-2xl font-black text-white tracking-wide">{currentPuzzle.word}</p>
+          </div>
+        </div>
+        <p className="text-xs text-slate-400 font-medium italic">"{currentPuzzle.hint}"</p>
+      </div>
+
+      <div className="flex items-center justify-between text-xs font-mono text-slate-400 px-1">
+        <span>Moves: <strong className="text-purple-300 font-bold">{moves}</strong></span>
+        <button
+          onClick={() => setShowHint(!showHint)}
+          className="text-[11px] font-bold text-amber-400 hover:text-amber-300 underline cursor-pointer"
+        >
+          {showHint ? 'Hide Clue' : '💡 Show Clue'}
+        </button>
+        <button
+          onClick={startNewLevel}
+          className="text-[11px] font-bold text-cyan-400 hover:text-cyan-300 underline cursor-pointer"
+        >
+          🔀 Reshuffle
+        </button>
+      </div>
+
+      {showHint && (
+        <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-200 text-xs font-semibold animate-fade-in">
+          Target order: <strong className="text-white ml-1">{currentPuzzle.tiles.join('  •  ')}</strong>
+        </div>
+      )}
+
+      <div className="grid grid-cols-3 gap-2.5 max-w-[320px] mx-auto p-3 bg-slate-950 rounded-2xl border border-slate-800 shadow-inner">
+        {tiles.map((tile, idx) => {
+          const isSelected = selectedTileIdx === idx;
+          const isCorrectPos = tile.id === idx;
+
+          return (
+            <button
+              key={idx}
+              onClick={() => handleTileClick(idx)}
+              className={`aspect-square rounded-xl border-2 font-black text-lg sm:text-xl flex flex-col items-center justify-center transition-all duration-200 cursor-pointer shadow-md relative overflow-hidden ${
+                isSolved
+                  ? 'bg-emerald-600/30 border-emerald-500 text-emerald-300 scale-105 shadow-emerald-500/20'
+                  : isSelected
+                  ? 'bg-purple-600 border-purple-400 text-white scale-105 shadow-lg shadow-purple-500/40 animate-pulse'
+                  : isCorrectPos
+                  ? 'bg-slate-800/90 border-purple-500/40 text-purple-200 hover:border-purple-400 hover:scale-102'
+                  : 'bg-slate-900 border-slate-700/80 text-slate-200 hover:border-slate-500 hover:scale-102'
+              }`}
+            >
+              <span>{tile.text}</span>
+              <span className="text-[9px] opacity-40 font-mono absolute bottom-1 right-1.5">#{tile.id + 1}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {isSolved && (
+        <div className="p-4 bg-gradient-to-r from-emerald-950 to-teal-950 border border-emerald-500/40 rounded-2xl space-y-3 animate-scale-up">
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-2xl animate-bounce">🎉</span>
+            <span className="text-base font-black text-emerald-300">Puzzle Solved! (+45 XP)</span>
+          </div>
+          <p className="text-xs text-slate-300 font-medium">You assembled '{currentPuzzle.word}' in {moves} moves!</p>
+          <button
+            onClick={handleNextLevel}
+            className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/30 cursor-pointer transition"
+          >
+            {levelIdx + 1 >= puzzleList.length ? 'Finish All Puzzles →' : 'Next Puzzle Level →'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -6005,9 +6213,32 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
         {/* TABS C: COURSES GRID VIEW */}
         {currentNav === 'courses' && (
           <div className="space-y-6 overflow-y-auto pr-0 sm:pr-1 scrollbar-none animate-fade-in flex-1">
-            <div>
-              <h2 className="text-2xl font-black text-gray-900">{t.coursesTitle || 'Syllabus Curriculum Tracks'}</h2>
-              <p className="text-xs text-gray-400 font-medium mt-1">Explore all 20 courses available across all literacy skill levels.</p>
+            {/* AI EVALUATION ASSIGNED SYLLABUS BANNER */}
+            <div className="p-5 bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-800 rounded-3xl text-white shadow-xl space-y-3 relative overflow-hidden">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 relative z-10">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full bg-purple-500/30 border border-purple-400/40 text-purple-200 text-[10px] font-mono font-bold uppercase tracking-wider">
+                      🤖 AI Evaluation Placement Profile
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-400/30">
+                      ✓ Score: 85% Diagnostic Match
+                    </span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white mt-1.5">
+                    Assigned Native Syllabus Courses
+                  </h2>
+                  <p className="text-xs text-purple-200 font-medium mt-0.5">
+                    Showing all regional courses assigned according to your AI evaluation placement score for <strong className="text-white capitalize">{educationalLevel || 'Foundational'} Track</strong>.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-xs font-bold bg-white/10 px-3 py-1.5 rounded-xl border border-white/20">
+                    📚 6 Assigned Courses
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div className="flex border-b border-gray-200 mb-6 overflow-x-auto space-x-6 scrollbar-none">

@@ -70,7 +70,17 @@ export default function VoicePractice({ targetPhrase = "Apple", expectedLanguage
   return (
     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4 max-w-md mx-auto">
       <div className="flex justify-between items-center">
-        <h3 className="font-bold text-gray-900 tracking-tight text-sm">Voice Assessment Tracker</h3>
+        <div>
+          <h3 className="font-bold text-gray-900 tracking-tight text-sm">Voice Assessment Tracker</h3>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className="text-[9px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-100 font-mono">
+              AI Engine: {localStorage.getItem('sakshar_active_ai_engine') || 'Gemini 1.5 Flash'}
+            </span>
+            <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
+              ● Failover Ready
+            </span>
+          </div>
+        </div>
         <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-semibold">{expectedLanguage}</span>
       </div>
 

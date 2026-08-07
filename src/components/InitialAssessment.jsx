@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '../services/supabase';
-import { updateUserProfileTable } from '../services/db';
+import { updateUserProfileTable, saveEvaluationDB } from '../services/db';
 import { updateUserAuthProfile } from '../services/auth';
-import { ageSpecificReasoning } from '../data/reasoningQuestions';
 
 // Buckets ages into fine-grained ranges to map directly to the psychometric matrix.
 const getAgeBracket = (ageValue) => {
@@ -25,8 +24,255 @@ const getAgeBracket = (ageValue) => {
 
 // Generates exactly 20 different tasks/questions (5 Reading, 5 Writing, 5 Speaking, 5 Applied Reasoning)
 // dynamically tailored to the user's selected educational level and language.
+// Multilingual question dictionaries covering all 20+ Indian regional languages & English
+const SCRIPT_DICT = {
+  hindi: {
+    letter1: 'ब', letter1Options: ['ब', 'क', 'म', 'न'],
+    word1: 'घर', word1Options: ['घर', 'चल', 'मन', 'फल'],
+    missingText: 'अ _ ार', missingOptions: ['न', 'म', 'क', 'त'], missingCorrect: 'न',
+    word2: 'नल', word2Options: ['नल', 'जल', 'कल', 'थल'],
+    word3: 'आम', word3Options: ['आम', 'काम', 'नाम', 'शाम'],
+    trace: ['अ', 'क', 'म', 'र', 'स'],
+    traceWords: ['किताब', 'कलम', 'स्कूल', 'दोस्त', 'पानी'],
+    traceWordsMiddle: ['विज्ञान', 'सफलता', 'स्वास्थ्य', 'नियम', 'पर्यावरण'],
+    traceWordsHigh: ['लोकतंत्र', 'संविधान', 'वित्तीय', 'जिम्मेदारी', 'अधिकार'],
+    speakingNone: ['घर', 'जल', 'बस', 'आम', 'नमस्ते'],
+    speakingPrimary: ['नमस्ते मेरे दोस्त', 'मुझे पढ़ना अच्छा लगता है', 'आसमान का रंग नीला है', 'आज बहुत तेज धूप है', 'हम सब मिलकर खेलते हैं'],
+    speakingMiddle: ['समय का मूल्य समझें और मेहनत करें', 'पेड़ लगाओ और पर्यावरण बचाओ', 'पुस्तकालय ज्ञान का भंडार होता है', 'नियमित योग करने से मन शांत रहता है', 'सच्चाई की हमेशा जीत होती है'],
+    speakingHigh: ['डिजिटल साक्षरता से वित्तीय सुरक्षा बढ़ती है', 'सभी नागरिकों को समान अधिकार प्राप्त हैं', 'पर्यावरण संरक्षण हमारी नैतिक जिम्मेदारी है', 'अनेकता में एकता भारत की विशेषता है', 'शिक्षा से ही समाज का विकास संभव है'],
+    identifyLetter: 'दिखाए गए अक्षर को पहचानें:',
+    identifyWord: 'शब्द को पहचानें:',
+    fillBlank: 'रिक्त स्थान भरें:',
+    whatIsWritten: 'यह क्या लिखा है?',
+    chooseCorrectWord: 'सही शब्द चुनें:',
+    traceInstruction: (char) => `अक्षर/शब्द '${char}' को ट्रेस करें`,
+    sayInstruction: (phrase) => `बोलें '${phrase}'`,
+  },
+  bengali: {
+    letter1: 'ব', letter1Options: ['ব', 'ক', 'ম', 'ন'],
+    word1: 'ঘর', word1Options: ['ঘর', 'জল', 'মন', 'ফল'],
+    missingText: 'আ _ েল', missingOptions: ['প', 'ব', 'ত', 'ম'], missingCorrect: 'প',
+    word2: 'জল', word2Options: ['জল', 'বল', 'কল', 'ফল'],
+    word3: 'আম', word3Options: ['আম', 'কাজ', 'নাম', 'দাম'],
+    trace: ['অ', 'ক', 'ম', 'র', 'স'],
+    traceWords: ['বই', 'কলম', 'স্কুল', 'বন্ধু', 'জল'],
+    traceWordsMiddle: ['বিজ্ঞান', 'সাফল্য', 'স্বাস্থ্য', 'নিয়ম', 'পরিবেশ'],
+    traceWordsHigh: ['গণতন্ত্র', 'সংবিধান', 'আর্থিক', 'দায়িত্ব', 'অধিকার'],
+    speakingNone: ['ঘর', 'জল', 'বাস', 'আম', 'নমস্কার'],
+    speakingPrimary: ['নমস্কার আমার বন্ধু', 'আমি পড়তে ভালোবাসেন', 'আকাশের রঙ নীল', 'আজ খুব রোদ উঠেছে', 'আমরা সবাই একসাথে খেলি'],
+    speakingMiddle: ['সময়ের মূল্য বুঝুন ও পরিশ্রম করুন', 'গাছ লাগান পরিবেশ বাঁচান', 'পাঠাগার জ্ঞানের ভান্ডার', 'নিয়মিত যোগ ব্যায়াম মন শান্ত রাখে', 'সত্যের সর্বদা জয় হয়'],
+    speakingHigh: ['ডিজিটাল সাক্ষরতা আর্থিক নিরাপত্তা বাড়ায়', 'সকল নাগরিকের সমান অধিকার আছে', 'পরিবেশ রক্ষা আমাদের নৈতিক দায়িত্ব', 'বিভিন্নতার মধ্যে ঐক্য ভারতের বৈশিষ্ট্য', 'শিক্ষার মাধ্যমেই সমাজের উন্নয়ন সম্ভব'],
+    identifyLetter: 'প্রদর্শিত অক্ষরটি চিহ্নিত করুন:',
+    identifyWord: 'শব্দটি চিহ্নিত করুন:',
+    fillBlank: 'শূন্যস্থান পূরণ করুন:',
+    whatIsWritten: 'উপরে কী লেখা আছে?',
+    chooseCorrectWord: 'সঠিক শব্দটি বেছে নিন:',
+    traceInstruction: (char) => `'${char}' শব্দটি ট্রেস বা লিখুন`,
+    sayInstruction: (phrase) => `বলুন '${phrase}'`,
+  },
+  marathi: {
+    letter1: 'ब', letter1Options: ['ब', 'क', 'म', 'न'],
+    word1: 'घर', word1Options: ['घर', 'चल', 'मन', 'फळ'],
+    missingText: 'अ _ ार', missingOptions: ['न', 'म', 'क', 'त'], missingCorrect: 'न',
+    word2: 'पाणी', word2Options: ['पाणी', 'वाणी', 'गाणी', 'खाणी'],
+    word3: 'आंबा', word3Options: ['आंबा', 'काम', 'नाव', 'शाम'],
+    trace: ['अ', 'क', 'म', 'र', 'स'],
+    traceWords: ['पुस्तक', 'पेन', 'शाळा', 'मित्र', 'पाणी'],
+    traceWordsMiddle: ['विज्ञान', 'यश', 'आरोग्य', 'नियम', 'पर्यावरण'],
+    traceWordsHigh: ['लोकशाही', 'संविधान', 'आर्थिक', 'जबाबदारी', 'हक्क'],
+    speakingNone: ['घर', 'पाणी', 'बस', 'आंबा', 'नमस्कार'],
+    speakingPrimary: ['नमस्कार माझ्या मित्रा', 'मला वाचायला आवडते', 'आकाशाचा रंग निळा आहे', 'आज खूप ऊन आहे', 'आपण सगळे एकत्र खेळतो'],
+    speakingMiddle: ['वेळेचे महत्व ओळखा व मेहनत करा', 'झाडे लावा पर्यावरण वाचवा', 'ग्रंथालय हे ज्ञानाचे भांडार आहे', 'नियमित योगाने मन शांत राहते', 'सत्याचा नेहमी विजय होतो'],
+    speakingHigh: ['डिजिटल साक्षरतेने आर्थिक सुरक्षा वाढते', 'सर्व नागरिकांना समान हक्क आहेत', 'पर्यावरण रक्षण ही आपली नैतिक जबाबदारी आहे', 'विविधतेत एकता ही भारताची ओळख आहे', 'शिक्षणानेच समाजाचा विकास शक्य आहे'],
+    identifyLetter: 'दाखवलेले अक्षर ओळखा:',
+    identifyWord: 'शब्द ओळखा:',
+    fillBlank: 'रिकामी जागा भरा:',
+    whatIsWritten: 'हे काय लिहिले आहे?',
+    chooseCorrectWord: 'योग्य शब्द निवडा:',
+    traceInstruction: (char) => `'${char}' हा शब्द लिहा/ट्रेस करा`,
+    sayInstruction: (phrase) => `म्हणा '${phrase}'`,
+  },
+  telugu: {
+    letter1: 'బ', letter1Options: ['బ', 'క', 'మ', 'న'],
+    word1: 'ఇల్లు', word1Options: ['ఇల్లు', 'నీరు', 'మనసు', 'పండు'],
+    missingText: 'అ _ ాలు', missingOptions: ['న', 'మ', 'క', 'త'], missingCorrect: 'న',
+    word2: 'నీరు', word2Options: ['నీరు', 'పాలు', 'చేప', 'చెట్టు'],
+    word3: 'మామిడి', word3Options: ['మామిడి', 'పని', 'పేరు', 'పాట'],
+    trace: ['అ', 'క', 'మ', 'ర', 'స'],
+    traceWords: ['పుస్తకం', 'కలం', 'బడి', 'స్నేహితుడు', 'నీరు'],
+    traceWordsMiddle: ['విజ్ఞానం', 'విజయం', 'ఆరోగ్యం', 'నియమం', 'పర్యావరణం'],
+    traceWordsHigh: ['ప్రజాస్వామ్యం', 'రాజ్యాంగం', 'ఆర్థిక', 'బాధ్యత', 'హక్కు'],
+    speakingNone: ['ఇల్లు', 'నీరు', 'బస్సు', 'మామిడి', 'నమస్కారం'],
+    speakingPrimary: ['నమస్కారం నా మిత్రమా', 'నాకు చదవడం ఇష్టం', 'ఆకాశం నీల రంగులో ఉంది', 'ఈ రోజు ఎండ ఎక్కువ', 'మేమంతా కలిసి ఆడుకుంటాం'],
+    speakingMiddle: ['సమయ పాలన విజయం ఇస్తుంది', 'చెట్లు నాటండి పర్యావరణం కాపాడండి', 'గ్రంథాలయం జ్ఞాన నిధి', 'యోగా మనస్సుకు ప్రశాంతత ఇస్తుంది', 'సత్యమే జయిస్తుంది'],
+    speakingHigh: ['డిజిటల్ అక్షరాస్యత ఆర్థిక భద్రత ఇస్తుంది', 'పౌరులందరికీ సమాన హక్కులు ఉన్నాయి', 'పర్యావరణ పరిరక్షణ మన బాధ్యత', 'భిన్నత్వంలో ఏకత్వం మన బలం', 'విద్యతోనే సమాజ వికాసం సాధ్యం'],
+    identifyLetter: 'చూపించిన అక్షరాన్ని గుర్తించండి:',
+    identifyWord: 'పదాన్ని గుర్తించండి:',
+    fillBlank: 'ఖాలీని పూరించండి:',
+    whatIsWritten: 'ఇక్కడ ఏమి రాసి ఉంది?',
+    chooseCorrectWord: 'సరైన పదాన్ని ఎంచుకోండి:',
+    traceInstruction: (char) => `'${char}' పదాన్ని రాయండి`,
+    sayInstruction: (phrase) => `'${phrase}' అని చెప్పండి`,
+  },
+  tamil: {
+    letter1: 'ப', letter1Options: ['ப', 'க', 'ம', 'ந'],
+    word1: 'வீடு', word1Options: ['வீடு', 'நீர்', 'மரம்', 'பழம்'],
+    missingText: 'அ _ ம்', missingOptions: ['ந', 'ம', 'க', 'த'], missingCorrect: 'ந',
+    word2: 'நீர்', word2Options: ['நீர்', 'பால்', 'மீன்', 'மழை'],
+    word3: 'மாம்பழம்', word3Options: ['மாம்பழம்', 'வேலை', 'பெயர்', 'பாட்டு'],
+    trace: ['அ', 'க', 'ம', 'ர', 'ச'],
+    traceWords: ['புத்தகம்', 'பேனா', 'பள்ளி', 'நண்பன்', 'நீர்'],
+    traceWordsMiddle: ['அறிவியல்', 'வெற்றி', 'சுகாதாரம்', 'விதி', 'சுற்றுச்சூழல்'],
+    traceWordsHigh: ['ஜனநாயகம்', 'அரசியலமைப்பு', 'நிதி', 'பொறுப்பு', 'உரிமை'],
+    speakingNone: ['வீடு', 'நீர்', 'பேருந்து', 'மாம்பழம்', 'வணக்கம்'],
+    speakingPrimary: ['வணக்கம் என் நண்பா', 'எனக்கு படிக்க பிடிக்கும்', 'வானம் நீல நிறம்', 'இன்று வெயில் அதிகம்', 'நாம் சேர்ந்து விளையாடுவோம்'],
+    speakingMiddle: ['நேரத்தின் மதிப்பை உணருங்கள்', 'மரம் நட்டு உலகை காப்போம்', 'நூலகம் அறிவின் கூடம்', 'யோகா மன அமைதி தரும்', 'வாய்மையே வெல்லும்'],
+    speakingHigh: ['டிஜிட்டல் அறிவு நிதி பாதுகாப்பு தரும்', 'அனைவருக்கும் சம உரிமை உண்டு', 'இயற்கையை காப்பது நம் கடமை', 'வேற்றுமையில் ஒற்றுமை நமது பலம்', 'கல்வியே சமூக வளர்ச்சிக்கு வழி'],
+    identifyLetter: 'காட்டப்பட்ட எழுத்தை அடையாளம் காணவும்:',
+    identifyWord: 'வார்த்தையை அடையாளம் காணவும்:',
+    fillBlank: 'கோடிட்ட இடத்தை நிரப்புக:',
+    whatIsWritten: 'இங்கே என்ன எழுதப்பட்டுள்ளது?',
+    chooseCorrectWord: 'சரியான வார்த்தையைத் தேர்ந்தெடுக்கவும்:',
+    traceInstruction: (char) => `'${char}' என்ற வார்த்தையை எழுதவும்`,
+    sayInstruction: (phrase) => `'${phrase}' என்று சொல்லுங்கள்`,
+  },
+  punjabi: {
+    letter1: 'ਬ', letter1Options: ['ਬ', 'ਕ', 'ਮ', 'ਨ'],
+    word1: 'ਘਰ', word1Options: ['ਘਰ', 'ਜਲ', 'ਮਨ', 'ਫਲ'],
+    missingText: 'ਅ _ ਾਰ', missingOptions: ['ਨ', 'ਮ', 'ਕ', 'ਤ'], missingCorrect: 'ਨ',
+    word2: 'ਜਲ', word2Options: ['ਜਲ', 'ਬਲ', 'ਕਲ', 'ਫਲ'],
+    word3: 'ਅੰਬ', word3Options: ['ਅੰਬ', 'ਕੰਮ', 'ਨਾਮ', 'ਸ਼ਾਮ'],
+    trace: ['ਅ', 'ਕ', 'ਮ', 'ਰ', 'ਸ'],
+    traceWords: ['ਕਿਤਾਬ', 'ਕਲਮ', 'ਸਕੂਲ', 'ਦੋਸਤ', 'ਪਾਣੀ'],
+    traceWordsMiddle: ['ਵਿਗਿਆਨ', 'ਸਫਲਤਾ', 'ਸਿਹਤ', 'ਨਿਯਮ', 'ਵਾਤਾਵਰਨ'],
+    traceWordsHigh: ['ਲੋਕਤੰਤਰ', 'ਸੰਵਿਧਾਨ', 'ਵਿੱਤੀ', 'ਜ਼ਿੰਮੇਵਾਰੀ', 'ਅਧਿਕਾਰ'],
+    speakingNone: ['ਘਰ', 'ਜਲ', 'ਬੱਸ', 'ਅੰਬ', 'ਸਤਿ ਸ਼੍ਰੀ ਅਕਾਲ'],
+    speakingPrimary: ['ਸਤਿ ਸ਼੍ਰੀ ਅਕਾਲ ਮੇਰੇ ਦੋਸਤ', 'ਮੈਨੂੰ ਪੜ੍ਹਨਾ ਚੰਗਾ ਲੱਗਦਾ ਹੈ', 'ਅਸਮਾਨ ਦਾ ਰੰਗ ਨੀਲਾ ਹੈ', 'ਅੱਜ ਬਹੁਤ ਧੁੱਪ ਹੈ', 'ਅਸੀਂ ਸਾਰੇ ਮਿਲ ਕੇ ਖੇਡਦੇ ਹਾਂ'],
+    speakingMiddle: ['ਸਮੇਂ ਦੀ ਕਦਰ ਕਰੋ ਅਤੇ ਮਿਹਨਤ ਕਰੋ', 'ਰੁੱਖ ਲਗਾਓ ਵਾਤਾਵਰਨ ਬਚਾਓ', 'ਲਾਇਬ੍ਰੇਰੀ ਗਿਆਨ ਦਾ ਭੰਡਾਰ ਹੈ', 'ਯੋਗਾ ਨਾਲ ਮਨ ਸ਼ਾਂਤ ਰਹਿੰਦਾ ਹੈ', 'ਸੱਚ ਦੀ ਹਮੇਸ਼ਾ ਜਿੱਤ ਹੁੰਦੀ ਹੈ'],
+    speakingHigh: ['ਡਿਜੀਟਲ ਸਾਖਰਤਾ ਨਾਲ ਵਿੱਤੀ ਸੁਰੱਖਿਆ ਵਧਦੀ ਹੈ', 'ਸਭ ਨਾਗਰਿਕਾਂ ਨੂੰ ਸਮਾਨ ਅਧਿਕਾਰ ਪ੍ਰਾਪਤ ਹਨ', 'ਵਾਤਾਵਰਨ ਦੀ ਸੰਭਾਲ ਸਾਡੀ ਜ਼ਿੰਮੇਵਾਰੀ ਹੈ', 'ਅਨੇਕਤਾ ਵਿੱਚ ਏਕਤਾ ਭਾਰਤ ਦੀ ਸ਼ਾਨ ਹੈ', 'ਸਿੱਖਿਆ ਨਾਲ ਹੀ ਸਮਾਜ ਦਾ ਵਿਕਾਸ ਸੰਭਵ ਹੈ'],
+    identifyLetter: 'ਦਿਖਾਏ ਗਏ ਅੱਖਰ ਨੂੰ ਪਛਾਣੋ:',
+    identifyWord: 'ਸ਼ਬਦ ਨੂੰ ਪਛਾਣੋ:',
+    fillBlank: 'ਖਾਲੀ ਥਾਂ ਭਰੋ:',
+    whatIsWritten: 'ਇਹ ਕੀ ਲਿਖਿਆ ਹੈ?',
+    chooseCorrectWord: 'ਸਹੀ ਸ਼ਬਦ ਚੁਣੋ:',
+    traceInstruction: (char) => `'${char}' ਅੱਖਰ/ਸ਼ਬਦ ਲਿਖੋ`,
+    sayInstruction: (phrase) => `'${phrase}' ਬੋਲੋ`,
+  },
+  gujarati: {
+    letter1: 'બ', letter1Options: ['બ', 'ક', 'મ', 'ન'],
+    word1: 'ઘર', word1Options: ['ઘર', 'પાણી', 'મન', 'ફળ'],
+    missingText: 'અ _ ાર', missingOptions: ['ન', 'મ', 'ક', 'ત'], missingCorrect: 'ન',
+    word2: 'પાણી', word2Options: ['પાણી', 'વાણી', 'ગાણી', 'ખાણી'],
+    word3: 'કેરી', word3Options: ['કેરી', 'કામ', 'નામ', 'શામ'],
+    trace: ['અ', 'ક', 'મ', 'ર', 'સ'],
+    traceWords: ['પુસ્તક', 'પેન', 'શાળા', 'મિત્ર', 'પાણી'],
+    traceWordsMiddle: ['વિજ્ઞાન', 'સફળતા', 'આરોગ્ય', 'નિયમ', 'પર્યાવરણ'],
+    traceWordsHigh: ['લોકશાહી', 'બંધારણ', 'નાણાકીય', 'જવાબદારી', 'અધિકાર'],
+    speakingNone: ['ઘર', 'પાણી', 'બસ', 'કેરી', 'નમસ્તે'],
+    speakingPrimary: ['નમસ્તે મારા મિત્ર', 'મને વાંચવું ગમે છે', 'આકાશનો રંગ વાદળી છે', 'આજે ખૂબ તડકો છે', 'આપણે બધા સાથે રમીએ છીએ'],
+    speakingMiddle: ['સમયનું મહત્વ સમજો અને મહેનત કરો', 'વૃક્ષો વાવો પર્યાવરણ બચાવો', 'પુસ્તકાલય જ્ઞાનનો ભંડાર છે', 'નિયમિત યોગથી મન શાંત રહે છે', 'સત્યની હંમેશા જીત થાય છે'],
+    speakingHigh: ['ડિજિટલ સાક્ષરતાથી નાણાકીય સુરક્ષા વધે છે', 'તમામ નાગરિકોને સમાન અધિકાર છે', 'પર્યાવરણ રક્ષણ આપણી નૈતિક જવાબદારી છે', 'વિવિધતામાં એકતા ભારતની વિશેષતા છે', 'શિક્ષણથી જ સમાજનો વિકાસ શક્ય છે'],
+    identifyLetter: 'દર્શાવેલ અક્ષર ઓળખો:',
+    identifyWord: 'શબ્દ ઓળખો:',
+    fillBlank: 'ખાલી જગ્યા પૂરો:',
+    whatIsWritten: 'આ શું લખ્યું છે?',
+    chooseCorrectWord: 'સાચો શબ્દ પસંદ કરો:',
+    traceInstruction: (char) => `'${char}' અક્ષર/શબ્દ લખો`,
+    sayInstruction: (phrase) => `'${phrase}' બોલો`,
+  },
+  kannada: {
+    letter1: 'ಬ', letter1Options: ['ಬ', 'ಕ', 'ಮ', 'ನ'],
+    word1: 'ಮನೆ', word1Options: ['ಮನೆ', 'ನೀರು', 'ಮನಸು', 'ಹಣ್ಣು'],
+    missingText: 'ಅ _ ಾರ', missingOptions: ['ನ', 'ಮ', 'ಕ', 'ತ'], missingCorrect: 'ನ',
+    word2: 'ನೀರು', word2Options: ['ನೀರು', 'ಹಾಲು', 'ಮೀನು', 'ಮಳೆ'],
+    word3: 'ಮಾವು', word3Options: ['ಮಾವು', 'ಕೆಲಸ', 'ಹೆಸರು', 'ಹಾಡು'],
+    trace: ['ಅ', 'ಕ', 'ಮ', 'ರ', 'ಸ'],
+    traceWords: ['ಪುಸ್ತಕ', 'ಪೆನ್', 'ಶಾಲೆ', 'ಸ್ನೇಹಿತ', 'ನೀರು'],
+    traceWordsMiddle: ['ವಿಜ್ಞಾನ', 'ಸಾಧನೆ', 'ಆರೋಗ್ಯ', 'ನಿಯಮ', 'ಪರಿಸರ'],
+    traceWordsHigh: ['ಪ್ರಜಾಪ್ರಭುತ್ವ', 'ಸಂವಿಧಾನ', 'ಹಣಕಾಸು', 'ಹೊಣೆಗಾರಿಕೆ', 'ಹಕ್ಕು'],
+    speakingNone: ['ಮನೆ', 'ನೀರು', 'ಬಸ್', 'ಮಾವು', 'ನಮಸ್ಕಾರ'],
+    speakingPrimary: ['ನಮಸ್ಕಾರ ನನ್ನ ಸ್ನೇಹಿತನೆ', 'ನನಗೆ ಓದಲು ಇಷ್ಟ', 'ಆಕಾಶದ ಬಣ್ಣ ನೀಲಿ', 'ಇಂದು ಬಿಸಿಲು ಹೆಚ್ಚು', 'ನಾವೆಲ್ಲರೂ ಒಟ್ಟಿಗೆ ಆಡುತ್ತೇವೆ'],
+    speakingMiddle: ['ಸಮಯದ ಮಹತ್ವ ತಿಳಿಯಿರಿ', 'ಮರ ನೆಡಿ ಪರಿಸರ ಉಳಿಸಿ', 'ಗ್ರಂಥಾಲಯ ಜ್ಞಾನದ ಭಂಡಾರ', 'ಯೋಗದಿಂದ ಮನಸ್ಸು ಶಾಂತವಾಗುತ್ತದೆ', 'ಸತ್ಯಕ್ಕೆ ಸದಾ ಜಯ'],
+    speakingHigh: ['ಡಿಜಿಟಲ್ ಸಾಕ್ಷರತೆ ಹಣಕಾಸಿನ ಭದ್ರತೆ ನೀಡುತ್ತದೆ', 'ಎಲ್ಲಾ ನಾಗರಿಕರಿಗೂ ಸಮಾನ ಹಕ್ಕುಗಳಿವೆ', 'ಪರಿಸರ ರಕ್ಷಣೆ ನಮ್ಮ ಕರ್ತವ್ಯ', 'ವೈವಿಧ್ಯತೆಯಲ್ಲಿ ಏಕತೆ ಭಾರತದ ಹೆಮ್ಮೆ', 'ಶಿಕ್ಷಣದಿಂದ ಸಮಾಜದ ಪ್ರಗತಿ ಸಾಧ್ಯ'],
+    identifyLetter: 'ತೋರಿಸಲಾದ ಅಕ್ಷರವನ್ನು ಗುರುತಿಸಿ:',
+    identifyWord: 'ಪದವನ್ನು ಗುರುತಿಸಿ:',
+    fillBlank: 'ಖಾಲಿ ಜಾಗ ತುಂಬಿ:',
+    whatIsWritten: 'ಇಲ್ಲಿ ಏನು ಬರೆಯಲಾಗಿದೆ?',
+    chooseCorrectWord: 'ಸರಿಯಾದ ಪದ ಆಯ್ಕೆ ಮಾಡಿ:',
+    traceInstruction: (char) => `'${char}' ಪದವನ್ನು ಬರೆಯಿರಿ`,
+    sayInstruction: (phrase) => `'${phrase}' ಎಂದು ಹೇಳಿ`,
+  },
+  malayalam: {
+    letter1: 'ബ', letter1Options: ['ബ', 'ക', 'മ', 'ന'],
+    word1: 'വീട്', word1Options: ['വീട്', 'വെള്ളം', 'മനസ്സ്', 'പഴം'],
+    missingText: 'അ _ ം', missingOptions: ['ന', 'മ', 'ക', 'ത'], missingCorrect: 'ന',
+    word2: 'വെള്ളം', word2Options: ['വെള്ളം', 'പാൽ', 'മീൻ', 'മഴ'],
+    word3: 'മാമ്പഴം', word3Options: ['മാമ്പഴം', 'ജോലി', 'പേര്', 'പാട്ട്'],
+    trace: ['അ', 'ക', 'മ', 'ര', 'സ'],
+    traceWords: ['പുസ്തകം', 'പേന', 'സ്കൂൾ', 'കൂട്ടുകാരൻ', 'വെള്ളം'],
+    traceWordsMiddle: ['ശാസ്ത്രം', 'വിജയം', 'ആരോഗ്യം', 'നിയമം', 'പരിസ്ഥിതി'],
+    traceWordsHigh: ['ജനാധിപത്യം', 'ഭരണഘടന', 'സാമ്പത്തികം', 'ഉത്തരവാദിത്തം', 'അവകാശം'],
+    speakingNone: ['വീട്', 'വെള്ളം', 'ബസ്', 'മാമ്പഴം', 'നമസ്കാരം'],
+    speakingPrimary: ['നമസ്കാരം എന്റെ കൂട്ടുകാരാ', 'എനിക്ക് വായിക്കാൻ ഇഷ്ടമാണ്', 'ആകാശത്തിന്റെ നിറം നീലയാണ്', 'ഇന്ന് നല്ല വെയിലുണ്ട്', 'ഞങ്ങൾ എല്ലാവരും ഒന്നിച്ച് കളിക്കുന്നു'],
+    speakingMiddle: ['സമയത്തിന്റെ മൂല്യം മനസ്സിലാക്കുക', 'മരം നടൂ പരിസ്ഥിതി സംരക്ഷിക്കൂ', 'ഗ്രന്ഥശാല അറിവിന്റെ ഭണ്ഡാരമാണ്', 'യോഗ മനസ്സിനെ ശാന്തമാക്കുന്നു', 'സത്യം എപ്പോഴും ജയിക്കും'],
+    speakingHigh: ['ഡിജിറ്റൽ സാക്ഷരത സാമ്പത്തിക സുരക്ഷ നൽകുന്നു', 'എല്ലാ പൗരന്മാർക്കും തുല്യ അവകാശമുണ്ട്', 'പരിസ്ഥിതി സംരക്ഷണം നമ്മുടെ ചുമതലയാണ്', 'വൈവിധ്യത്തിൽ ഏകത്വം ഇന്ത്യയുടെ സവിശേഷതയാണ്', 'വിദ്യാഭ്യാസത്തിലൂടെ സമൂഹ പുരോഗതി സാധ്യമാണ്'],
+    identifyLetter: 'കാണിച്ചിരിക്കുന്ന അക്ഷരം തിരിച്ചറിയുക:',
+    identifyWord: 'വാക്ക് തിരിച്ചറിയുക:',
+    fillBlank: 'വിട്ടുപോയ അക്ഷരം പൂരിപ്പിക്കുക:',
+    whatIsWritten: 'ഇവിടെ എന്താണ് എഴുതിയിരിക്കുന്നത്?',
+    chooseCorrectWord: 'ശരിയായ വാക്ക് തിരഞ്ഞെടുക്കുക:',
+    traceInstruction: (char) => `'${char}' എന്ന വാക്ക് വരയ്ക്കുക/എഴുതുക`,
+    sayInstruction: (phrase) => `'${phrase}' എന്ന് പറയുക`,
+  },
+  odia: {
+    letter1: 'ବ', letter1Options: ['ବ', 'କ', 'ମ', 'ନ'],
+    word1: 'ଘର', word1Options: ['ଘର', 'ପାଣି', 'ମନ', 'ଫଳ'],
+    missingText: 'ଅ _ ାର', missingOptions: ['ନ', 'ମ', 'କ', 'ତ'], missingCorrect: 'ନ',
+    word2: 'ପାଣି', word2Options: ['ପାଣି', 'ଖୀର', 'ମାଛ', 'ବର୍ଷା'],
+    word3: 'ଆମ୍ବ', word3Options: ['ଆମ୍ବ', 'କାମ', 'ନାମ', 'ଗୀତ'],
+    trace: ['ଅ', 'କ', 'ମ', 'ର', 'ସ'],
+    traceWords: ['ବହି', 'କଲମ', 'ବିଦ୍ୟାଳୟ', 'ସାଙ୍ଗ', 'ପାଣି'],
+    traceWordsMiddle: ['ବିଜ୍ଞାନ', 'ସଫଳତା', 'ସ୍ବାସ୍ଥ୍ୟ', 'ନିୟମ', 'ପରିବେଶ'],
+    traceWordsHigh: ['ଗଣତନ୍ତ୍ର', 'ସମ୍ବିଧାନ', 'ଆର୍ଥିକ', 'ଦାୟିତ୍ବ', 'ଅଧିକାର'],
+    speakingNone: ['ଘର', 'ପାଣି', 'ବସ୍', 'ଆମ୍ବ', 'ନମସ୍କାର'],
+    speakingPrimary: ['ନମସ୍କାର ମୋର ସାଙ୍ଗ', 'ମୋତେ ପଢ଼ିବା ଭଲ ଲାଗେ', 'ଆକାଶର ରଙ୍ଗ ନୀଳ', 'ଆଜି ଖରା ବହୁତ', 'ଆମେ ସମସ୍ତେ ମିଶି ଖେଳୁ'],
+    speakingMiddle: ['ସମୟର ମୂଲ୍ୟ ବୁଝନ୍ତୁ', 'ଗଛ ଲଗାନ୍ତୁ ପରିବେଶ ବଞ୍ଚାନ୍ତୁ', 'ପାଠାଗାର ଜ୍ଞାନର ଭଣ୍ଡାର', 'ଯୋଗ ଦ୍ବାରା ମନ ଶାନ୍ତ ରହେ', 'ସତ୍ୟର ସଦା ଜୟ'],
+    speakingHigh: ['ଡିଜିଟାଲ୍ ସାକ୍ଷରତା ଆର୍ଥିକ ସୁରକ୍ଷା ଦିଏ', 'ସମସ୍ତ ନାଗରିକଙ୍କ ସମାନ ଅଧିକାର ଅଛି', 'ପରିବେଶ ସୁରକ୍ଷା ଆମ ଦାୟିତ୍ବ', 'ଏକତାରେ ବଳ ଭାରତର ପରିଚୟ', 'ଶିକ୍ଷା ଦ୍ବାରା ସମାଜର ବିକାଶ ସମ୍ଭବ'],
+    identifyLetter: 'ଦର୍ଶାଯାଇଥିବା ଅକ୍ଷରକୁ ଚିହ୍ନନ୍ତୁ:',
+    identifyWord: 'ଶବ୍ଦକୁ ଚିହ୍ନନ୍ତୁ:',
+    fillBlank: 'ଖାଲି ସ୍ଥାନ ପୂରଣ କରନ୍ତୁ:',
+    whatIsWritten: 'ଏହା କ’ଣ ଲେଖାହୋଇଛି?',
+    chooseCorrectWord: 'ସଠିକ୍ ଶବ୍ଦ ବାଛନ୍ତୁ:',
+    traceInstruction: (char) => `'${char}' ଶବ୍ଦଟି ଲେଖନ୍ତୁ`,
+    sayInstruction: (phrase) => `'${phrase}' କୁହନ୍ତୁ`,
+  },
+};
+
+const ENGLISH_SCRIPT_DICT = {
+  letter1: 'B', letter1Options: ['B', 'D', 'P', 'R'],
+  word1: 'CAT', word1Options: ['CAT', 'BAT', 'DOG', 'RAT'],
+  missingText: 'A _ P L E', missingOptions: ['P', 'B', 'T', 'M'], missingCorrect: 'P',
+  word2: 'SUN', word2Options: ['SUN', 'RUN', 'FUN', 'GUN'],
+  word3: 'BOY', word3Options: ['BOY', 'TOY', 'JOY', 'SOY'],
+  trace: ['A', 'T', 'M', 'C', 'S'],
+  traceWords: ['Book', 'Pen', 'Tree', 'Friend', 'Water'],
+  traceWordsMiddle: ['Science', 'Success', 'Health', 'Respect', 'Nature'],
+  traceWordsHigh: ['Democracy', 'Constitution', 'Financial', 'Responsibility', 'Authority'],
+  speakingNone: ['Sun', 'Water', 'Bus', 'Food', 'Hello'],
+  speakingPrimary: ['Hello my friend', 'I love reading books', 'Sky is blue today', 'It is sunny outside', 'We play together daily'],
+  speakingMiddle: ['Value of time is key to success', 'Plant trees to protect our environment', 'Library is a house of knowledge', 'Regular yoga keeps the mind calm', 'Honesty is always the best policy'],
+  speakingHigh: ['Digital literacy enhances financial security', 'All citizens are equal under constitution', 'Protecting nature is our moral obligation', 'Unity in diversity is Indias strength', 'Education leads to progress of society'],
+  identifyLetter: 'Identify the letter shown above:',
+  identifyWord: 'Identify the word shown above:',
+  fillBlank: 'Find the missing letter:',
+  whatIsWritten: 'What is written above?',
+  chooseCorrectWord: 'Choose the correct word:',
+  traceInstruction: (char) => `Trace or write the word '${char}'`,
+  sayInstruction: (phrase) => `Say '${phrase}'`,
+};
+
 const getAssessmentQuestions = (lang, level, ageBracket) => {
-  const isHindi = lang === 'hindi';
+  const d = SCRIPT_DICT[lang] || ENGLISH_SCRIPT_DICT;
 
   // ============================================================================
   // LEVEL: NONE (Pre-literate / Foundational Learner) - 20 Unique Questions
@@ -34,58 +280,58 @@ const getAssessmentQuestions = (lang, level, ageBracket) => {
   if (level === 'none') {
     return [
       // Reading (5)
-      { type: 'reading', text: isHindi ? 'ब' : 'B', question: isHindi ? 'दिखाए गए अक्षर को पहचानें:' : 'Identify the letter shown above:', options: isHindi ? ['ब', 'क', 'म', 'न'] : ['B', 'D', 'P', 'R'], correct: isHindi ? 'ब' : 'B' },
-      { type: 'reading', text: isHindi ? 'घर' : 'CAT', question: isHindi ? 'शब्द को पहचानें:' : 'Identify the word shown above:', options: isHindi ? ['घर', 'चल', 'मन', 'फल'] : ['CAT', 'BAT', 'DOG', 'RAT'], correct: isHindi ? 'घर' : 'CAT' },
-      { type: 'reading', text: isHindi ? 'अ _ ार' : 'A _ P L E', question: isHindi ? 'रिक्त स्थान भरें:' : 'Find the missing letter:', options: isHindi ? ['न', 'म', 'क', 'त'] : ['P', 'B', 'T', 'M'], correct: isHindi ? 'न' : 'P' },
-      { type: 'reading', text: isHindi ? 'नल' : 'SUN', question: isHindi ? 'यह क्या लिखा है?' : 'What is written above?', options: isHindi ? ['नल', 'जल', 'कल', 'थल'] : ['SUN', 'RUN', 'FUN', 'GUN'], correct: isHindi ? 'नल' : 'SUN' },
-      { type: 'reading', text: isHindi ? 'आम' : 'BOY', question: isHindi ? 'सही शब्द चुनें:' : 'Choose the correct word:', options: isHindi ? ['आम', 'काम', 'नाम', 'शाम'] : ['BOY', 'TOY', 'JOY', 'SOY'], correct: isHindi ? 'आम' : 'BOY' },
+      { type: 'reading', text: d.letter1, question: d.identifyLetter, options: d.letter1Options, correct: d.letter1 },
+      { type: 'reading', text: d.word1, question: d.identifyWord, options: d.word1Options, correct: d.word1 },
+      { type: 'reading', text: d.missingText, question: d.fillBlank, options: d.missingOptions, correct: d.missingCorrect },
+      { type: 'reading', text: d.word2, question: d.whatIsWritten, options: d.word2Options, correct: d.word2 },
+      { type: 'reading', text: d.word3, question: d.chooseCorrectWord, options: d.word3Options, correct: d.word3 },
       // Writing (5)
-      { type: 'writing', char: isHindi ? 'अ' : 'A', instruction: isHindi ? "अक्षर 'अ' को ट्रेस करें" : "Trace the letter A" },
-      { type: 'writing', char: isHindi ? 'क' : 'T', instruction: isHindi ? "अक्षर 'क' को ट्रेस करें" : "Trace the letter T" },
-      { type: 'writing', char: isHindi ? 'म' : 'M', instruction: isHindi ? "अक्षर 'म' को ट्रेस करें" : "Trace the letter M" },
-      { type: 'writing', char: isHindi ? 'र' : 'C', instruction: isHindi ? "अक्षर 'र' को ट्रेस करें" : "Trace the letter C" },
-      { type: 'writing', char: isHindi ? 'स' : 'S', instruction: isHindi ? "अक्षर 'स' को ट्रेस करें" : "Trace the letter S" },
+      { type: 'writing', char: d.trace[0], instruction: d.traceInstruction(d.trace[0]) },
+      { type: 'writing', char: d.trace[1], instruction: d.traceInstruction(d.trace[1]) },
+      { type: 'writing', char: d.trace[2], instruction: d.traceInstruction(d.trace[2]) },
+      { type: 'writing', char: d.trace[3], instruction: d.traceInstruction(d.trace[3]) },
+      { type: 'writing', char: d.trace[4], instruction: d.traceInstruction(d.trace[4]) },
       // Speaking (5)
-      { type: 'speaking', phrase: isHindi ? 'घर' : 'Sun', instruction: isHindi ? "बोलें 'घर'" : "Say 'Sun'" },
-      { type: 'speaking', phrase: isHindi ? 'जल' : 'Water', instruction: isHindi ? "बोलें 'जल'" : "Say 'Water'" },
-      { type: 'speaking', phrase: isHindi ? 'बस' : 'Bus', instruction: isHindi ? "बोलें 'बस'" : "Say 'Bus'" },
-      { type: 'speaking', phrase: isHindi ? 'आम' : 'Food', instruction: isHindi ? "बोलें 'आम'" : "Say 'Food'" },
-      { type: 'speaking', phrase: isHindi ? 'नमस्ते' : 'Hello', instruction: isHindi ? "बोलें 'नमस्ते'" : "Say 'Hello'" },
+      { type: 'speaking', phrase: d.speakingNone[0], instruction: d.sayInstruction(d.speakingNone[0]) },
+      { type: 'speaking', phrase: d.speakingNone[1], instruction: d.sayInstruction(d.speakingNone[1]) },
+      { type: 'speaking', phrase: d.speakingNone[2], instruction: d.sayInstruction(d.speakingNone[2]) },
+      { type: 'speaking', phrase: d.speakingNone[3], instruction: d.sayInstruction(d.speakingNone[3]) },
+      { type: 'speaking', phrase: d.speakingNone[4], instruction: d.sayInstruction(d.speakingNone[4]) },
       // Reasoning (5)
       {
         type: 'reasoning', icon: '🥛',
-        scenario: isHindi ? 'आपको बहुत तेज प्यास लगी है।' : 'You are feeling very thirsty.',
-        question: isHindi ? 'आप क्या इस्तेमाल करेंगे?' : 'What will you use to drink?',
-        options: isHindi ? [{ emoji: '🥛', label: 'पानी का गिलास' }, { emoji: '👞', label: 'जूता' }, { emoji: '🧱', label: 'पत्थर' }] : [{ emoji: '🥛', label: 'Glass of water' }, { emoji: '👞', label: 'Shoe' }, { emoji: '🧱', label: 'Stone' }],
-        correct: isHindi ? 'पानी का गिलास' : 'Glass of water'
+        scenario: lang === 'hindi' ? 'आपको बहुत तेज प्यास लगी है।' : 'You are feeling very thirsty.',
+        question: lang === 'hindi' ? 'आप क्या इस्तेमाल करेंगे?' : 'What will you use to drink?',
+        options: [{ emoji: '🥛', label: lang === 'hindi' ? 'पानी का गिलास' : 'Glass of water' }, { emoji: '👞', label: lang === 'hindi' ? 'जूता' : 'Shoe' }, { emoji: '🧱', label: lang === 'hindi' ? 'पत्थर' : 'Stone' }],
+        correct: lang === 'hindi' ? 'पानी का गिलास' : 'Glass of water'
       },
       {
         type: 'reasoning', icon: '🧼',
-        scenario: isHindi ? 'आपको भोजन करने से पहले हाथ साफ करने हैं।' : 'You need to clean your hands before eating food.',
-        question: isHindi ? 'आप हाथ धोने के लिए किसका उपयोग करेंगे?' : 'What will you use to wash your hands?',
-        options: isHindi ? [{ emoji: '🧼', label: 'साबुन' }, { emoji: '📰', label: 'कागज' }, { emoji: '✏️', label: 'पेंसिल' }] : [{ emoji: '🧼', label: 'Soap' }, { emoji: '📰', label: 'Newspaper' }, { emoji: '✏️', label: 'Pencil' }],
-        correct: isHindi ? 'साबुन' : 'Soap'
+        scenario: lang === 'hindi' ? 'आपको भोजन करने से पहले हाथ साफ करने हैं।' : 'You need to clean your hands before eating food.',
+        question: lang === 'hindi' ? 'आप हाथ धोने के लिए किसका उपयोग करेंगे?' : 'What will you use to wash your hands?',
+        options: [{ emoji: '🧼', label: lang === 'hindi' ? 'साबुन' : 'Soap' }, { emoji: '📰', label: lang === 'hindi' ? 'कागज' : 'Newspaper' }, { emoji: '✏️', label: lang === 'hindi' ? 'पेंसिल' : 'Pencil' }],
+        correct: lang === 'hindi' ? 'साबुन' : 'Soap'
       },
       {
         type: 'reasoning', icon: '☔',
-        scenario: isHindi ? 'बाहर अचानक बहुत तेज बारिश शुरू हो गई है।' : 'Suddenly it starts raining heavily outside.',
-        question: isHindi ? 'भीगने से बचने के लिए आप क्या लेंगे?' : 'What will you use to avoid getting wet?',
-        options: isHindi ? [{ emoji: '☔', label: 'छाता' }, { emoji: '🥣', label: 'कटोरा' }, { emoji: '🥄', label: 'चम्मच' }] : [{ emoji: '☔', label: 'Umbrella' }, { emoji: '🥣', label: 'Bowl' }, { emoji: '🥄', label: 'Spoon' }],
-        correct: isHindi ? 'छाता' : 'Umbrella'
+        scenario: lang === 'hindi' ? 'बाहर अचानक बहुत तेज बारिश शुरू हो गई है।' : 'Suddenly it starts raining heavily outside.',
+        question: lang === 'hindi' ? 'भीगने से बचने के लिए आप क्या लेंगे?' : 'What will you use to avoid getting wet?',
+        options: [{ emoji: '☔', label: lang === 'hindi' ? 'छाता' : 'Umbrella' }, { emoji: '🥣', label: lang === 'hindi' ? 'कटोरा' : 'Bowl' }, { emoji: '🥄', label: lang === 'hindi' ? 'चम्मच' : 'Spoon' }],
+        correct: lang === 'hindi' ? 'छाता' : 'Umbrella'
       },
       {
         type: 'reasoning', icon: '🔦',
-        scenario: isHindi ? 'रात को कमरे में अचानक बत्ती गुल होने से अंधेरा हो गया है।' : 'The lights go off at night, making the room completely dark.',
-        question: isHindi ? 'रोशनी के लिए आप क्या चालू करेंगे?' : 'What will you switch on to get light?',
-        options: isHindi ? [{ emoji: '🔦', label: 'टॉर्च' }, { emoji: '🌀', label: 'पंख' }, { emoji: '🍽️', label: 'थाली' }] : [{ emoji: '🔦', label: 'Torch' }, { emoji: '🌀', label: 'Fan' }, { emoji: '🍽️', label: 'Plate' }],
-        correct: isHindi ? 'टॉर्च' : 'Torch'
+        scenario: lang === 'hindi' ? 'रात को कमरे में अचानक बत्ती गुल होने से अंधेरा हो गया है।' : 'The lights go off at night, making the room completely dark.',
+        question: lang === 'hindi' ? 'रोशनी के लिए आप क्या चालू करेंगे?' : 'What will you switch on to get light?',
+        options: [{ emoji: '🔦', label: lang === 'hindi' ? 'टॉर्च' : 'Torch' }, { emoji: '🌀', label: lang === 'hindi' ? 'पंख' : 'Fan' }, { emoji: '🍽️', label: lang === 'hindi' ? 'थाली' : 'Plate' }],
+        correct: lang === 'hindi' ? 'टॉर्च' : 'Torch'
       },
       {
         type: 'reasoning', icon: '🍞',
-        scenario: isHindi ? 'आपको बहुत तेज भूख लगी है और पेट खाली है।' : 'You are feeling very hungry and your stomach is empty.',
-        question: isHindi ? 'आप इनमें से क्या खाएंगे?' : 'Which of these will you eat?',
-        options: isHindi ? [{ emoji: '🍞', label: 'रोटी' }, { emoji: '🧱', label: 'ईंट' }, { emoji: '📚', label: 'किताब' }] : [{ emoji: '🍞', label: 'Roti / Bread' }, { emoji: '🧱', label: 'Brick' }, { emoji: '📚', label: 'Book' }],
-        correct: isHindi ? 'रोटी' : 'Roti / Bread'
+        scenario: lang === 'hindi' ? 'आपको बहुत तेज भूख लगी है और पेट खाली है।' : 'You are feeling very hungry and your stomach is empty.',
+        question: lang === 'hindi' ? 'आप इनमें से क्या खाएंगे?' : 'Which of these will you eat?',
+        options: [{ emoji: '🍞', label: lang === 'hindi' ? 'रोटी' : 'Roti / Bread' }, { emoji: '🧱', label: lang === 'hindi' ? 'ईंट' : 'Brick' }, { emoji: '📚', label: lang === 'hindi' ? 'किताब' : 'Book' }],
+        correct: lang === 'hindi' ? 'रोटी' : 'Roti / Bread'
       }
     ];
   }
@@ -96,58 +342,58 @@ const getAssessmentQuestions = (lang, level, ageBracket) => {
   if (level === 'primary') {
     return [
       // Reading (5)
-      { type: 'reading', text: isHindi ? "पेड़ पर बंदर बैठा है।" : "The quick cat runs fast.", question: isHindi ? "पेड़ पर कौन बैठा है?" : "Who runs fast?", options: isHindi ? ["बंदर", "तोता", "चिड़िया", "बिल्ली"] : ["Cat", "Dog", "Rabbit", "Mouse"], correct: isHindi ? "बंदर" : "Cat" },
-      { type: 'reading', text: isHindi ? "सूरज पूर्व दिशा से ______ है।" : "The sun shines in the ______.", question: isHindi ? "रिक्त स्थान भरें:" : "Fill in the blank:", options: isHindi ? ["उगता", "डूबता", "बहता", "उड़ता"] : ["sky", "water", "ground", "forest"], correct: isHindi ? "उगता" : "sky" },
-      { type: 'reading', text: isHindi ? "कल स्कूल बंद रहेगा।" : "Tomorrow is a school holiday.", question: isHindi ? "कल स्कूल क्या रहेगा?" : "What is tomorrow at school?", options: isHindi ? ["खुला", "बंद", "नया", "बड़ा"] : ["Open day", "Holiday", "Exam day", "Sport day"], correct: isHindi ? "बंद" : "Holiday" },
-      { type: 'reading', text: isHindi ? "मुझे आम बहुत मीठा लगा।" : "The yellow mango is very sweet.", question: isHindi ? "आम कैसा लगा?" : "How does the mango taste?", options: isHindi ? ["खट्टा", "कड़वा", "मीठा", "नमकीन"] : ["Sour", "Sweet", "Bitter", "Salty"], correct: isHindi ? "मीठा" : "Sweet" },
-      { type: 'reading', text: isHindi ? "यह नीली पतंग बहुत सुंदर है।" : "This is a beautiful blue kite.", question: isHindi ? "पतंग का रंग क्या है?" : "What color is the kite?", options: isHindi ? ["पीला", "लाल", "नीला", "काला"] : ["Yellow", "Red", "Blue", "Black"], correct: isHindi ? "नीला" : "Blue" },
+      { type: 'reading', text: lang === 'hindi' ? "पेड़ पर बंदर बैठा है।" : "The quick cat runs fast.", question: lang === 'hindi' ? "पेड़ पर कौन बैठा है?" : "Who runs fast?", options: lang === 'hindi' ? ["बंदर", "तोता", "चिड़िया", "बिल्ली"] : ["Cat", "Dog", "Rabbit", "Mouse"], correct: lang === 'hindi' ? "बंदर" : "Cat" },
+      { type: 'reading', text: lang === 'hindi' ? "सूरज पूर्व दिशा से ______ है।" : "The sun shines in the ______.", question: d.fillBlank, options: lang === 'hindi' ? ["उगता", "डूबता", "बहता", "उड़ता"] : ["sky", "water", "ground", "forest"], correct: lang === 'hindi' ? "उगता" : "sky" },
+      { type: 'reading', text: lang === 'hindi' ? "कल स्कूल बंद रहेगा।" : "Tomorrow is a school holiday.", question: lang === 'hindi' ? "कल स्कूल क्या रहेगा?" : "What is tomorrow at school?", options: lang === 'hindi' ? ["खुला", "बंद", "नया", "बड़ा"] : ["Open day", "Holiday", "Exam day", "Sport day"], correct: lang === 'hindi' ? "बंद" : "Holiday" },
+      { type: 'reading', text: lang === 'hindi' ? "मुझे आम बहुत मीठा लगा।" : "The yellow mango is very sweet.", question: lang === 'hindi' ? "आम कैसा लगा?" : "How does the mango taste?", options: lang === 'hindi' ? ["खट्टा", "कड़वा", "मीठा", "नमकीन"] : ["Sour", "Sweet", "Bitter", "Salty"], correct: lang === 'hindi' ? "मीठा" : "Sweet" },
+      { type: 'reading', text: lang === 'hindi' ? "यह नीली पतंग बहुत सुंदर है।" : "This is a beautiful blue kite.", question: lang === 'hindi' ? "पतंग का रंग क्या है?" : "What color is the kite?", options: lang === 'hindi' ? ["पीला", "लाल", "नीला", "काला"] : ["Yellow", "Red", "Blue", "Black"], correct: lang === 'hindi' ? "नीला" : "Blue" },
       // Writing (5)
-      { type: 'writing', char: isHindi ? 'किताब' : 'Book', instruction: isHindi ? "शब्द 'किताब' लिखें" : "Write the word 'Book'" },
-      { type: 'writing', char: isHindi ? 'कलम' : 'Pen', instruction: isHindi ? "शब्द 'कलम' लिखें" : "Write the word 'Pen'" },
-      { type: 'writing', char: isHindi ? 'स्कूल' : 'Tree', instruction: isHindi ? "शब्द 'स्कूल' लिखें" : "Write the word 'Tree'" },
-      { type: 'writing', char: isHindi ? 'दोस्त' : 'Friend', instruction: isHindi ? "शब्द 'दोस्त' लिखें" : "Write the word 'Friend'" },
-      { type: 'writing', char: isHindi ? 'पानी' : 'Water', instruction: isHindi ? "शब्द 'पानी' लिखें" : "Write the word 'Water'" },
+      { type: 'writing', char: d.traceWords[0], instruction: d.traceInstruction(d.traceWords[0]) },
+      { type: 'writing', char: d.traceWords[1], instruction: d.traceInstruction(d.traceWords[1]) },
+      { type: 'writing', char: d.traceWords[2], instruction: d.traceInstruction(d.traceWords[2]) },
+      { type: 'writing', char: d.traceWords[3], instruction: d.traceInstruction(d.traceWords[3]) },
+      { type: 'writing', char: d.traceWords[4], instruction: d.traceInstruction(d.traceWords[4]) },
       // Speaking (5)
-      { type: 'speaking', phrase: isHindi ? 'नमस्ते मेरे दोस्त' : 'Hello my friend', instruction: isHindi ? "बोलें 'नमस्ते मेरे दोस्त'" : "Say 'Hello my friend'" },
-      { type: 'speaking', phrase: isHindi ? 'मुझे पढ़ना अच्छा लगता है' : 'I love reading books', instruction: isHindi ? "बोलें 'मुझे पढ़ना अच्छा लगता है'" : "Say 'I love reading books'" },
-      { type: 'speaking', phrase: isHindi ? 'आसमान का रंग नीला है' : 'Sky is blue today', instruction: isHindi ? "बोलें 'आसमान का रंग नीला है'" : "Say 'Sky is blue today'" },
-      { type: 'speaking', phrase: isHindi ? 'आज बहुत तेज धूप है' : 'It is sunny outside', instruction: isHindi ? "बोलें 'आज बहुत तेज धूप है'" : "Say 'It is sunny outside'" },
-      { type: 'speaking', phrase: isHindi ? 'हम सब मिलकर खेलते हैं' : 'We play together daily', instruction: isHindi ? "बोलें 'हम सब मिलकर खेलते हैं'" : "Say 'We play together daily'" },
+      { type: 'speaking', phrase: d.speakingPrimary[0], instruction: d.sayInstruction(d.speakingPrimary[0]) },
+      { type: 'speaking', phrase: d.speakingPrimary[1], instruction: d.sayInstruction(d.speakingPrimary[1]) },
+      { type: 'speaking', phrase: d.speakingPrimary[2], instruction: d.sayInstruction(d.speakingPrimary[2]) },
+      { type: 'speaking', phrase: d.speakingPrimary[3], instruction: d.sayInstruction(d.speakingPrimary[3]) },
+      { type: 'speaking', phrase: d.speakingPrimary[4], instruction: d.sayInstruction(d.speakingPrimary[4]) },
       // Reasoning (5)
       {
         type: 'reasoning', icon: '🚌',
-        scenario: isHindi ? 'स्कूल बस का समय सुबह 7:30 बजे है और आपकी घड़ी में 7:20 बजे हैं।' : 'The school bus arrives at 7:30 AM. Your watch shows 7:20 AM.',
-        question: isHindi ? 'आपके पास कितना समय बचा है?' : 'How much time do you have left?',
-        options: isHindi ? [{ emoji: '⏰', label: '10 मिनट' }, { emoji: '⏰', label: '20 मिनट' }, { emoji: '⏰', label: '30 मिनट' }] : [{ emoji: '⏰', label: '10 minutes' }, { emoji: '⏰', label: '20 minutes' }, { emoji: '⏰', label: '30 minutes' }],
-        correct: isHindi ? '10 मिनट' : '10 minutes'
+        scenario: lang === 'hindi' ? 'स्कूल बस का समय सुबह 7:30 बजे है और आपकी घड़ी में 7:20 बजे हैं।' : 'The school bus arrives at 7:30 AM. Your watch shows 7:20 AM.',
+        question: lang === 'hindi' ? 'आपके पास कितना समय बचा है?' : 'How much time do you have left?',
+        options: [{ emoji: '⏰', label: lang === 'hindi' ? '10 मिनट' : '10 minutes' }, { emoji: '⏰', label: lang === 'hindi' ? '20 मिनट' : '20 minutes' }, { emoji: '⏰', label: lang === 'hindi' ? '30 मिनट' : '30 minutes' }],
+        correct: lang === 'hindi' ? '10 मिनट' : '10 minutes'
       },
       {
         type: 'reasoning', icon: '📕',
-        scenario: isHindi ? 'पुस्तकालय से ली गई किताब को 7 दिनों में वापस करना है।' : 'A library book must be returned in 7 days.',
-        question: isHindi ? 'यदि आप उसे समय पर वापस नहीं करते हैं तो क्या हो सकता है?' : 'What happens if you return it late?',
-        options: isHindi ? [{ emoji: '⚠️', label: 'जुर्माना लग सकता है' }, { emoji: '🎁', label: 'उपहार मिलेगा' }, { emoji: '✅', label: 'कुछ नहीं होगा' }] : [{ emoji: '⚠️', label: 'A fine may apply' }, { emoji: '🎁', label: 'Get a reward' }, { emoji: '✅', label: 'Nothing changes' }],
-        correct: isHindi ? 'जुर्माना लग सकता है' : 'A fine may apply'
+        scenario: lang === 'hindi' ? 'पुस्तकालय से ली गई किताब को 7 दिनों में वापस करना है।' : 'A library book must be returned in 7 days.',
+        question: lang === 'hindi' ? 'यदि आप उसे समय पर वापस नहीं करते हैं तो क्या हो सकता है?' : 'What happens if you return it late?',
+        options: [{ emoji: '⚠️', label: lang === 'hindi' ? 'जुर्माना लग सकता है' : 'A fine may apply' }, { emoji: '🎁', label: lang === 'hindi' ? 'उपहार मिलेगा' : 'Get a reward' }, { emoji: '✅', label: lang === 'hindi' ? 'कुछ नहीं होगा' : 'Nothing changes' }],
+        correct: lang === 'hindi' ? 'जुर्माना लग सकता है' : 'A fine may apply'
       },
       {
         type: 'reasoning', icon: '🥔',
-        scenario: isHindi ? 'सब्जी विक्रेता कहता है कि आलू ₹20 प्रति किलो हैं।' : 'The vegetable seller says that potatoes cost $2 per kilo.',
-        question: isHindi ? 'आपको 2 किलो आलू खरीदने के लिए कितने पैसे देने होंगे?' : 'How much will you pay for 2 kilos of potatoes?',
-        options: isHindi ? [{ emoji: '💵', label: '₹40' }, { emoji: '💵', label: '₹20' }, { emoji: '💵', label: '₹50' }] : [{ emoji: '💵', label: '$4' }, { emoji: '💵', label: '$2' }, { emoji: '💵', label: '$5' }],
-        correct: isHindi ? '₹40' : '$4'
+        scenario: lang === 'hindi' ? 'सब्जी विक्रेता कहता है कि आलू ₹20 प्रति किलो हैं।' : 'The vegetable seller says that potatoes cost $2 per kilo.',
+        question: lang === 'hindi' ? 'आपको 2 किलो आलू खरीदने के लिए कितने पैसे देने होंगे?' : 'How much will you pay for 2 kilos of potatoes?',
+        options: [{ emoji: '💵', label: lang === 'hindi' ? '₹40' : '$4' }, { emoji: '💵', label: lang === 'hindi' ? '₹20' : '$2' }, { emoji: '💵', label: lang === 'hindi' ? '₹50' : '$5' }],
+        correct: lang === 'hindi' ? '₹40' : '$4'
       },
       {
         type: 'reasoning', icon: '✏️',
-        scenario: isHindi ? 'आपके परीक्षा पत्र पर निर्देश लिखा है: "सभी 5 प्रश्न अनिवार्य हैं।"' : 'Your exam paper instruction states: "All 5 questions are compulsory."',
-        question: isHindi ? 'आपको परीक्षा में कितने प्रश्न हल करने चाहिए?' : 'How many questions should you solve?',
-        options: isHindi ? [{ emoji: '✏️', label: 'सभी 5 प्रश्न' }, { emoji: '🚫', label: 'केवल 2 प्रश्न' }, { emoji: '❌', label: 'कोई भी नहीं' }] : [{ emoji: '✏️', label: 'All 5 questions' }, { emoji: '🚫', label: 'Only 2 questions' }, { emoji: '❌', label: 'None' }],
-        correct: isHindi ? 'सभी 5 प्रश्न' : 'All 5 questions'
+        scenario: lang === 'hindi' ? 'आपके परीक्षा पत्र पर निर्देश लिखा है: "सभी 5 प्रश्न अनिवार्य हैं।"' : 'Your exam paper instruction states: "All 5 questions are compulsory."',
+        question: lang === 'hindi' ? 'आपको परीक्षा में कितने प्रश्न हल करने चाहिए?' : 'How many questions should you solve?',
+        options: [{ emoji: '✏️', label: lang === 'hindi' ? 'सभी 5 प्रश्न' : 'All 5 questions' }, { emoji: '🚫', label: lang === 'hindi' ? 'केवल 2 प्रश्न' : 'Only 2 questions' }, { emoji: '❌', label: lang === 'hindi' ? 'कोई भी नहीं' : 'None' }],
+        correct: lang === 'hindi' ? 'सभी 5 प्रश्न' : 'All 5 questions'
       },
       {
         type: 'reasoning', icon: '🧸',
-        scenario: isHindi ? 'खिलौने की दुकान के बाहर लिखा है: "खिलौनों पर 50% की छूट"। खिलौने की मूल कीमत ₹100 है।' : 'A toy store sign says: "50% off on toys". The original price of a toy is $100.',
-        question: isHindi ? 'छूट के बाद खिलौने की कीमत क्या होगी?' : 'What will be the price of the toy after discount?',
-        options: isHindi ? [{ emoji: '💵', label: '₹50' }, { emoji: '💵', label: '₹80' }, { emoji: '💵', label: '₹100' }] : [{ emoji: '💵', label: '$50' }, { emoji: '💵', label: '$80' }, { emoji: '💵', label: '$100' }],
-        correct: isHindi ? '₹50' : '$50'
+        scenario: lang === 'hindi' ? 'खिलौने की दुकान के बाहर लिखा है: "खिलौनों पर 50% की छूट"। खिलौने की मूल कीमत ₹100 है।' : 'A toy store sign says: "50% off on toys". The original price of a toy is $100.',
+        question: lang === 'hindi' ? 'छूट के बाद खिलौने की कीमत क्या होगी?' : 'What will be the price of the toy after discount?',
+        options: [{ emoji: '💵', label: lang === 'hindi' ? '₹50' : '$50' }, { emoji: '💵', label: lang === 'hindi' ? '₹80' : '$80' }, { emoji: '💵', label: lang === 'hindi' ? '₹100' : '$100' }],
+        correct: lang === 'hindi' ? '₹50' : '$50'
       }
     ];
   }
@@ -158,58 +404,58 @@ const getAssessmentQuestions = (lang, level, ageBracket) => {
   if (level === 'middle') {
     return [
       // Reading (5)
-      { type: 'reading', text: isHindi ? "विज्ञान ने मनुष्य के जीवन को बेहद सरल बना दिया है।" : "Science has made human life very simple and comfortable.", question: isHindi ? "विज्ञान ने जीवन को कैसा बनाया है?" : "What has science done to human life?", options: isHindi ? ["बेहद सरल", "कठिन", "उदासीन", "अकेला"] : ["simple and comfortable", "difficult", "boring", "stressful"], correct: isHindi ? "बेहद सरल" : "simple and comfortable" },
-      { type: 'reading', text: isHindi ? "समय का सदुपयोग करने वाले लोग हमेशा ______ होते हैं।" : "People who manage time properly always ______.", question: isHindi ? "रिक्त स्थान भरें:" : "Fill in the blank:", options: isHindi ? ["सफल", "असफल", "आलसी", "दुखी"] : ["succeed", "fail", "procrastinate", "complain"], correct: isHindi ? "सफल" : "succeed" },
-      { type: 'reading', text: isHindi ? "पेड़ हमें प्राणवायु ऑक्सीजन और मीठे फल प्रदान करते हैं।" : "Trees provide us oxygen and sweet edible fruits.", question: isHindi ? "पेड़ हमें कौन सी गैस प्रदान करते हैं?" : "What gas do trees provide us?", options: isHindi ? ["ऑक्सीजन", "नाइट्रोजन", "कार्बन", "हाइड्रोजन"] : ["Oxygen", "Nitrogen", "Carbon", "Hydrogen"], correct: isHindi ? "ऑक्सीजन" : "Oxygen" },
-      { type: 'reading', text: isHindi ? "स्वास्थ्य ही मनुष्य का सबसे बड़ा वास्तविक धन है।" : "Health is the greatest real wealth of human life.", question: isHindi ? "मनुष्य का सबसे बड़ा धन क्या है?" : "What is the greatest wealth of humans?", options: isHindi ? ["स्वास्थ्य", "सोना", "गाड़ी", "बंगला"] : ["Health", "Gold", "Car", "House"], correct: isHindi ? "स्वास्थ्य" : "Health" },
-      { type: 'reading', text: isHindi ? "पुस्तकालय में हमेशा शांत रहकर पढ़ना चाहिए।" : "A library is a quiet place intended for studying.", question: isHindi ? "पुस्तकालय में कैसा व्यवहार करना चाहिए?" : "How should one behave in a library?", options: isHindi ? ["शांत रहना", "शोर मचाना", "खेलना", "गाना"] : ["Remain quiet", "Make noise", "Play games", "Sing songs"], correct: isHindi ? "शांत रहना" : "Remain quiet" },
+      { type: 'reading', text: lang === 'hindi' ? "विज्ञान ने मनुष्य के जीवन को बेहद सरल बना दिया है।" : "Science has made human life very simple and comfortable.", question: lang === 'hindi' ? "विज्ञान ने जीवन को कैसा बनाया है?" : "What has science done to human life?", options: lang === 'hindi' ? ["बेहद सरल", "कठिन", "उदासीन", "अकेला"] : ["simple and comfortable", "difficult", "boring", "stressful"], correct: lang === 'hindi' ? "बेहद सरल" : "simple and comfortable" },
+      { type: 'reading', text: lang === 'hindi' ? "समय का सदुपयोग करने वाले लोग हमेशा ______ होते हैं।" : "People who manage time properly always ______.", question: d.fillBlank, options: lang === 'hindi' ? ["सफल", "असफल", "आलसी", "दुखी"] : ["succeed", "fail", "procrastinate", "complain"], correct: lang === 'hindi' ? "सफल" : "succeed" },
+      { type: 'reading', text: lang === 'hindi' ? "पेड़ हमें प्राणवायु ऑक्सीजन और मीठे फल प्रदान करते हैं।" : "Trees provide us oxygen and sweet edible fruits.", question: lang === 'hindi' ? "पेड़ हमें कौन सी गैस प्रदान करते हैं?" : "What gas do trees provide us?", options: lang === 'hindi' ? ["ऑक्सीजन", "नाइट्रोजन", "कार्बन", "हाइड्रोजन"] : ["Oxygen", "Nitrogen", "Carbon", "Hydrogen"], correct: lang === 'hindi' ? "ऑक्सीजन" : "Oxygen" },
+      { type: 'reading', text: lang === 'hindi' ? "स्वास्थ्य ही मनुष्य का सबसे बड़ा वास्तविक धन है।" : "Health is the greatest real wealth of human life.", question: lang === 'hindi' ? "मनुष्य का सबसे बड़ा धन क्या है?" : "What is the greatest wealth of humans?", options: lang === 'hindi' ? ["स्वास्थ्य", "सोना", "गाड़ी", "बंगला"] : ["Health", "Gold", "Car", "House"], correct: lang === 'hindi' ? "स्वास्थ्य" : "Health" },
+      { type: 'reading', text: lang === 'hindi' ? "पुस्तकालय में हमेशा शांत रहकर पढ़ना चाहिए।" : "A library is a quiet place intended for studying.", question: lang === 'hindi' ? "पुस्तकालय में कैसा व्यवहार करना चाहिए?" : "How should one behave in a library?", options: lang === 'hindi' ? ["शांत रहना", "शोर मचाना", "खेलना", "गाना"] : ["Remain quiet", "Make noise", "Play games", "Sing songs"], correct: lang === 'hindi' ? "शांत रहना" : "Remain quiet" },
       // Writing (5)
-      { type: 'writing', char: isHindi ? 'विज्ञान' : 'Science', instruction: isHindi ? "शब्द 'विज्ञान' लिखें" : "Write the word 'Science'" },
-      { type: 'writing', char: isHindi ? 'सफलता' : 'Success', instruction: isHindi ? "शब्द 'सफलता' लिखें" : "Write the word 'Success'" },
-      { type: 'writing', char: isHindi ? 'स्वास्थ्य' : 'Health', instruction: isHindi ? "शब्द 'स्वास्थ्य' लिखें" : "Write the word 'Health'" },
-      { type: 'writing', char: isHindi ? 'नियम' : 'Respect', instruction: isHindi ? "शब्द 'नियम' लिखें" : "Write the word 'Respect'" },
-      { type: 'writing', char: isHindi ? 'पर्यावरण' : 'Nature', instruction: isHindi ? "शब्द 'पर्यावरण' लिखें" : "Write the word 'Nature'" },
+      { type: 'writing', char: d.traceWordsMiddle[0], instruction: d.traceInstruction(d.traceWordsMiddle[0]) },
+      { type: 'writing', char: d.traceWordsMiddle[1], instruction: d.traceInstruction(d.traceWordsMiddle[1]) },
+      { type: 'writing', char: d.traceWordsMiddle[2], instruction: d.traceInstruction(d.traceWordsMiddle[2]) },
+      { type: 'writing', char: d.traceWordsMiddle[3], instruction: d.traceInstruction(d.traceWordsMiddle[3]) },
+      { type: 'writing', char: d.traceWordsMiddle[4], instruction: d.traceInstruction(d.traceWordsMiddle[4]) },
       // Speaking (5)
-      { type: 'speaking', phrase: isHindi ? 'समय का मूल्य समझें और मेहनत करें' : 'Value of time is key to success', instruction: isHindi ? "बोलें 'समय का मूल्य समझें और मेहनत करें'" : "Say 'Value of time is key to success'" },
-      { type: 'speaking', phrase: isHindi ? 'पेड़ लगाओ और पर्यावरण बचाओ' : 'Plant trees to protect our environment', instruction: isHindi ? "बोलें 'पेड़ लगाओ और पर्यावरण बचाओ'" : "Say 'Plant trees to protect our environment'" },
-      { type: 'speaking', phrase: isHindi ? 'पुस्तकालय ज्ञान का भंडार होता है' : 'Library is a house of knowledge', instruction: isHindi ? "बोलें 'पुस्तकालय ज्ञान का भंडार होता है'" : "Say 'Library is a house of knowledge'" },
-      { type: 'speaking', phrase: isHindi ? 'नियमित योग करने से मन शांत रहता है' : 'Regular yoga keeps the mind calm', instruction: isHindi ? "बोलें 'नियमित योग करने से मन शांत रहता है'" : "Say 'Regular yoga keeps the mind calm'" },
-      { type: 'speaking', phrase: isHindi ? 'सच्चाई की हमेशा जीत होती है' : 'Honesty is always the best policy', instruction: isHindi ? "बोलें 'सच्चाई की हमेशा जीत होती है'" : "Say 'Honesty is always the best policy'" },
+      { type: 'speaking', phrase: d.speakingMiddle[0], instruction: d.sayInstruction(d.speakingMiddle[0]) },
+      { type: 'speaking', phrase: d.speakingMiddle[1], instruction: d.sayInstruction(d.speakingMiddle[1]) },
+      { type: 'speaking', phrase: d.speakingMiddle[2], instruction: d.sayInstruction(d.speakingMiddle[2]) },
+      { type: 'speaking', phrase: d.speakingMiddle[3], instruction: d.sayInstruction(d.speakingMiddle[3]) },
+      { type: 'speaking', phrase: d.speakingMiddle[4], instruction: d.sayInstruction(d.speakingMiddle[4]) },
       // Reasoning (5)
       {
         type: 'reasoning', icon: '🔬',
-        scenario: isHindi ? 'स्कूल का नोटिस: "विज्ञान प्रदर्शनी में भाग लेने के लिए बुधवार तक नाम दें।"' : 'A school notice says: "Submit your names for the science exhibition by Wednesday."',
-        question: isHindi ? 'यदि आप गुरुवार को पंजीकरण कराने जाते हैं तो क्या होगा?' : 'What happens if you go to register on Thursday?',
-        options: isHindi ? [{ emoji: '🚫', label: 'पंजीकरण नहीं होगा' }, { emoji: '✅', label: 'पंजीकरण हो जाएगा' }, { emoji: '💵', label: 'पुरस्कार मिलेगा' }] : [{ emoji: '🚫', label: 'Registration closed' }, { emoji: '✅', label: 'Registered successfully' }, { emoji: '💵', label: 'Get a prize' }],
-        correct: isHindi ? 'पंजीकरण नहीं होगा' : 'Registration closed'
+        scenario: lang === 'hindi' ? 'स्कूल का नोटिस: "विज्ञान प्रदर्शनी में भाग लेने के लिए बुधवार तक नाम दें।"' : 'A school notice says: "Submit your names for the science exhibition by Wednesday."',
+        question: lang === 'hindi' ? 'यदि आप गुरुवार को पंजीकरण कराने जाते हैं तो क्या होगा?' : 'What happens if you go to register on Thursday?',
+        options: [{ emoji: '🚫', label: lang === 'hindi' ? 'पंजीकरण नहीं होगा' : 'Registration closed' }, { emoji: '✅', label: lang === 'hindi' ? 'पंजीकरण हो जाएगा' : 'Registered successfully' }, { emoji: '💵', label: lang === 'hindi' ? 'पुरस्कार मिलेगा' : 'Get a prize' }],
+        correct: lang === 'hindi' ? 'पंजीकरण नहीं होगा' : 'Registration closed'
       },
       {
         type: 'reasoning', icon: '💻',
-        scenario: isHindi ? 'कंप्यूटर लैब गाइडलाइन: "बिना अनुमति के पेन ड्राइव या कोई बाहरी उपकरण न लगाएं।"' : 'Computer lab rule: "Do not insert pen drives or external devices without permission."',
-        question: isHindi ? 'यदि आपको अपना होमवर्क कॉपी करना है, तो आप क्या करेंगे?' : 'If you need to copy your homework file, what should you do?',
-        options: isHindi ? [{ emoji: '🙋', label: 'शिक्षक से अनुमति मांगें' }, { emoji: '⚡', label: 'चुपके से पेन ड्राइव लगाएं' }, { emoji: '❌', label: 'होमवर्क न करें' }] : [{ emoji: '🙋', label: 'Ask the teacher for permission' }, { emoji: '⚡', label: 'Insert it secretly' }, { emoji: '❌', label: 'Do not submit homework' }],
-        correct: isHindi ? 'शिक्षक से अनुमति मांगें' : 'Ask the teacher for permission'
+        scenario: lang === 'hindi' ? 'कंप्यूटर लैब गाइडलाइन: "बिना अनुमति के पेन ड्राइव या कोई बाहरी उपकरण न लगाएं।"' : 'Computer lab rule: "Do not insert pen drives or external devices without permission."',
+        question: lang === 'hindi' ? 'यदि आपको अपना होमवर्क कॉपी करना है, तो आप क्या करेंगे?' : 'If you need to copy your homework file, what should you do?',
+        options: [{ emoji: '🙋', label: lang === 'hindi' ? 'शिक्षक से अनुमति मांगें' : 'Ask the teacher for permission' }, { emoji: '⚡', label: lang === 'hindi' ? 'चुपके से पेन ड्राइव लगाएं' : 'Insert it secretly' }, { emoji: '❌', label: lang === 'hindi' ? 'होमवर्क न करें' : 'Do not submit homework' }],
+        correct: lang === 'hindi' ? 'शिक्षक से अनुमति मांगें' : 'Ask the teacher for permission'
       },
       {
         type: 'reasoning', icon: '🚲',
-        scenario: isHindi ? 'साइकिल स्टैंड बोर्ड: "अपनी साइकिल में ताला जरूर लगाएं, चोरी होने पर स्कूल जिम्मेदार नहीं होगा।"' : 'Bicycle stand sign: "Lock your cycle. School is not responsible for any thefts."',
-        question: isHindi ? 'सुरक्षित पार्किंग के लिए आपको क्या करना चाहिए?' : 'What should you do for safe parking?',
-        options: isHindi ? [{ emoji: '🔒', label: 'साइकिल को ताला लगाएं' }, { emoji: '🚲', label: 'बिना ताले के छोड़ दें' }, { emoji: '🛣️', label: 'सड़क पर पार्क करें' }] : [{ emoji: '🔒', label: 'Lock your cycle' }, { emoji: '🚲', label: 'Leave it unlocked' }, { emoji: '🛣️', label: 'Park on the main road' }],
-        correct: isHindi ? 'साइकिल को ताला लगाएं' : 'Lock your cycle'
+        scenario: lang === 'hindi' ? 'साइकिल स्टैंड बोर्ड: "अपनी साइकिल में ताला जरूर लगाएं, चोरी होने पर स्कूल जिम्मेदार नहीं होगा।"' : 'Bicycle stand sign: "Lock your cycle. School is not responsible for any thefts."',
+        question: lang === 'hindi' ? 'सुरक्षित पार्किंग के लिए आपको क्या करना चाहिए?' : 'What should you do for safe parking?',
+        options: [{ emoji: '🔒', label: lang === 'hindi' ? 'साइकिल को ताला लगाएं' : 'Lock your cycle' }, { emoji: '🚲', label: lang === 'hindi' ? 'बिना ताले के छोड़ दें' : 'Leave it unlocked' }, { emoji: '🛣️', label: lang === 'hindi' ? 'सड़क पर पार्क करें' : 'Park on the main road' }],
+        correct: lang === 'hindi' ? 'साइकिल को ताला लगाएं' : 'Lock your cycle'
       },
       {
         type: 'reasoning', icon: '⚽',
-        scenario: isHindi ? 'खेल विभाग की सूचना: "खेल का सामान शाम 5:00 बजे से पहले वापस जमा करें।"' : 'Sports department rule: "Return sports equipment before 5:00 PM."',
-        question: isHindi ? 'यदि आप शाम 5:30 बजे सामान लौटाते हैं, तो क्या होगा?' : 'What happens if you return the equipment at 5:30 PM?',
-        options: isHindi ? [{ emoji: '⚠️', label: 'नियमों का उल्लंघन माना जाएगा' }, { emoji: '🎁', label: 'विशेष इनाम मिलेगा' }, { emoji: '✅', label: 'कुछ नहीं होगा' }] : [{ emoji: '⚠️', label: 'Considered rule violation' }, { emoji: '🎁', label: 'Get a special reward' }, { emoji: '✅', label: 'Nothing happens' }],
-        correct: isHindi ? 'नियमों का उल्लंघन माना जाएगा' : 'Considered rule violation'
+        scenario: lang === 'hindi' ? 'खेल विभाग की सूचना: "खेल का सामान शाम 5:00 बजे से पहले वापस जमा करें।"' : 'Sports department rule: "Return sports equipment before 5:00 PM."',
+        question: lang === 'hindi' ? 'यदि आप शाम 5:30 बजे सामान लौटाते हैं, तो क्या होगा?' : 'What happens if you return the equipment at 5:30 PM?',
+        options: [{ emoji: '⚠️', label: lang === 'hindi' ? 'नियमों का उल्लंघन माना जाएगा' : 'Considered rule violation' }, { emoji: '🎁', label: lang === 'hindi' ? 'विशेष इनाम मिलेगा' : 'Get a special reward' }, { emoji: '✅', label: lang === 'hindi' ? 'कुछ नहीं होगा' : 'Nothing happens' }],
+        correct: lang === 'hindi' ? 'नियमों का उल्लंघन माना जाएगा' : 'Considered rule violation'
       },
       {
         type: 'reasoning', icon: '📝',
-        scenario: isHindi ? 'परीक्षा गाइडलाइन: "उत्तर पुस्तिका पर अपना रोल नंबर स्पष्ट अक्षरों में लिखें।"' : 'Exam rule: "Write your roll number clearly on the answer sheet."',
-        question: isHindi ? 'रोल नंबर लिखना क्यों आवश्यक है?' : 'Why is writing your roll number necessary?',
-        options: isHindi ? [{ emoji: '✍️', label: 'ताकि आपकी कॉपी पहचानी जा सके' }, { emoji: '💯', label: 'अतिरिक्त अंक पाने के लिए' }, { emoji: '🎨', label: 'केवल सजावट के लिए' }] : [{ emoji: '✍️', label: 'To identify your paper' }, { emoji: '💯', label: 'To get extra marks' }, { emoji: '🎨', label: 'Just for decoration' }],
-        correct: isHindi ? 'ताकि आपकी कॉपी पहचानी जा सके' : 'To identify your paper'
+        scenario: lang === 'hindi' ? 'परीक्षा गाइडलाइन: "उत्तर पुस्तिका पर अपना रोल नंबर स्पष्ट अक्षरों में लिखें।"' : 'Exam rule: "Write your roll number clearly on the answer sheet."',
+        question: lang === 'hindi' ? 'रोल नंबर लिखना क्यों आवश्यक है?' : 'Why is writing your roll number necessary?',
+        options: [{ emoji: '✍️', label: lang === 'hindi' ? 'ताकि आपकी कॉपी पहचानी जा सके' : 'To identify your paper' }, { emoji: '💯', label: lang === 'hindi' ? 'अतिरिक्त अंक पाने के लिए' : 'To get extra marks' }, { emoji: '🎨', label: lang === 'hindi' ? 'केवल सजावट के लिए' : 'Just for decoration' }],
+        correct: lang === 'hindi' ? 'ताकि आपकी कॉपी पहचानी जा सके' : 'To identify your paper'
       }
     ];
   }
@@ -219,58 +465,58 @@ const getAssessmentQuestions = (lang, level, ageBracket) => {
   // ============================================================================
   return [
     // Reading (5)
-    { type: 'reading', text: isHindi ? "लोकतंत्र में प्रत्येक नागरिक के पास मतदान का मौलिक अधिकार है।" : "In a democracy, every citizen possesses the fundamental right to vote.", question: isHindi ? "नागरिकों के पास कौन सा मौलिक अधिकार है?" : "What fundamental right is mentioned?", options: isHindi ? ["मतदान का", "यात्रा का", "व्यापार का", "भोजन का"] : ["right to vote", "right to travel", "right to trade", "right to food"], correct: isHindi ? "मतदान का" : "right to vote" },
-    { type: 'reading', text: isHindi ? "डिजिटल साक्षरता आज के युग में वित्तीय सुरक्षा के लिए ______ है।" : "Digital literacy is crucial for financial ______ in modern times.", question: isHindi ? "रिक्त स्थान भरें:" : "Fill in the blank:", options: isHindi ? ["अनिवार्य", "व्यर्थ", "खतरनाक", "कठिन"] : ["security", "struggle", "loss", "trouble"], correct: isHindi ? "अनिवार्य" : "security" },
-    { type: 'reading', text: isHindi ? "संवैधानिक प्रावधानों के अनुसार, कानून के समक्ष सभी नागरिक समान हैं।" : "According to constitutional provisions, all citizens are equal before law.", question: isHindi ? "कानून के समक्ष नागरिक कैसे हैं?" : "How does the law treat citizens?", options: isHindi ? ["समान", "असमान", "विशिष्ट", "विभाजित"] : ["equal", "unequal", "separated", "privileged"], correct: isHindi ? "समान" : "equal" },
-    { type: 'reading', text: isHindi ? "जलवायु परिवर्तन वैश्विक कृषि उत्पादन को गंभीर रूप से प्रभावित कर रहा है।" : "Climate change is severely impacting global agricultural output.", question: isHindi ? "जलवायु परिवर्तन किसे गंभीर रूप से प्रभावित कर रहा है?" : "What is climate change severely impacting?", options: isHindi ? ["कृषि उत्पादन को", "खनिज उत्खनन को", "आईटी सेक्टर को", "फैशन जगत को"] : ["agricultural output", "mineral mining", "IT sector", "fashion world"], correct: isHindi ? "कृषि उत्पादन को" : "agricultural output" },
-    { type: 'reading', text: isHindi ? "सतत विकास का अर्थ प्राकृतिक संसाधनों का जिम्मेदारी से उपयोग करना है।" : "Sustainable development means utilizing resources responsibly.", question: isHindi ? "सतत विकास का क्या अर्थ है?" : "What does sustainable development mean?", options: isHindi ? ["जिम्मेदारी से उपयोग", "संसाधनों का दोहन", "संसाधनों को नष्ट करना", "भविष्य को अनदेखा करना"] : ["utilizing resources responsibly", "exploiting all resources", "destroying natural resources", "ignoring the future"], correct: isHindi ? "जिम्मेदारी से उपयोग" : "utilizing resources responsibly" },
+    { type: 'reading', text: lang === 'hindi' ? "लोकतंत्र में प्रत्येक नागरिक के पास मतदान का मौलिक अधिकार है।" : "In a democracy, every citizen possesses the fundamental right to vote.", question: lang === 'hindi' ? "नागरिकों के पास कौन सा मौलिक अधिकार है?" : "What fundamental right is mentioned?", options: lang === 'hindi' ? ["मतदान का", "यात्रा का", "व्यापार का", "भोजन का"] : ["right to vote", "right to travel", "right to trade", "right to food"], correct: lang === 'hindi' ? "मतदान का" : "right to vote" },
+    { type: 'reading', text: lang === 'hindi' ? "डिजिटल साक्षरता आज के युग में वित्तीय सुरक्षा के लिए ______ है।" : "Digital literacy is crucial for financial ______ in modern times.", question: d.fillBlank, options: lang === 'hindi' ? ["अनिवार्य", "व्यर्थ", "खतरनाक", "कठिन"] : ["security", "struggle", "loss", "trouble"], correct: lang === 'hindi' ? "अनिवार्य" : "security" },
+    { type: 'reading', text: lang === 'hindi' ? "संवैधानिक प्रावधानों के अनुसार, कानून के समक्ष सभी नागरिक समान हैं।" : "According to constitutional provisions, all citizens are equal before law.", question: lang === 'hindi' ? "कानून के समक्ष नागरिक कैसे हैं?" : "How does the law treat citizens?", options: lang === 'hindi' ? ["समान", "असमान", "विशिष्ट", "विभाजित"] : ["equal", "unequal", "separated", "privileged"], correct: lang === 'hindi' ? "समान" : "equal" },
+    { type: 'reading', text: lang === 'hindi' ? "जलवायु परिवर्तन वैश्विक कृषि उत्पादन को गंभीर रूप से प्रभावित कर रहा है।" : "Climate change is severely impacting global agricultural output.", question: lang === 'hindi' ? "जलवायु परिवर्तन किसे गंभीर रूप से प्रभावित कर रहा है?" : "What is climate change severely impacting?", options: lang === 'hindi' ? ["कृषि उत्पादन को", "खनिज उत्खनन को", "आईटी सेक्टर को", "फैशन जगत को"] : ["agricultural output", "mineral mining", "IT sector", "fashion world"], correct: lang === 'hindi' ? "कृषि उत्पादन को" : "agricultural output" },
+    { type: 'reading', text: lang === 'hindi' ? "सतत विकास का अर्थ प्राकृतिक संसाधनों का जिम्मेदारी से उपयोग करना है।" : "Sustainable development means utilizing resources responsibly.", question: lang === 'hindi' ? "सतत विकास का क्या अर्थ है?" : "What does sustainable development mean?", options: lang === 'hindi' ? ["जिम्मेदारी से उपयोग", "संसाधनों का दोहन", "संसाधनों को नष्ट करना", "भविष्य को अनदेखा करना"] : ["utilizing resources responsibly", "exploiting all resources", "destroying natural resources", "ignoring the future"], correct: lang === 'hindi' ? "जिम्मेदारी से उपयोग" : "utilizing resources responsibly" },
     // Writing (5)
-    { type: 'writing', char: isHindi ? 'लोकतंत्र' : 'Democracy', instruction: isHindi ? "शब्द 'लोकतंत्र' लिखें" : "Write the word 'Democracy'" },
-    { type: 'writing', char: isHindi ? 'संविधान' : 'Constitution', instruction: isHindi ? "शब्द 'संविधान' लिखें" : "Write the word 'Constitution'" },
-    { type: 'writing', char: isHindi ? 'वित्तीय' : 'Financial', instruction: isHindi ? "शब्द 'वित्तीय' लिखें" : "Write the word 'Financial'" },
-    { type: 'writing', char: isHindi ? 'जिम्मेदारी' : 'Responsibility', instruction: isHindi ? "शब्द 'जिम्मेदारी' लिखें" : "Write the word 'Responsibility'" },
-    { type: 'writing', char: isHindi ? 'अधिकार' : 'Authority', instruction: isHindi ? "शब्द 'अधिकार' लिखें" : "Write the word 'Authority'" },
+    { type: 'writing', char: d.traceWordsHigh[0], instruction: d.traceInstruction(d.traceWordsHigh[0]) },
+    { type: 'writing', char: d.traceWordsHigh[1], instruction: d.traceInstruction(d.traceWordsHigh[1]) },
+    { type: 'writing', char: d.traceWordsHigh[2], instruction: d.traceInstruction(d.traceWordsHigh[2]) },
+    { type: 'writing', char: d.traceWordsHigh[3], instruction: d.traceInstruction(d.traceWordsHigh[3]) },
+    { type: 'writing', char: d.traceWordsHigh[4], instruction: d.traceInstruction(d.traceWordsHigh[4]) },
     // Speaking (5)
-    { type: 'speaking', phrase: isHindi ? 'डिजिटल साक्षरता से वित्तीय सुरक्षा बढ़ती है' : 'Digital literacy enhances financial security', instruction: isHindi ? "बोलें 'डिजिटल साक्षरता से वित्तीय सुरक्षा बढ़ती है'" : "Say 'Digital literacy enhances financial security'" },
-    { type: 'speaking', phrase: isHindi ? 'सभी नागरिकों को समान अधिकार प्राप्त हैं' : 'All citizens are equal under constitution', instruction: isHindi ? "बोलें 'सभी नागरिकों को समान अधिकार प्राप्त हैं'" : "Say 'All citizens are equal under constitution'" },
-    { type: 'speaking', phrase: isHindi ? 'पर्यावरण संरक्षण हमारी नैतिक जिम्मेदारी है' : 'Protecting nature is our moral obligation', instruction: isHindi ? "बोलें 'पर्यावरण संरक्षण हमारी नैतिक जिम्मेदारी है'" : "Say 'Protecting nature is our moral obligation'" },
-    { type: 'speaking', phrase: isHindi ? 'अनेकता में एकता भारत की विशेषता है' : 'Unity in diversity is Indias strength', instruction: isHindi ? "बोलें 'अनेकता में एकता भारत की विशेषता है'" : "Say 'Unity in diversity is Indias strength'" },
-    { type: 'speaking', phrase: isHindi ? 'शिक्षा से ही समाज का विकास संभव है' : 'Education leads to progress of society', instruction: isHindi ? "बोलें 'शिक्षा से ही समाज का विकास संभव है'" : "Say 'Education leads to progress of society'" },
+    { type: 'speaking', phrase: d.speakingHigh[0], instruction: d.sayInstruction(d.speakingHigh[0]) },
+    { type: 'speaking', phrase: d.speakingHigh[1], instruction: d.sayInstruction(d.speakingHigh[1]) },
+    { type: 'speaking', phrase: d.speakingHigh[2], instruction: d.sayInstruction(d.speakingHigh[2]) },
+    { type: 'speaking', phrase: d.speakingHigh[3], instruction: d.sayInstruction(d.speakingHigh[3]) },
+    { type: 'speaking', phrase: d.speakingHigh[4], instruction: d.sayInstruction(d.speakingHigh[4]) },
     // Reasoning (5)
     {
       type: 'reasoning', icon: '🏠',
-      scenario: isHindi ? 'किराया समझौते में लिखा है: "हर साल किराए में 10% की वृद्धि होगी।" वर्तमान किराया ₹10,000 है।' : 'Rental agreement: "Rent will increase by 10% annually." Current rent is $10,000.',
-      question: isHindi ? 'अगले वर्ष आपका मासिक किराया कितना होगा?' : 'How much will your rent be next year?',
-      options: isHindi ? [{ emoji: '💵', label: '₹11,000' }, { emoji: '💵', label: '₹12,000' }, { emoji: '💵', label: '₹10,500' }] : [{ emoji: '💵', label: '$11,000' }, { emoji: '💵', label: '$12,000' }, { emoji: '💵', label: '$10,500' }],
-      correct: isHindi ? '₹11,000' : '$11,000'
+      scenario: lang === 'hindi' ? 'किराया समझौते में लिखा है: "हर साल किराए में 10% की वृद्धि होगी।" वर्तमान किराया ₹10,000 है।' : 'Rental agreement: "Rent will increase by 10% annually." Current rent is $10,000.',
+      question: lang === 'hindi' ? 'अगले वर्ष आपका मासिक किराया कितना होगा?' : 'How much will your rent be next year?',
+      options: [{ emoji: '💵', label: lang === 'hindi' ? '₹11,000' : '$11,000' }, { emoji: '💵', label: lang === 'hindi' ? '₹12,000' : '$12,000' }, { emoji: '💵', label: lang === 'hindi' ? '₹10,500' : '$10,500' }],
+      correct: lang === 'hindi' ? '₹11,000' : '$11,000'
     },
     {
       type: 'reasoning', icon: '📝',
-      scenario: isHindi ? 'आपकी सैलरी स्लिप में लिखा है: "भविष्य निधि अंशदान काटने के बाद वेतन जमा किया गया।"' : 'Your payslip reads: "Salary credited after deduction of provident fund contribution."',
-      question: isHindi ? 'आपके वेतन में से क्या काटा गया है?' : 'What has been subtracted from your salary?',
-      options: isHindi ? [{ emoji: '🏦', label: 'भविष्य निधि अंशदान' }, { emoji: '🍽️', label: 'भोजन भत्ता' }, { emoji: '🚌', label: 'यात्रा बोनस' }] : [{ emoji: '🏦', label: 'Provident fund contribution' }, { emoji: '🍽️', label: 'Food allowance' }, { emoji: '🚌', label: 'Travel bonus' }],
-      correct: isHindi ? 'भविष्य निधि अंशदान' : 'Provident fund contribution'
+      scenario: lang === 'hindi' ? 'आपकी सैलरी स्लिप में लिखा है: "भविष्य निधि अंशदान काटने के बाद वेतन जमा किया गया।"' : 'Your payslip reads: "Salary credited after deduction of provident fund contribution."',
+      question: lang === 'hindi' ? 'आपके वेतन में से क्या काटा गया है?' : 'What has been subtracted from your salary?',
+      options: [{ emoji: '🏦', label: lang === 'hindi' ? 'भविष्य निधि अंशदान' : 'Provident fund contribution' }, { emoji: '🍽️', label: lang === 'hindi' ? 'भोजन भत्ता' : 'Food allowance' }, { emoji: '🚌', label: lang === 'hindi' ? 'यात्रा बोनस' : 'Travel bonus' }],
+      correct: lang === 'hindi' ? 'भविष्य निधि अंशदान' : 'Provident fund contribution'
     },
     {
       type: 'reasoning', icon: '🗳️',
-      scenario: isHindi ? 'मतदाता सूची में नाम जुड़वाने के लिए फॉर्म 6 भरना पड़ता है।' : 'To add your name to the voter list, you must fill Form 6.',
-      question: isHindi ? 'यदि आप नए शहर में वोट देना चाहते हैं, तो आप क्या करेंगे?' : 'If you move to a new city and want to vote, what will you do?',
-      options: isHindi ? [{ emoji: '📝', label: 'फॉर्म 6 भरेंगे' }, { emoji: '🚫', label: 'चुनाव का बहिष्कार करेंगे' }, { emoji: '🗳️', label: 'सीधे पोलिंग बूथ चले जाएंगे' }] : [{ emoji: '📝', label: 'Fill Form 6' }, { emoji: '🚫', label: 'Boycott election' }, { emoji: '🗳️', label: 'Go directly to polling booth' }],
-      correct: isHindi ? 'फॉर्म 6 भरेंगे' : 'Fill Form 6'
+      scenario: lang === 'hindi' ? 'मतदाता सूची में नाम जुड़वाने के लिए फॉर्म 6 भरना पड़ता है।' : 'To add your name to the voter list, you must fill Form 6.',
+      question: lang === 'hindi' ? 'यदि आप नए शहर में वोट देना चाहते हैं, तो आप क्या करेंगे?' : 'If you move to a new city and want to vote, what will you do?',
+      options: [{ emoji: '📝', label: lang === 'hindi' ? 'फॉर्म 6 भरेंगे' : 'Fill Form 6' }, { emoji: '🚫', label: lang === 'hindi' ? 'चुनाव का बहिष्कार करेंगे' : 'Boycott election' }, { emoji: '🗳️', label: lang === 'hindi' ? 'सीधे पोलिंग बूथ चले जाएंगे' : 'Go directly to polling booth' }],
+      correct: lang === 'hindi' ? 'फॉर्म 6 भरेंगे' : 'Fill Form 6'
     },
     {
       type: 'reasoning', icon: '🏦',
-      scenario: isHindi ? 'बैंक फिक्स डिपॉजिट नियम: "अवधि से पहले निकासी पर 1% जुर्माना लागू होगा।"' : 'Fixed deposit terms: "1% penalty applies on premature withdrawal."',
-      question: isHindi ? 'यदि आप परिपक्वता से पहले फिक्स डिपॉजिट बंद करते हैं तो क्या होगा?' : 'What happens if you close your FD before maturity?',
-      options: isHindi ? [{ emoji: '⚠️', label: '1% जुर्माना काटा जाएगा' }, { emoji: '❌', label: 'खाता बंद नहीं किया जाएगा' }, { emoji: '💰', label: 'बोनस ब्याज मिलेगा' }] : [{ emoji: '⚠️', label: '1% penalty deducted' }, { emoji: '❌', label: 'Account will not close' }, { emoji: '💰', label: 'Get bonus interest' }],
-      correct: isHindi ? '1% जुर्माना काटा जाएगा' : '1% penalty deducted'
+      scenario: lang === 'hindi' ? 'बैंक फिक्स डिपॉजिट नियम: "अवधि से पहले निकासी पर 1% जुर्माना लागू होगा।"' : 'Fixed deposit terms: "1% penalty applies on premature withdrawal."',
+      question: lang === 'hindi' ? 'यदि आप परिपक्वता से पहले फिक्स डिपॉजिट बंद करते हैं तो क्या होगा?' : 'What happens if you close your FD before maturity?',
+      options: [{ emoji: '⚠️', label: lang === 'hindi' ? '1% जुर्माना काटा जाएगा' : '1% penalty deducted' }, { emoji: '❌', label: lang === 'hindi' ? 'खाता बंद नहीं किया जाएगा' : 'Account will not close' }, { emoji: '💰', label: lang === 'hindi' ? 'बोनस ब्याज मिलेगा' : 'Get bonus interest' }],
+      correct: lang === 'hindi' ? '1% जुर्माना काटा जाएगा' : '1% penalty deducted'
     },
     {
       type: 'reasoning', icon: '📅',
-      scenario: isHindi ? 'आयकर रिटर्न दाखिल करने की अंतिम तिथि 31 जुलाई है, जिसके बाद विलंब शुल्क लागू होगा।' : 'Income tax return deadline is July 31. Late fee applies thereafter.',
-      question: isHindi ? 'यदि आप 15 अगस्त को रिटर्न दाखिल करते हैं, तो क्या होगा?' : 'What happens if you file your return on August 15?',
-      options: isHindi ? [{ emoji: '💵', label: 'विलंब शुल्क लगेगा' }, { emoji: '❌', label: 'रिटर्न अस्वीकार हो जाएगा' }, { emoji: '✅', label: 'बोनस रिफंड मिलेगा' }] : [{ emoji: '💵', label: 'Late fee will be charged' }, { emoji: '❌', label: 'Return will be rejected' }, { emoji: '✅', label: 'Get bonus refund' }],
-      correct: isHindi ? 'विलंब शुल्क लगेगा' : 'Late fee will be charged'
+      scenario: lang === 'hindi' ? 'आयकर रिटर्न दाखिल करने की अंतिम तिथि 31 जुलाई है, जिसके बाद विलंब शुल्क लागू होगा।' : 'Income tax return deadline is July 31. Late fee applies thereafter.',
+      question: lang === 'hindi' ? 'यदि आप 15 अगस्त को रिटर्न दाखिल करते हैं, तो क्या होगा?' : 'What happens if you file your return on August 15?',
+      options: [{ emoji: '💵', label: lang === 'hindi' ? 'विलंब शुल्क लगेगा' : 'Late fee will be charged' }, { emoji: '❌', label: lang === 'hindi' ? 'रिटर्न अस्वीकार हो जाएगा' : 'Return will be rejected' }, { emoji: '✅', label: lang === 'hindi' ? 'बोनस रिफंड मिलेगा' : 'Get bonus refund' }],
+      correct: lang === 'hindi' ? 'विलंब शुल्क लगेगा' : 'Late fee will be charged'
     }
   ];
 };
@@ -559,16 +805,15 @@ function NexusOrbBackdrop() {
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />;
 }
 
-export default function InitialAssessment({ userId, fullName, lang, age, selectedLevel, onComplete, onExit, t }) {
-  const [step, setStep] = useState('welcome'); // welcome, reading, writing, speaking, reasoning, result
+export default function InitialAssessment({ userId, fullName, lang, targetLang, age, selectedLevel, onComplete, onExit, t }) {
+  const [step, setStep] = useState('welcome'); // welcome, reading, writing, speaking, result
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [questionScores, setQuestionScores] = useState(Array(20).fill(0));
+  const [questionScores, setQuestionScores] = useState(Array(15).fill(0));
   const [tempSpeakingScore, setTempSpeakingScore] = useState(0);
 
   const [readingScore, setReadingScore] = useState(0);
   const [writingScore, setWritingScore] = useState(0);
   const [speakingScore, setSpeakingScore] = useState(0);
-  const [reasoningScore, setReasoningScore] = useState(0);
   const [overallScore, setOverallScore] = useState(0);
   const [assessedLevel, setAssessedLevel] = useState('none');
   const [loading, setLoading] = useState(false);
@@ -581,8 +826,6 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
   // States for Reading
   const [selectedReadingOption, setSelectedReadingOption] = useState('');
 
-  // State for Section 4: Applied Reasoning (age + level combined scenario card)
-  const [selectedReasoningCard, setSelectedReasoningCard] = useState('');
 
   // States for Writing
   const canvasRef = useRef(null);
@@ -594,21 +837,15 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
   const [isListening, setIsListening] = useState(false);
   const [speechTranscript, setSpeechTranscript] = useState('');
 
-  // Fallback language & level selection
-  const langKey = lang === 'hindi' ? 'hindi' : 'english';
+  // Preferred UI Language (UI text) vs Target Learning Language (Assessment Questions & Practice)
+  const uiLangKey = lang || 'english';
+  const questionLangKey = targetLang || lang || 'hindi';
   const levelKey = selectedLevel || 'none';
   const ageBracket = getAgeBracket(age);
 
-  // Dynamically load the base questions
-  const baseQuestions = getAssessmentQuestions(langKey, levelKey, ageBracket);
-  
-  // Inject the dynamically generated age-specific reasoning questions (pad to 5 to preserve UI grid logic)
-  const ageGroupData = ageSpecificReasoning[ageBracket]?.[levelKey] || [];
-  const specificReasoning = ageGroupData.slice(0, 3);
-  const remainingReasoning = baseQuestions.slice(15, 20).filter((_, i) => i >= specificReasoning.length);
-  const reasoningQuestions = [...specificReasoning, ...remainingReasoning];
-  
-  const questions = [...baseQuestions.slice(0, 15), ...reasoningQuestions];
+  // Dynamically load the base questions for the target learning language (15 questions: 5 Reading, 5 Writing, 5 Speaking)
+  const baseQuestions = getAssessmentQuestions(questionLangKey, levelKey, ageBracket);
+  const questions = baseQuestions.slice(0, 15);
   const currentQuestion = questions[currentQuestionIndex] || questions[0];
 
   // Touch scroll prevention & canvas style setup on step activation
@@ -712,19 +949,33 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
     setQuestionScores(updatedScores);
 
     // Trigger Thumbs Up mascot feedback after attending every question!
-    const praisesHindi = [
-      "👍 बहुत बढ़िया! शानदार प्रयास!",
-      "👍 शाबाश! आपने बहुत अच्छा किया!",
-      "👍 अद्भुत! अगला प्रश्न शुरू!",
-      "👍 थम्ब्स अप! आगे बढ़ते रहें!"
-    ];
-    const praisesEnglish = [
-      "👍 Great job! Excellent effort!",
-      "👍 Thumbs up! You nailed it!",
-      "👍 Fantastic! Next question ready!",
-      "👍 Superb! Keep going!"
-    ];
-    const praiseList = lang === 'hindi' ? praisesHindi : praisesEnglish;
+    const getPraiseList = (l) => {
+      switch (l) {
+        case 'hindi':
+          return ["👍 बहुत बढ़िया! शानदार प्रयास!", "👍 शाबाश! आपने बहुत अच्छा किया!", "👍 अद्भुत! अगला प्रश्न शुरू!", "👍 थम्ब्स अप! आगे बढ़ते रहें!"];
+        case 'bengali':
+          return ["👍 খুব চমৎকার! দারুণ চেষ্টা!", "👍 সাবাশ! আপনি খুব ভালো করেছেন!", "👍 অদ্ভুত! পরবর্তী প্রশ্ন শুরু!", "👍 থাম্বস আপ! এগিয়ে যান!"];
+        case 'marathi':
+          return ["👍 खूप छान! उत्तम प्रयत्न!", "👍 शब्बास! तुम्ही खूप छान केलेत!", "👍 छान! पुढील प्रश्न सुरू!", "👍 थम्ब्स अप! पुढे जात रहा!"];
+        case 'telugu':
+          return ["👍 చాలా బాగుంది! అద్భుతమైన ప్రయత్నం!", "👍 శభాష్! మీరు చాలా బాగా చేశారు!", "👍 అద్భుతం! తదుపరి ప్రశ్న సిద్ధంగా ఉంది!", "👍 ముందుకు సాగండి!"];
+        case 'tamil':
+          return ["👍 மிகவும் நன்று! சிறந்த முயற்சி!", "👍 சபாஷ்! நீங்கள் நன்றாக செய்தீர்கள்!", "👍 அற்புதம்! அடுத்த கேள்வி தயார்!", "👍 தொடர்ந்து செல்லுங்கள்!"];
+        case 'punjabi':
+          return ["👍 ਬਹੁਤ ਵਧੀਆ! ਸ਼ਾਨਦਾਰ ਯਤਨ!", "👍 ਸ਼ਾਬਾਸ਼! ਤੁਸੀਂ ਬਹੁਤ ਵਧੀਆ ਕੀਤਾ!", "👍 ਅਦਭੁਤ! ਅਗਲਾ ਪ੍ਰਸ਼ਨ ਸ਼ੁਰੂ!", "👍 ਅੱਗੇ ਵਧਦੇ ਰਹੋ!"];
+        case 'gujarati':
+          return ["👍 ખૂબ સરસ! ઉત્તમ પ્રયાસ!", "👍 શાબાશ! તમે ખૂબ સારું કર્યું!", "👍 અદ્ભુત! આગલો પ્રશ્ન શરૂ!", "👍 આગળ વધતા રહો!"];
+        case 'kannada':
+          return ["👍 ತುಂಬಾ ಚೆನ್ನಾಗಿದೆ! ಉತ್ತಮ ಪ್ರಯತ್ನ!", "👍 ಶಭಾಷ್! ನೀವು ತುಂಬಾ ಚೆನ್ನಾಗಿ ಮಾಡಿದ್ದೀರಿ!", "👍 ಅದ್ಭುತ! ಮುಂದಿನ ಪ್ರಶ್ನೆ ಸಿದ್ಧ!", "👍 ಮುಂದೆ ಸಾಗಿ!"];
+        case 'malayalam':
+          return ["👍 വളരെ നന്നായിട്ടുണ്ട്! മികച്ച ശ്രമം!", "👍 ഷബാഷ്! നിങ്ങൾ വളരെ നന്നായി ചെയ്തു!", "👍 അത്ഭുതം! അടുത്ത ചോദ്യം തയ്യാറാണ്!", "👍 മുന്നോട്ട് പോകുക!"];
+        case 'odia':
+          return ["👍 ବହୁତ ଭଲ! ଚମତ୍କାର ପ୍ରୟାସ!", "👍 ଶାବାଶ! ଆପଣ ବହୁତ ଭଲ କଲେ!", "👍 ଅଦ୍ଭୁତ! ପରବର୍ତ୍ତୀ ପ୍ରଶ୍ନ ପ୍ରସ୍ତୁତ!", "👍 ଆଗକୁ ବଢ଼ନ୍ତୁ!"];
+        default:
+          return ["👍 Great job! Excellent effort!", "👍 Thumbs up! You nailed it!", "👍 Fantastic! Next question ready!", "👍 Superb! Keep going!"];
+      }
+    };
+    const praiseList = getPraiseList(uiLangKey);
     const randomPraise = praiseList[Math.floor(Math.random() * praiseList.length)];
 
     setMascotMessage(randomPraise);
@@ -735,12 +986,11 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
 
     // Reset temporary states
     setSelectedReadingOption('');
-    setSelectedReasoningCard('');
     setSpeechTranscript('');
     setTempSpeakingScore(0);
     setHasDrawn(false);
 
-    if (currentQuestionIndex < 19) {
+    if (currentQuestionIndex < 14) {
       const nextIndex = currentQuestionIndex + 1;
       setCurrentQuestionIndex(nextIndex);
       setStep(questions[nextIndex].type);
@@ -749,14 +999,12 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
       const avgReading = Math.round(updatedScores.slice(0, 5).reduce((a, b) => a + b, 0) / 5);
       const avgWriting = Math.round(updatedScores.slice(5, 10).reduce((a, b) => a + b, 0) / 5);
       const avgSpeaking = Math.round(updatedScores.slice(10, 15).reduce((a, b) => a + b, 0) / 5);
-      const avgReasoning = Math.round(updatedScores.slice(15, 20).reduce((a, b) => a + b, 0) / 5);
 
       setReadingScore(avgReading);
       setWritingScore(avgWriting);
       setSpeakingScore(avgSpeaking);
-      setReasoningScore(avgReasoning);
 
-      const finalOverall = Math.round((avgReading + avgWriting + avgSpeaking + avgReasoning) / 4);
+      const finalOverall = Math.round((avgReading + avgWriting + avgSpeaking) / 3);
       setOverallScore(finalOverall);
 
       let finalLevel = 'none';
@@ -778,11 +1026,11 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
 
     let score = 0;
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/assessment/writing', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000'}/api/assessment/writing`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          lang: langKey,
+          lang: questionLangKey,
           target_char: currentQuestion.char,
           image_data: dataUrl
         })
@@ -812,8 +1060,17 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
       return;
     }
 
+    const getLangCode = (l) => {
+      const map = {
+        hindi: 'hi-IN', bengali: 'bn-IN', marathi: 'mr-IN', telugu: 'te-IN',
+        tamil: 'ta-IN', punjabi: 'pa-IN', gujarati: 'gu-IN', kannada: 'kn-IN',
+        malayalam: 'ml-IN', odia: 'or-IN', urdu: 'ur-IN', nepali: 'ne-NP',
+      };
+      return map[l] || 'en-US';
+    };
+
     const recognition = new SpeechRecognition();
-    recognition.lang = lang === 'hindi' ? 'hi-IN' : 'en-US';
+    recognition.lang = getLangCode(questionLangKey);
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
@@ -887,16 +1144,23 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
           reading: readingScore,
           writing: writingScore,
           speaking: speakingScore,
-          reasoning: reasoningScore,
           overall: overallScore,
           timestamp: new Date().toISOString()
         };
         localStorage.setItem(`sakshar_initial_assessment_completed_${user.id}`, 'true');
         localStorage.setItem(`sakshar_initial_assessment_scores_${user.id}`, JSON.stringify(scoresPayload));
 
+        // Save evaluation to Supabase public.evaluations table
+        await saveEvaluationDB(user.id, {
+          lang: lang,
+          score: overallScore,
+          level: assessedLevel,
+          target_item: 'Initial Placement Onboarding'
+        });
+
         // 2. Log final assessment history to SQLite
         try {
-          await fetch('http://127.0.0.1:5000/api/assessment', {
+          await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000'}/api/assessment`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -904,8 +1168,7 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
               lang: lang,
               score: overallScore,
               level: assessedLevel,
-              reasoning_score: reasoningScore,
-              target_item: 'Initial Placement Onboarding'
+                  target_item: 'Initial Placement Onboarding'
             })
           });
         } catch (apiErr) {
@@ -942,10 +1205,9 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
   // Ordered section metadata drives both the progress dots and the labels
   // in the header, so "section 2" always means "writing" wherever it appears.
   const SECTIONS = [
-    { key: 'reading', icon: '📖', label: 'Reading' },
-    { key: 'writing', icon: '✏️', label: 'Writing' },
-    { key: 'speaking', icon: '🗣️', label: 'Speaking' },
-    { key: 'reasoning', icon: '🧩', label: 'Reasoning' },
+    { key: 'reading', icon: '📖', label: t.secReading || 'Reading' },
+    { key: 'writing', icon: '✍️', label: t.secWriting || 'Writing' },
+    { key: 'speaking', icon: '🗣️', label: t.secSpeaking || 'Speaking' },
   ];
   const currentSectionIdx = SECTIONS.findIndex(s => s.key === currentQuestion.type);
 
@@ -956,7 +1218,6 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
     reading:   { grad: 'from-cyan-400 via-sky-500 to-blue-500',      solid: 'bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-500',      accent: '#22d3ee', soft: 'rgba(34,211,238,0.14)',  border: 'rgba(34,211,238,0.5)',  glow: 'rgba(34,211,238,0.55)' },
     writing:   { grad: 'from-amber-400 via-orange-500 to-rose-500',  solid: 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500',  accent: '#f59e0b', soft: 'rgba(245,158,11,0.14)',  border: 'rgba(245,158,11,0.5)',  glow: 'rgba(245,158,11,0.55)' },
     speaking:  { grad: 'from-fuchsia-500 via-pink-500 to-rose-500',  solid: 'bg-gradient-to-r from-fuchsia-500 via-pink-500 to-rose-500',  accent: '#ec4899', soft: 'rgba(236,72,153,0.14)',  border: 'rgba(236,72,153,0.5)',  glow: 'rgba(236,72,153,0.55)' },
-    reasoning: { grad: 'from-indigo-400 via-purple-500 to-fuchsia-500', solid: 'bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500', accent: '#818cf8', soft: 'rgba(129,140,248,0.14)', border: 'rgba(129,140,248,0.5)', glow: 'rgba(129,140,248,0.55)' },
   };
   const activeTheme = SECTION_THEMES[currentQuestion.type] || SECTION_THEMES.reading;
 
@@ -1010,10 +1271,10 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
                 }
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-slate-200 text-xs font-bold font-mono transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-sm"
-              title="Exit Assessment"
+              title={t.exitAssessmentTitle || "Exit Assessment"}
             >
               <span>←</span>
-              <span>{step === 'result' ? 'Back' : 'Exit'}</span>
+              <span>{step === 'result' ? (t.backBtn || 'Back') : (t.exitBtn || 'Exit')}</span>
             </button>
             <img
               src="/logo.png"
@@ -1050,12 +1311,11 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
         {step !== 'welcome' && step !== 'result' && (
           <div className="mb-6">
             <div className="flex justify-between items-center text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 font-mono">
-              <span>Initial Assessment</span>
+              <span>{t.initialAssessmentLabel || "Initial Assessment"}</span>
               <span className="tabular-nums">
-                {currentQuestion.type === 'reading' && `Section 1 of 4 (Reading) - Q${currentQuestionIndex + 1}/5`}
-                {currentQuestion.type === 'writing' && `Section 2 of 4 (Writing) - Q${currentQuestionIndex - 4}/5`}
-                {currentQuestion.type === 'speaking' && `Section 3 of 4 (Speaking) - Q${currentQuestionIndex - 9}/5`}
-                {currentQuestion.type === 'reasoning' && `Section 4 of 4 (Reasoning) - Q${currentQuestionIndex - 14}/5`}
+                {currentQuestion.type === 'reading' && `${t.section1Reading || "Section 1 of 3 (Reading)"} - Q${currentQuestionIndex + 1}/5`}
+                {currentQuestion.type === 'writing' && `${t.section2Writing || "Section 2 of 3 (Writing)"} - Q${currentQuestionIndex - 4}/5`}
+                {currentQuestion.type === 'speaking' && `${t.section3Speaking || "Section 3 of 3 (Speaking)"} - Q${currentQuestionIndex - 9}/5`}
               </span>
             </div>
 
@@ -1133,15 +1393,16 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
               className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.05] opacity-0 bg-gradient-to-r from-cyan-300 via-fuchsia-300 to-pink-300 bg-clip-text text-transparent bg-[length:200%_auto]"
               style={{ animation: 'nxFadeUp 0.5s ease-out 0.15s forwards, nxTextShimmer 4s linear 0.7s infinite' }}
             >
-              Welcome, {fullName}!
+              {t.welcomeUser ? t.welcomeUser.replace("{name}", fullName || "") : `Welcome, ${fullName}!`}
             </h2>
 
             <p
               className="text-sm text-slate-400 leading-relaxed max-w-lg mx-auto opacity-0 font-mono tracking-tight"
               style={{ animation: 'nxFadeUp 0.5s ease-out 0.3s forwards' }}
             >
-              Let's customize your literacy learning journey with a quick 20-part assessment, evaluated in
-              <span className="text-fuchsia-300 font-bold mx-1">{lang === 'hindi' ? 'Hindi' : 'English'}</span>.
+              {t.assessmentWelcomeMsg || "Let's customize your literacy learning journey with a quick 15-part assessment in"}
+              <span className="text-fuchsia-300 font-bold mx-1 uppercase">{questionLangKey}</span>
+              (UI preferred: <span className="text-cyan-300 font-bold uppercase">{uiLangKey}</span>).
             </p>
 
             <div className="opacity-0 pt-2" style={{ animation: 'nxFadeUp 0.5s ease-out 0.45s forwards' }}>
@@ -1153,7 +1414,7 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
                 className="relative overflow-hidden py-4 px-8 rounded-full bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 text-white text-sm font-bold tracking-wide uppercase hover:brightness-110 active:scale-[0.98] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
                 style={{ animation: 'nxGlowPulse 3s ease-in-out infinite' }}
               >
-                <span className="relative z-10">Start Assessment →</span>
+                <span className="relative z-10">{t.startAssessmentBtn || "Start Assessment →"}</span>
                 <span className="absolute inset-0" style={{ animation: 'nxShimmer 2.6s linear infinite' }} />
               </button>
             </div>
@@ -1165,9 +1426,9 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
           <div key={`reading-${currentQuestionIndex}`} className="space-y-6" style={{ animation: 'nxStepIn 0.4s ease-out both' }}>
             <div className="flex items-center gap-2">
               <span className="text-2xl inline-block" style={{ animation: 'nxIconFloat 2.4s ease-in-out infinite' }}>📖</span>
-              <h3 className="text-xl font-black text-white">Section 1: Reading</h3>
+              <h3 className="text-xl font-black text-white">{t.secReadingTitle || "Section 1: Reading"}</h3>
             </div>
-            <p className="text-xs text-slate-500 font-mono">Read the text block below carefully, then answer the question.</p>
+            <p className="text-xs text-slate-500 font-mono">{t.readingInst || "Read the text block below carefully, then answer the question."}</p>
             
             <div
               className="py-6 text-center rounded-2xl relative overflow-hidden"
@@ -1214,7 +1475,7 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
               className="relative overflow-hidden w-full mt-4 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-500 text-white font-bold text-sm hover:brightness-110 disabled:opacity-30 disabled:grayscale transition-all duration-200 cursor-pointer active:scale-[0.98]"
               style={!selectedReadingOption ? undefined : { boxShadow: '0 0 24px -8px rgba(34,211,238,0.6)' }}
             >
-              <span className="relative z-10">{currentQuestionIndex === 4 ? 'Submit Section & Continue →' : 'Next Question →'}</span>
+              <span className="relative z-10">{currentQuestionIndex === 4 ? (t.submitSectionBtn || "Submit Section & Continue →") : (t.nextQuestionBtn || "Next Question →")}</span>
               {selectedReadingOption && <span className="absolute inset-0" style={{ animation: 'nxShimmer 2.2s linear infinite' }} />}
             </button>
           </div>
@@ -1225,16 +1486,16 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
           <div key={`writing-${currentQuestionIndex}`} className="space-y-6" style={{ animation: 'nxStepIn 0.4s ease-out both' }}>
             <div className="flex items-center gap-2">
               <span className="text-2xl inline-block" style={{ animation: 'nxIconFloat 2.4s ease-in-out infinite' }}>✏️</span>
-              <h3 className="text-xl font-black text-white">Section 2: Writing</h3>
+              <h3 className="text-xl font-black text-white">{t.secWritingTitle || "Section 2: Writing"}</h3>
             </div>
-            <p className="text-xs text-slate-500 font-mono">{currentQuestion.instruction}. Draw inside the canvas envelope below.</p>
+            <p className="text-xs text-slate-500 font-mono">{currentQuestion.instruction}. {t.drawEnvelopeInst || "Draw inside the canvas envelope below."}</p>
 
             <div className="grid grid-cols-2 gap-4 items-center">
               <div
                 className="text-center aspect-square flex flex-col justify-center items-center rounded-2xl"
                 style={{ background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.15)' }}
               >
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2 font-mono">Target Word</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2 font-mono">{t.targetWordLabel || "Target Word"}</span>
                 <p className="text-4xl font-black text-white" style={{ textShadow: '0 2px 24px rgba(0,0,0,0.6)' }}>{currentQuestion.char}</p>
               </div>
 
@@ -1255,7 +1516,7 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
                 {!hasDrawn && (
                   <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-gray-300 gap-1">
                     <span className="text-lg" style={{ animation: 'nxWiggle 2.4s ease-in-out infinite' }}>✏️</span>
-                    <span className="text-[9px] font-bold uppercase tracking-wider">Draw here</span>
+                    <span className="text-[9px] font-bold uppercase tracking-wider">{t.drawHerePrompt || "Draw here"}</span>
                   </div>
                 )}
                 {hasDrawn && (
@@ -1276,7 +1537,7 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
                 disabled={!hasDrawn || isAnalyzingWriting}
                 className="flex-1 py-3 border border-white/10 text-xs font-semibold rounded-xl text-slate-300 hover:bg-white/5 disabled:opacity-30 transition-all duration-150 cursor-pointer active:scale-[0.98]"
               >
-                Clear Canvas
+                {t.clearCanvasBtn || "Clear Canvas"}
               </button>
               <button
                 type="button"
@@ -1287,9 +1548,9 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
                 {isAnalyzingWriting ? (
                   <>
                     <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                    Analyzing...
+                    {t.analyzingState || "Analyzing..."}
                   </>
-                ) : (currentQuestionIndex === 7 ? 'Submit Section & Continue →' : 'Next Question →')}
+                ) : (currentQuestionIndex === 7 ? (t.submitSectionBtn || "Submit Section & Continue →") : (t.nextQuestionBtn || "Next Question →"))}
               </button>
             </div>
           </div>
@@ -1300,12 +1561,12 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
           <div key={`speaking-${currentQuestionIndex}`} className="space-y-6" style={{ animation: 'nxStepIn 0.4s ease-out both' }}>
             <div className="flex items-center gap-2">
               <span className="text-2xl inline-block" style={{ animation: 'nxIconFloat 2.4s ease-in-out infinite' }}>🗣️</span>
-              <h3 className="text-xl font-black text-white">Section 3: Speaking</h3>
+              <h3 className="text-xl font-black text-white">{t.secSpeakingTitle || "Section 3: Speaking"}</h3>
             </div>
-            <p className="text-xs text-slate-500 font-mono">{currentQuestion.instruction}. Tap the microphone to record.</p>
+            <p className="text-xs text-slate-500 font-mono">{currentQuestion.instruction}. {t.speakingInst || "Tap the microphone to record."}</p>
 
             <div className="text-center space-y-2 py-2">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block font-mono">Read Aloud</span>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block font-mono">{t.readAloudHeader || "Read Aloud"}</span>
               <p className="text-2xl font-bold text-white leading-relaxed" style={{ textShadow: '0 2px 24px rgba(0,0,0,0.6)' }}>
                 "{currentQuestion.phrase}"
               </p>
@@ -1345,14 +1606,14 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
               )}
 
               <span className="text-[10px] font-extrabold tracking-widest uppercase mt-4 text-slate-500 font-mono">
-                {isListening ? 'Listening for speech input...' : 'Click to start microphone capture'}
+                {isListening ? (t.listeningPrompt || "Listening for speech input...") : (t.clickToRecordPrompt || "Click to start microphone capture")}
               </span>
 
               {speechTranscript && (
                 <div className="mt-4 px-4 py-2 max-w-xs text-center" style={{ animation: 'nxFadeUp 0.35s ease-out both' }}>
-                  <span className="text-[8px] uppercase tracking-wider text-slate-500 font-bold block mb-0.5 font-mono">We Heard:</span>
+                  <span className="text-[8px] uppercase tracking-wider text-slate-500 font-bold block mb-0.5 font-mono">{t.weHeardLabel || "We Heard:"}</span>
                   <p className="text-xs font-semibold text-slate-300 italic">"{speechTranscript}"</p>
-                  <span className="text-[10px] font-extrabold text-fuchsia-300 block mt-1">Accuracy: {tempSpeakingScore}%</span>
+                  <span className="text-[10px] font-extrabold text-fuchsia-300 block mt-1">{t.accuracyLabel || "Accuracy:"} {tempSpeakingScore}%</span>
                 </div>
               )}
             </div>
@@ -1362,59 +1623,7 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
               disabled={isListening}
               className="relative overflow-hidden w-full py-3.5 rounded-xl bg-gradient-to-r from-fuchsia-500 via-pink-500 to-rose-500 text-white font-bold text-sm hover:brightness-110 transition-all duration-200 cursor-pointer active:scale-[0.98] disabled:opacity-30"
             >
-              {currentQuestionIndex === 11 ? 'Submit Section & Continue →' : 'Next Question →'}
-            </button>
-          </div>
-        )}
-
-        {/* 5. APPLIED REASONING SECTION */}
-        {step === 'reasoning' && (
-          <div key={`reasoning-${currentQuestionIndex}`} className="space-y-6" style={{ animation: 'nxStepIn 0.4s ease-out both' }}>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl inline-block" style={{ animation: 'nxIconFloat 2.4s ease-in-out infinite' }}>🧩</span>
-              <h3 className="text-xl font-black text-white">Section 4: Applied Reasoning</h3>
-            </div>
-            <p className="text-xs text-slate-500 font-mono">Read the situation below, then tap the card that best answers the question.</p>
-
-            <div className="space-y-3 py-1">
-              <div className="flex items-center gap-2">
-                <span className="text-3xl">{currentQuestion.icon}</span>
-                <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest font-mono">Real-life situation</span>
-              </div>
-              <p className="text-sm font-semibold text-slate-200 leading-relaxed" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.6)' }}>{currentQuestion.scenario}</p>
-            </div>
-
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block pt-1 font-mono">{currentQuestion.question}</label>
-
-            <div className="grid grid-cols-3 gap-2">
-              {currentQuestion.options.map((option, idx) => (
-                <button
-                  key={option.label}
-                  onClick={() => setSelectedReasoningCard(option.label)}
-                  style={{ animation: `nxOptionIn 0.35s ease-out ${idx * 70}ms both` }}
-                  className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border-2 text-center transition-all duration-150 cursor-pointer ${
-                    selectedReasoningCard === option.label
-                      ? 'border-indigo-400 bg-indigo-500/10 scale-[1.03] shadow-[0_0_20px_-6px_rgba(129,140,248,0.6)]'
-                      : 'border-white/10 bg-white/[0.02] hover:border-indigo-400/40 hover:-translate-y-0.5'
-                  }`}
-                >
-                  <span className="text-2xl">{option.emoji}</span>
-                  <span className={`text-[10px] font-bold leading-snug ${selectedReasoningCard === option.label ? 'text-indigo-300' : 'text-slate-300'}`}>
-                    {option.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            <button
-              disabled={!selectedReasoningCard}
-              onClick={() => {
-                const score = selectedReasoningCard === currentQuestion.correct ? 100 : 0;
-                handleNextQuestion(score);
-              }}
-              className="w-full mt-2 py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 text-white font-bold text-sm hover:brightness-110 disabled:opacity-30 disabled:grayscale transition-all duration-200 cursor-pointer active:scale-[0.98]"
-            >
-              {currentQuestionIndex === 14 ? 'Finish & View Level Results →' : 'Next Question →'}
+              {currentQuestionIndex === 11 ? (t.submitSectionBtn || "Submit Section & Continue →") : (t.nextQuestionBtn || "Next Question →")}
             </button>
           </div>
         )}
@@ -1433,24 +1642,23 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
               <span className="absolute inset-0 rounded-full blur-xl -z-10" style={{ background: 'rgba(217,70,239,0.4)', animation: 'nxGlowPulse 2.4s ease-in-out infinite' }} />
               🎓
             </span>
-            <h2 className="text-2xl font-black tracking-tight leading-tight bg-gradient-to-r from-cyan-300 via-fuchsia-300 to-pink-300 bg-clip-text text-transparent">Assessment Summary</h2>
+            <h2 className="text-2xl font-black tracking-tight leading-tight bg-gradient-to-r from-cyan-300 via-fuchsia-300 to-pink-300 bg-clip-text text-transparent">{t.assessmentSummaryTitle || "Assessment Summary"}</h2>
             
             <div className="flex justify-center flex-wrap gap-x-3 gap-y-4 max-w-sm mx-auto">
-              <RadialScore icon="📖" label="Reading" value={readingScore} delay={100} />
-              <RadialScore icon="✏️" label="Writing" value={writingScore} delay={220} />
-              <RadialScore icon="🗣️" label="Speaking" value={speakingScore} delay={340} />
-              <RadialScore icon="🧩" label="Reasoning" value={reasoningScore} delay={460} />
+              <RadialScore icon="📖" label={t.secReading || "Reading"} value={readingScore} delay={100} />
+              <RadialScore icon="✏️" label={t.secWriting || "Writing"} value={writingScore} delay={220} />
+              <RadialScore icon="🗣️" label={t.secSpeaking || "Speaking"} value={speakingScore} delay={340} />
             </div>
 
             <div className="flex flex-col items-center opacity-0" style={{ animation: 'nxFadeUp 0.5s ease-out 600ms forwards' }}>
-              <RadialScore icon="🏆" label="Overall Competency" value={overallScore} delay={620} size={112} stroke={9} big />
+              <RadialScore icon="🏆" label={t.overallCompetencyLabel || "Overall Competency"} value={overallScore} delay={620} size={112} stroke={9} big />
             </div>
 
             <div className="space-y-2 max-w-sm mx-auto opacity-0" style={{ animation: 'nxFadeUp 0.5s ease-out 750ms forwards' }}>
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">Dynamic Course Assigned:</span>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">{t.dynamicCourseAssigned || "Dynamic Course Assigned:"}</span>
               <div className="py-1">
                 <p className="text-base font-extrabold bg-gradient-to-r from-fuchsia-300 to-indigo-300 bg-clip-text text-transparent">{getAssessedLevelLabel(assessedLevel)}</p>
-                <p className="text-[10px] text-slate-400 mt-1">Setup personalization modules automatically tailored to your grade score.</p>
+                <p className="text-[10px] text-slate-400 mt-1">{t.courseAssignedDesc || "Setup personalization modules automatically tailored to your grade score."}</p>
               </div>
             </div>
 
@@ -1487,9 +1695,9 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
                       className="text-[11px] font-black tracking-[0.2em] uppercase font-mono leading-none"
                       style={{ background: 'linear-gradient(90deg,#22d3ee,#a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
                     >
-                      AI Evaluation Report
+                      {t.aiEvaluationReport || "AI Evaluation Report"}
                     </p>
-                    <p className="text-[9px] text-slate-500 font-mono mt-0.5">Sakshar Literacy Engine v2 · Detailed Analysis</p>
+                    <p className="text-[9px] text-slate-500 font-mono mt-0.5">{t.engineVersion || "Sakshar Literacy Engine v2 · Detailed Analysis"}</p>
                   </div>
                   {/* Grade badge */}
                   <div
@@ -1524,7 +1732,7 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
                     style={{ background: 'rgba(139,92,246,0.07)', border: '1px solid rgba(139,92,246,0.15)' }}
                   >
                     <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg,transparent,rgba(139,92,246,0.6),transparent)' }} />
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-violet-400 font-mono mb-1.5">AI Verdict</p>
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-violet-400 font-mono mb-1.5">{t.aiVerdictHeader || "AI Verdict"}</p>
                     <p className="text-[12px] font-mono text-slate-200 leading-relaxed">
                       {overallScore >= 80
                         ? `Your literacy profile places you in the top learning tier. Strong cognitive markers detected across reading, writing and reasoning. Advanced modules with critical thinking challenges have been unlocked for you.`
@@ -1539,7 +1747,7 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
                   {/* ── SKILL BARS (detailed) ── */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 font-mono">Skill Breakdown</p>
+                      <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 font-mono">{t.skillBreakdown || "Skill Breakdown"}</p>
                       <p className="text-[9px] text-slate-600 font-mono">Score / 100</p>
                     </div>
 
@@ -1567,14 +1775,6 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
                         glow: 'rgba(236,72,153,0.5)',
                         icon: '🎙️',
                         note: speakingScore >= 75 ? 'Clear pronunciation & good cadence' : speakingScore >= 45 ? 'Understandable, pacing can improve' : 'Needs pronunciation & articulation work',
-                      },
-                      {
-                        label: 'Applied Reasoning',
-                        value: reasoningScore,
-                        color: '#f59e0b',
-                        glow: 'rgba(245,158,11,0.5)',
-                        icon: '🧩',
-                        note: reasoningScore >= 75 ? 'Strong logical inference & pattern use' : reasoningScore >= 45 ? 'Basic reasoning present, needs depth' : 'Conceptual reasoning needs scaffolding',
                       },
                     ].map(({ label, value, color, glow, icon, note }, idx) => (
                       <div
@@ -1621,7 +1821,7 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
                   <div className="grid grid-cols-3 gap-2">
                     {[
                       {
-                        label: 'Top Strength',
+                        label: t.topStrength || "Top Strength",
                         color: '#22d3ee',
                         bg: 'rgba(34,211,238,0.06)',
                         border: 'rgba(34,211,238,0.18)',
@@ -1629,12 +1829,11 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
                           { label: 'Reading', value: readingScore },
                           { label: 'Writing', value: writingScore },
                           { label: 'Speaking', value: speakingScore },
-                          { label: 'Reasoning', value: reasoningScore },
                         ].sort((a, b) => b.value - a.value)[0]?.label,
                         icon: '⭐',
                       },
                       {
-                        label: 'Focus Area',
+                        label: t.focusArea || "Focus Area",
                         color: '#f87171',
                         bg: 'rgba(239,68,68,0.06)',
                         border: 'rgba(239,68,68,0.18)',
@@ -1642,12 +1841,11 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
                           { label: 'Reading', value: readingScore },
                           { label: 'Writing', value: writingScore },
                           { label: 'Speaking', value: speakingScore },
-                          { label: 'Reasoning', value: reasoningScore },
                         ].sort((a, b) => a.value - b.value)[0]?.label,
                         icon: '🎯',
                       },
                       {
-                        label: 'Overall Score',
+                        label: t.overallScoreLabel || "Overall Score",
                         color: '#a855f7',
                         bg: 'rgba(168,85,247,0.06)',
                         border: 'rgba(168,85,247,0.18)',
@@ -1669,12 +1867,12 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
 
                   {/* ── AI INSIGHTS ── */}
                   <div className="space-y-2">
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 font-mono">AI Insights</p>
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 font-mono">{t.aiInsightsLabel || "AI Insights"}</p>
                     <div className="space-y-2">
                       {[
                         {
                           icon: '💡',
-                          title: 'Cognitive Style',
+                          title: (t.cognitiveStyleLabel || "Cognitive Style"),
                           desc: overallScore >= 65
                             ? 'Analytical learner — responds well to structured, logic-based content.'
                             : 'Visual learner — benefits most from image-based and audio-rich material.',
@@ -1682,7 +1880,7 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
                         },
                         {
                           icon: '🚀',
-                          title: 'Pace Estimate',
+                          title: (t.paceEstimateLabel || "Pace Estimate"),
                           desc: overallScore >= 70
                             ? 'Fast-track eligible — estimated module completion 30% faster than average.'
                             : overallScore >= 40
@@ -1692,7 +1890,7 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
                         },
                         {
                           icon: '📅',
-                          title: 'Estimated Mastery',
+                          title: (t.estimatedMasteryLabel || "Estimated Mastery"),
                           desc: overallScore >= 70
                             ? '4–6 weeks to intermediate milestone at recommended daily practice.'
                             : overallScore >= 40
@@ -1724,7 +1922,7 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
                     <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg,transparent,rgba(245,158,11,0.5),transparent)' }} />
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-base">🗺️</span>
-                      <p className="text-[9px] font-bold uppercase tracking-widest text-amber-400 font-mono">Recommended Learning Path</p>
+                      <p className="text-[9px] font-bold uppercase tracking-widest text-amber-400 font-mono">{t.recommendedPathLabel || "Recommended Learning Path"}</p>
                     </div>
                     <div className="flex flex-wrap gap-1.5">
                       {(overallScore >= 80
@@ -1751,7 +1949,7 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
                     <p className="text-[8px] text-slate-600 font-mono">Analysis generated by Sakshar AI · {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                     <div className="flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" style={{ animation: 'nxRingPulse 2s infinite' }} />
-                      <p className="text-[8px] text-emerald-400 font-mono font-bold">VERIFIED</p>
+                      <p className="text-[8px] text-emerald-400 font-mono font-bold">{t.verifiedBadge || "VERIFIED"}</p>
                     </div>
                   </div>
 
@@ -1772,7 +1970,7 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
                     <span>Setting Up Course Profile...</span>
                   </>
                 ) : (
-                  'Configure Profile & Enter Dashboard →'
+                  <span>{t.enterDashboardBtn || "Configure Profile & Enter Dashboard →"}</span>
                 )}
               </button>
             </div>
@@ -1805,16 +2003,16 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
             <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center text-xl mx-auto font-mono">
               ⚠️
             </div>
-            <h3 className="text-lg font-black text-white tracking-tight">Exit Initial Assessment?</h3>
+            <h3 className="text-lg font-black text-white tracking-tight">{t.exitModalTitle || "Exit Initial Assessment?"}</h3>
             <p className="text-xs font-mono text-slate-400 leading-relaxed">
-              Your current assessment progress will be lost. Are you sure you want to exit?
+              {t.exitModalDesc || "Your current assessment progress will be lost. Are you sure you want to exit?"}
             </p>
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setShowExitModal(false)}
                 className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold font-mono transition cursor-pointer"
               >
-                Cancel
+                {t.cancelBtn || 'Cancel'}
               </button>
               <button
                 onClick={() => {
@@ -1823,7 +2021,7 @@ export default function InitialAssessment({ userId, fullName, lang, age, selecte
                 }}
                 className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:brightness-110 text-white text-xs font-bold font-mono transition cursor-pointer shadow-md"
               >
-                Yes, Exit
+                {t.yesExitBtn || 'Yes, Exit'}
               </button>
             </div>
           </div>

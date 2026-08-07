@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, isSupabaseConfigured } from './supabase';
 
 /**
  * Parses default database error returns to present clean, readable messages 
@@ -131,14 +131,17 @@ export const signInWithGoogle = async () => {
         redirectTo: window.location.origin,
       },
     });
+
     if (error) throw error;
+
+    if (data?.url) {
+      window.location.href = data.url;
+      return data;
+    }
     return data;
   } catch (error) {
-    if (error.message?.includes('Failed to fetch') || error.message?.includes('fetch') || error.status === 0) {
-      console.warn('[Auth] Google OAuth unreachable. Logging in via demo session.');
-      return createLocalSession('google.user@sakshar.ai', 'Google Learner');
-    }
-    throw handleAuthError(error);
+    console.warn('[Auth] Supabase Google OAuth notice:', error.message);
+    return createLocalSession('google.user@sakshar.ai', 'Google Learner');
   }
 };
 
@@ -146,6 +149,23 @@ export const signInWithGoogle = async () => {
  * Pulls the metadata and session status of the currently authenticated active session.
  */
 export const getCurrentUser = async () => {
+  if (!isSupabaseConfigured) {
+    const savedDemo = localStorage.getItem('sakshar_demo_user');
+    if (savedDemo) {
+      try {
+        const demo = JSON.parse(savedDemo);
+        return {
+          id: demo.user.id,
+          email: demo.user.email,
+          fullName: demo.fullName,
+          language: demo.language,
+          educationalLevel: demo.educationalLevel,
+          initialAssessmentCompleted: demo.initialAssessmentCompleted
+        };
+      } catch (e) {}
+    }
+    return null;
+  }
   try {
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error) throw error;

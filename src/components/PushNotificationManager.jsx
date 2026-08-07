@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-const BACKEND_URL = 'http://localhost:5000';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 // ─── Utility: Convert a base64url VAPID public key to a Uint8Array ──────────
 function urlBase64ToUint8Array(base64String) {
