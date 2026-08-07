@@ -2,6 +2,11 @@
 
 export const translations = {
   english: {
+    pwaInstallTitle: "Install Sakshar App",
+    pwaInstallDesc: "Instant offline access & full screen app mode",
+    pwaInstallBtn: "Install",
+    pwaInstallIos: "Install on your iPhone or iPad home screen",
+    footerTagline: "AI-powered literacy for every Indian learner.",
     ourApproachBadge: "Our Approach",
     whyWeBuiltTitle: "Why we built",
     whyWeBuiltHighlight: "Sakshar",
@@ -95,6 +100,11 @@ export const translations = {
     dashboardTitle: "Welcome to Your Dashboard!", logout: "Log Out"
   },
   hindi: {
+    pwaInstallTitle: "साक्षर ऐप इंस्टॉल करें",
+    pwaInstallDesc: "त्वरित ऑफ़लाइन पहुँच और पूर्ण स्क्रीन ऐप मोड",
+    pwaInstallBtn: "इंस्टॉल करें",
+    pwaInstallIos: "अपने iPhone या iPad होम स्क्रीन पर इंस्टॉल करें",
+    footerTagline: "हर भारतीय शिक्षार्थी के लिए एआई-संचालित साक्षरता।",
     ourApproachBadge: "हमारा दृष्टिकोण",
     whyWeBuiltTitle: "हमने क्यों बनाया",
     whyWeBuiltHighlight: "साक्षर",
@@ -188,6 +198,11 @@ export const translations = {
     dashboardTitle: "आपके डैशबोर्ड में आपका स्वागत है!", logout: "लॉग आउट"
   },
   telugu: {
+    pwaInstallTitle: "సాక్షర్ యాప్‌ను ఇన్‌స్టాల్ చేయండి",
+    pwaInstallDesc: "తక్షణ ఆఫ్‌లైన్ యాక్సెస్ మరియు పూర్తి స్క్రీన్ యాప్ మోడ్",
+    pwaInstallBtn: "ఇన్‌స్టాల్ చేయండి",
+    pwaInstallIos: "మీ iPhone లేదా iPad హోమ్ స్క్రీన్‌లో ఇన్‌స్టాల్ చేయండి",
+    footerTagline: "ప్రతి భారతీయ అభ్యాసకుడికి AI-ఆధారిత అక్షరాస్యత.",
     ourApproachBadge: "మా విధానం",
     whyWeBuiltTitle: "మేము ఎందుకు నిర్మించాము",
     whyWeBuiltHighlight: "సాక్షర్",
@@ -278,6 +293,11 @@ export const translations = {
     dashboardTitle: "మీ డాష్‌బోర్డుకు స్వాगతం!", logout: "లాగ్ అవుట్"
   },
   punjabi: {
+    pwaInstallTitle: "ਸਾਖਰ ਐਪ ਇੰਸਟਾਲ ਕਰੋ",
+    pwaInstallDesc: "ਤੁਰੰਤ ਔਫਲਾਈਨ ਪਹੁੰਚ ਅਤੇ ਪੂਰੀ ਸਕ੍ਰੀਨ ਐਪ ਮੋਡ",
+    pwaInstallBtn: "ਇੰਸਟਾਲ ਕਰੋ",
+    pwaInstallIos: "ਆਪਣੇ iPhone ਜਾਂ iPad ਹੋਮ ਸਕ੍ਰੀਨ 'ਤੇ ਇੰਸਟਾਲ ਕਰੋ",
+    footerTagline: "ਹਰ ਭਾਰਤੀ ਸਿੱਖਣ ਵਾਲੇ ਲਈ AI-ਸੰਚਾਲਿਤ ਸਾਖਰਤਾ।",
     ourApproachBadge: "ਸਾਡਾ ਪਹੁੰਚ",
     whyWeBuiltTitle: "ਅਸੀਂ ਕਿਉਂ ਬਣਾਇਆ",
     whyWeBuiltHighlight: "ਸਾਖਰ",
@@ -368,6 +388,11 @@ export const translations = {
     dashboardTitle: "ਤੁਹਾਡੇ ਡੈਸ਼ਬੋਰਡ ਵਿੱਚ ਜੀ ਆਇਆਂ ਨੂੰ!", logout: "ਲੌਗ ਆਊਟ"
   },
   bengali: {
+    pwaInstallTitle: "স্বাক্ষর অ্যাপ ইনস্টল করুন",
+    pwaInstallDesc: "তাত্ক্ষণিক অফলাইন অ্যাক্সেস এবং ফুল স্ক্রিন অ্যাপ মোড",
+    pwaInstallBtn: "ইনস্টল করুন",
+    pwaInstallIos: "আপনার iPhone বা iPad হোম স্ক্রিনে ইনস্টল করুন",
+    footerTagline: "প্রতিটি ভারতীয় শিক্ষার্থীর জন্য এআই-চালিত সাক্ষরতা।",
     ourApproachBadge: "আমাদের দৃষ্টিভঙ্গি",
     whyWeBuiltTitle: "কেন আমরা তৈরি করেছি",
     whyWeBuiltHighlight: "স্বাক্ষর",
@@ -458,6 +483,11 @@ export const translations = {
     dashboardTitle: "আপনার ড্যাশবোর্ডে স্বাগতম!", logout: "লগ আউট"
   },
   marathi: {
+    pwaInstallTitle: "साक्षर ॲप इंस्टॉल करा",
+    pwaInstallDesc: "झटपट ऑफलाइन प्रवेश आणि पूर्ण स्क्रीन ॲप मोड",
+    pwaInstallBtn: "इंस्टॉल करा",
+    pwaInstallIos: "तुमच्या iPhone किंवा iPad होम स्क्रीनवर इंस्टॉल करा",
+    footerTagline: "प्रत्येक भारतीय शिकणाऱ्यासाठी एआय-संचालित साक्षरता.",
     ourApproachBadge: "आमचा दृष्टीकोन",
     whyWeBuiltTitle: "आम्ही का बनवले",
     whyWeBuiltHighlight: "साक्षर",
@@ -548,6 +578,11 @@ export const translations = {
     dashboardTitle: "तुमच्या डॅशबोर्डवर स्वागत आहे!", logout: "लॉग आउट"
   },
   tamil: {
+    pwaInstallTitle: "சாக்ஷர் செயலியை நிறுவவும்",
+    pwaInstallDesc: "உடனடி ஆஃப்லைன் அணுகல் மற்றும் முழுத்திரை செயலி பயன்முறை",
+    pwaInstallBtn: "நிறுவு",
+    pwaInstallIos: "உங்கள் iPhone அல்லது iPad முகப்புத் திரையில் நிறுவவும்",
+    footerTagline: "ஒவ்வொரு இந்திய கற்பவருக்கும் AI-இயக்கப்படும் எழுத்தறிவு.",
     ourApproachBadge: "எங்கள் அணுகுமுறை",
     whyWeBuiltTitle: "நாங்கள் ஏன் உருவாக்கினோம்",
     whyWeBuiltHighlight: "சாக்ஷர்",
@@ -638,6 +673,11 @@ export const translations = {
     dashboardTitle: "உங்கள் டாஷ்போர்டிற்கு வரவேற்கிறோம்!", logout: "வெளியேறு"
   },
   gujarati: {
+    pwaInstallTitle: "સાક્ષર એપ ઇન્સ્ટોલ કરો",
+    pwaInstallDesc: "ત્વરિત ઑફલાઇન ઍક્સેસ અને પૂર્ણ સ્ક્રીન ઍપ મોડ",
+    pwaInstallBtn: "ઇન્સ્ટોલ કરો",
+    pwaInstallIos: "તમારા iPhone અથવા iPad હોમ સ્ક્રીન પર ઇન્સ્ટોલ કરો",
+    footerTagline: "દરેક ભારતીય શીખનાર માટે AI-સંચાલિત સાક્ષરતા.",
     ourApproachBadge: "અમારો અભિગમ",
     whyWeBuiltTitle: "અમે શા માટે બનાવ્યું",
     whyWeBuiltHighlight: "સાક્ષર",
@@ -728,6 +768,11 @@ export const translations = {
     dashboardTitle: "તમારા ડેશબોર્ડમાં સ્વાગત છે!", logout: "લોગ આઉट"
   },
   kannada: {
+    pwaInstallTitle: "ಸಾಕ್ಷರ್ ಅಪ್ಲಿಕೇಶನ್ ಸ್ಥಾಪಿಸಿ",
+    pwaInstallDesc: "ತ್ವರಿತ ಆಫ್‌ಲೈನ್ ಪ್ರವೇಶ ಮತ್ತು ಪೂರ್ಣ ಪರದೆಯ ಅಪ್ಲಿಕೇಶನ್ ಮೋಡ್",
+    pwaInstallBtn: "ಸ್ಥಾಪಿಸಿ",
+    pwaInstallIos: "ನಿಮ್ಮ iPhone ಅಥವಾ iPad ಮುಖಪುಟ ಪರದೆಯಲ್ಲಿ ಸ್ಥಾಪಿಸಿ",
+    footerTagline: "ಪ್ರತಿಯೊಬ್ಬ ಭಾರತೀಯ ಕಲಿಯುವವರಿಗೂ AI-ಚಾಲಿತ ಸಾಕ್ಷರತೆ.",
     ourApproachBadge: "ನಮ್ಮ ವಿಧಾನ",
     whyWeBuiltTitle: "ನಾವು ಏಕೆ ನಿರ್ಮಿಸಿದೆವು",
     whyWeBuiltHighlight: "ಸಾಕ್ಷರ್",
@@ -818,6 +863,11 @@ export const translations = {
     dashboardTitle: "ನಿಮ್ಮ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಸ್ವಾಗತ!", logout: "ಲಾಗ್ ಔಟ್"
   },
   malayalam: {
+    pwaInstallTitle: "സാക്ഷർ ആപ്പ് ഇൻസ്റ്റാൾ ചെയ്യുക",
+    pwaInstallDesc: "ഉടൻ തന്നെയുള്ള ഓഫ്ലൈൻ ആക്സസും ഫുൾ സ്ക്രീൻ ആപ്പ് മോഡും",
+    pwaInstallBtn: "ഇൻസ്റ്റാൾ ചെയ്യുക",
+    pwaInstallIos: "നിങ്ങളുടെ iPhone അല്ലെങ്കിൽ iPad ഹോം സ്ക്രീനിൽ ഇൻസ്റ്റാൾ ചെയ്യുക",
+    footerTagline: "ഓരോ ഇന്ത്യൻ പഠിതാവിനും AI-അധിഷ്ഠിത സാക്ഷരത.",
     ourApproachBadge: "ഞങ്ങളുടെ സമീപനം",
     whyWeBuiltTitle: "ഞങ്ങൾ എന്തുകൊണ്ട് നിർമ്മിച്ചു",
     whyWeBuiltHighlight: "സാക്ഷർ",
@@ -908,6 +958,11 @@ export const translations = {
     dashboardTitle: "നിങ്ങളുടെ ഡാഷ്‌ബോർഡിലേക്ക് സ്വാഗതം!", logout: "ലോഗ് ഔട്ട്"
   },
   odia: {
+    pwaInstallTitle: "ସାକ୍ଷର ଆପ୍ ଇନଷ୍ଟଲ୍ କରନ୍ତୁ",
+    pwaInstallDesc: "ତତକ୍ଷଣାତ୍ ଅଫଲାଇନ୍ ଆକ୍ସେସ୍ ଏବଂ ଫୁଲ୍ ସ୍କ୍ରିନ୍ ଆପ୍ ମୋଡ୍",
+    pwaInstallBtn: "ଇନଷ୍ଟଲ୍ କରନ୍ତୁ",
+    pwaInstallIos: "ଆପଣଙ୍କର iPhone କିମ୍ବା iPad ହୋମ୍ ସ୍କ୍ରିନରେ ଇନଷ୍ଟଲ୍ କରନ୍ତୁ",
+    footerTagline: "ପ୍ରତ୍ୟେକ ଭାରତୀୟ ଶିକ୍ଷାର୍ଥୀଙ୍କ ପାଇଁ AI-ସଞ୍ଚାଳିତ ସାକ୍ଷରତା ।",
     ourApproachBadge: "ଆମର ଦୃଷ୍ଟିକୋଣ",
     whyWeBuiltTitle: "ଆମେ କାହିଁକି ତିଆରି କଲୁ",
     whyWeBuiltHighlight: "ସାକ୍ଷର",

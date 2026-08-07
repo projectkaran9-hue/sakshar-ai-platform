@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-export default function PWAInstallPrompt() {
+export default function PWAInstallPrompt({ t = {} }) {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
@@ -112,13 +112,13 @@ export default function PWAInstallPrompt() {
           {/* Text Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h4 className="text-xs sm:text-sm font-black text-white tracking-tight">Install Sakshar App</h4>
+              <h4 className="text-xs sm:text-sm font-black text-white tracking-tight">{t.pwaInstallTitle || "Install Sakshar App"}</h4>
               <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                 PWA
               </span>
             </div>
             <p className="text-[11px] text-slate-300/80 font-medium leading-snug mt-0.5 truncate">
-              {isIOS ? 'Install on your iPhone or iPad home screen' : 'Instant offline access & full screen app mode'}
+              {isIOS ? (t.pwaInstallIos || 'Install on your iPhone or iPad home screen') : (t.pwaInstallDesc || 'Instant offline access & full screen app mode')}
             </p>
           </div>
 
