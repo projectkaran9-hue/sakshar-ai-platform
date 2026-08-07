@@ -2477,55 +2477,27 @@ export default function App() {
     // Listen for OAuth redirect / auth state changes (Google sign-in callback)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
-        // If checkActiveSession already routed the user (page refresh / existing session),
-        // do NOT re-run routing logic — it would fight with hydrateUserState.
         if (sessionHandled) return;
 
         const user = session.user;
         const meta = user.user_metadata || {};
 
-        // ── Detect truly new vs returning user via Supabase timestamps ──
-        // For a brand-new account, created_at and last_sign_in_at are within seconds.
-        // For returning users, last_sign_in_at is noticeably later than created_at.
-        const createdAt = user.created_at ? new Date(user.created_at).getTime() : 0;
-        const lastSignIn = user.last_sign_in_at ? new Date(user.last_sign_in_at).getTime() : 0;
-        const isFirstTimeUser = (lastSignIn - createdAt) < 30000; // < 30 seconds = brand new
-
-        // Hydrate common state regardless
         const displayName = meta.name || meta.full_name || meta.email || user.email || '';
         if (displayName) setFullName(displayName);
         if (meta.language) setLang(meta.language);
         if (user.id) setUserId(user.id);
 
-        if (isFirstTimeUser) {
-          // Brand new Google sign-up — create profile row and go to assessment
-          try {
-            await createUserProfile(user.id, {
-              fullName: displayName,
-              email: user.email || '',
-              age: meta.age || '',
-              nativeLanguage: meta.language || 'english',
-              literacyLevel: 'none'
-            });
-          } catch (createErr) {
-            console.warn('Profile create error (may already exist):', createErr.message);
+        // Hydrate user profile data into React state, but preserve landing view when opening the app
+        try {
+          const profile = await fetchUserProfile(user.id);
+          if (profile) {
+            if (profile.name) setFullName(profile.name);
+            if (profile.age) setAge(profile.age);
+            if (profile.language) setLang(profile.language);
+            if (profile.educational_level) setEducationalLevel(profile.educational_level);
           }
-          setView('initial-assessment');
-        } else {
-          // Returning registered user — always go directly to dashboard
-          // Try to enrich state from profile table, but don't block routing on it
-          try {
-            const profile = await fetchUserProfile(user.id);
-            if (profile) {
-              if (profile.name) setFullName(profile.name);
-              if (profile.age) setAge(profile.age);
-              if (profile.language) setLang(profile.language);
-              if (profile.educational_level) setEducationalLevel(profile.educational_level);
-            }
-          } catch (profileErr) {
-            console.warn('Profile fetch skipped (non-blocking):', profileErr.message);
-          }
-          setView('dashboard');
+        } catch (profileErr) {
+          console.warn('Profile fetch skipped (non-blocking):', profileErr.message);
         }
       }
     });
