@@ -2086,7 +2086,29 @@ export default function App() {
   const [isVoiceListening, setIsVoiceListening] = useState(false);
   const [voiceDetectedLang, setVoiceDetectedLang] = useState(null);
   const [voiceToast, setVoiceToast] = useState(null); // { label, native }
-  const [invitationText, setInvitationText] = useState('अपनी भाषा में बोलने के लिए माइक पर क्लिक करें (हिन्दी)');
+  const getInvitationTextForLang = (l) => {
+    switch (l) {
+      case 'english': return 'Tap the mic and speak in your mother tongue to auto-detect language';
+      case 'hindi': return 'अपनी भाषा में बोलने के लिए माइक पर क्लिक करें (हिन्दी)';
+      case 'telugu': return 'మాట్లాడటానికి మైక్‌ను నొక్కండి (తెలుగు)';
+      case 'kannada': return 'ಮಾತನಾಡಲು ಮೈಕ್ ಒತ್ತಿ (ಕನ್ನಡ)';
+      case 'bengali': return 'কথা বলতে মাইকে চাপ দিন (বাংলা)';
+      case 'tamil': return 'பேச மைக் பட்டனை அழுத்தவும் (தமிழ்)';
+      case 'marathi': return 'बोलण्यासाठी मायक्रोफोनवर क्लिक करा (मराठी)';
+      case 'gujarati': return 'બોલવા માટે માઇક પર ક્લિક કરો (ગુજરાતી)';
+      case 'punjabi': return "ਬੋਲਣ ਲਈ ਮਾਈਕ 'ਤੇ ਕਲਿੱਕ ਕਰੋ (ਪੰਜਾਬੀ)";
+      case 'malayalam': return 'സംസാരിക്കാൻ മൈക്കിൽ അമർത്തുക (മലയാളം)';
+      case 'odia': return 'କହିବା ପାଇଁ ମାଇକ୍ ଦବାନ୍ତୁ (ଓଡ଼ିଆ)';
+      case 'assamese': return "কথা ক'বলৈ মাইকত টিপক (অসমীয়া)";
+      default: return 'Tap the mic and speak in your mother tongue to auto-detect language';
+    }
+  };
+
+  const [invitationText, setInvitationText] = useState(() => getInvitationTextForLang(lang));
+
+  useEffect(() => {
+    setInvitationText(getInvitationTextForLang(lang));
+  }, [lang]);
 
   // Multilingual voice invitation cycling (every 2 seconds)
   useEffect(() => {
