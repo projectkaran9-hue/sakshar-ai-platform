@@ -9,6 +9,9 @@ const handleAuthError = (error) => {
   if (error.message?.includes('Failed to fetch') || error.message?.includes('fetch') || error.status === 0) {
     return new Error('Unable to reach Supabase Auth server. Try Demo Sign In or check your Vercel Environment Variables.');
   }
+  if (error.message?.includes('Email not confirmed')) {
+    return new Error('Email not verified. Please check your inbox and verify your email address before logging in.');
+  }
   if (error.message?.includes('User already registered') || error.status === 422) {
     return new Error('This email address is already registered.');
   }
@@ -59,8 +62,11 @@ export const signUpUser = async (email, password, fullName, preferredLanguage, e
     if (error) throw error;
 
     const metadata = data?.user?.user_metadata || {};
+    const needsEmailVerification = !data?.session && data?.user && !data?.user?.email_confirmed_at;
+
     return {
       ...data,
+      needsEmailVerification: !!needsEmailVerification,
       fullName: metadata.name || fullName,
       language: metadata.language || preferredLanguage,
       educationalLevel: metadata.educationalLevel || educationalLevel || 'none',
@@ -253,5 +259,39 @@ export const updateUserAuthProfile = async (fullName, language, educationalLevel
   } catch (error) {
     // Safe return if in local session mode
     return { fullName, language, educationalLevel };
+  }
+};
+
+/**
+ * Verifies a user's signup via 6-digit OTP token or link callback.
+ */
+export const verifyUserEmailOTP = async (email, token) => {
+  try {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'signup',
+    });
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    throw handleAuthError(error);
+  }
+};
+
+/**
+ * Resends the email verification message to the user.
+ */
+export const resendVerificationEmail = async (email) => {
+  try {
+    const { data, error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+    });
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    throw handleAuthError(error);
   }
 };

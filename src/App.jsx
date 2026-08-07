@@ -2077,6 +2077,10 @@ export default function App() {
   // Asynchronous operational operational operational operational feedback states
   const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [otpMessage, setOtpMessage] = useState('');
 
   // Voice language auto-detection states
   const [isVoiceListening, setIsVoiceListening] = useState(false);
@@ -2551,12 +2555,50 @@ export default function App() {
         console.warn("Profile db notice:", dbErr);
       }
 
-      // Go directly to Initial Placement Assessment for the newly registered learner
-      setView('initial-assessment');
+      if (data?.needsEmailVerification) {
+        setUnverifiedEmail(email);
+        setView('verify-email');
+      } else {
+        setView('initial-assessment');
+      }
     } catch (error) {
       setAuthError(error.message || "Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+
+  const handleVerifyOtpSubmit = async (e) => {
+    if (e) e.preventDefault();
+    if (!otpCode.trim()) {
+      setAuthError('Please enter the 6-digit verification code.');
+      return;
+    }
+    setIsVerifyingOtp(true);
+    setAuthError('');
+    setOtpMessage('');
+    try {
+      await verifyUserEmailOTP(unverifiedEmail || email, otpCode.trim());
+      setOtpMessage('✓ Email verified successfully! Redirecting to your initial placement assessment...');
+      setTimeout(() => {
+        setView('initial-assessment');
+      }, 1500);
+    } catch (err) {
+      setAuthError(err.message || 'Invalid verification code. Please check your email or try again.');
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+  };
+
+  const handleResendEmail = async () => {
+    setAuthError('');
+    setOtpMessage('');
+    try {
+      await resendVerificationEmail(unverifiedEmail || email);
+      setOtpMessage('✉️ Verification email resent! Please check your inbox.');
+    } catch (err) {
+      setAuthError(err.message || 'Could not resend email. Please try again in a few moments.');
     }
   };
 
@@ -3552,6 +3594,88 @@ export default function App() {
               setView('initial-assessment');
             }}
           />
+        )}
+
+                {/* ── EMAIL VERIFICATION SCREEN ── */}
+        {view === 'verify-email' && (
+          <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 animate-fade-in">
+            <div className="w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl space-y-6 text-center border border-slate-100">
+              <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-3xl mx-auto animate-bounce">
+                ✉️
+              </div>
+
+              <div>
+                <h2 className="text-2xl font-black text-slate-900 tracking-tight">Verify Your Email Address</h2>
+                <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
+                  We sent a verification link & 6-digit confirmation code to:
+                  <br />
+                  <span className="font-extrabold text-indigo-600 break-all">{unverifiedEmail || email}</span>
+                </p>
+              </div>
+
+              {authError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-2xl animate-shake">
+                  {authError}
+                </div>
+              )}
+
+              {otpMessage && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-2xl">
+                  {otpMessage}
+                </div>
+              )}
+
+              {/* 6-DIGIT OTP VERIFICATION FORM */}
+              <form onSubmit={handleVerifyOtpSubmit} className="space-y-4 text-left">
+                <div>
+                  <label className="block text-xs font-extrabold text-slate-700 mb-1">Enter 6-Digit Verification Code</label>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9a-zA-Z]/g, ''))}
+                    placeholder="123456"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-center text-xl font-mono font-black tracking-widest text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isVerifyingOtp}
+                  className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-xs rounded-2xl shadow-lg shadow-indigo-500/20 cursor-pointer transition disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isVerifyingOtp ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Verifying Code...
+                    </>
+                  ) : (
+                    <>
+                      <span>✅</span> Verify Email & Continue
+                    </>
+                  )}
+                </button>
+              </form>
+
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-500">
+                <button
+                  type="button"
+                  onClick={handleResendEmail}
+                  className="hover:text-indigo-600 underline cursor-pointer transition"
+                >
+                  Resend Email
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setView('login'); setAuthError(''); }}
+                  className="hover:text-indigo-600 underline cursor-pointer transition"
+                >
+                  Back to Login ➔
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         {view === 'initial-assessment' && (
