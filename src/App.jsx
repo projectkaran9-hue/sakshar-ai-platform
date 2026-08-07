@@ -2598,17 +2598,8 @@ export default function App() {
         setUserId(userData.user.id);
       }
 
-      const uid = userData?.user?.id;
-      // Only trust the explicit assessment-completed flags —
-      // educationalLevel is set at registration so it cannot be used as a bypass gate.
-      const isCompleted = userData?.initialAssessmentCompleted ||
-        (uid && localStorage.getItem(`sakshar_initial_assessment_completed_${uid}`) === 'true');
-
-      if (isCompleted) {
-        setView('dashboard');
-      } else {
-        setView('initial-assessment');
-      }
+      // Logging in directly opens the Learner Dashboard
+      setView('dashboard');
     } catch (error) {
       setAuthError(error.message || "Login Failed. Please check your credentials.");
     } finally {
@@ -2629,15 +2620,9 @@ export default function App() {
         if (res?.language) setLang(res.language);
         if (res?.educationalLevel) setEducationalLevel(res.educationalLevel);
 
-        const isCompleted = res?.initialAssessmentCompleted ||
-          localStorage.getItem(`sakshar_initial_assessment_completed_${uid}`) === 'true';
-
         setIsLoading(false);
-        if (isCompleted) {
-          setView('dashboard');
-        } else {
-          setView('initial-assessment');
-        }
+        // Logging in via Google directly opens the Learner Dashboard
+        setView('dashboard');
       }
     } catch (err) {
       setAuthError(err.message || 'Google sign-in failed. Please try again.');
