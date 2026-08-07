@@ -2910,7 +2910,7 @@ export default function App() {
                             ? 'bg-red-600 text-white animate-pulse'
                             : 'bg-emerald-600 hover:bg-emerald-700 text-white hover:scale-105 active:scale-95 cursor-pointer shadow-emerald-500/20'
                         }`}
-                        title="Click and speak your language!"
+                        title={t.micBtnTooltip || "Click and speak your language!"}
                       >
                         {isVoiceListening ? (
                           <div className="flex items-center gap-1">
@@ -2937,7 +2937,7 @@ export default function App() {
                           {isVoiceListening ? (
                             <span className="text-red-600 animate-pulse">{t.voiceListeningPrompt || 'Speak now in your mother tongue…'}</span>
                           ) : voiceDetectedLang ? (
-                            <span>Detected: <strong className="text-emerald-700 capitalize">{voiceDetectedLang}</strong>!</span>
+                            <span>{t.detectedLabel || "Detected"}: <strong className="text-emerald-700 capitalize">{voiceDetectedLang}</strong>!</span>
                           ) : (
                             <span className="text-gray-700">{invitationText}</span>
                           )}
@@ -2978,15 +2978,15 @@ export default function App() {
                 <div className="absolute inset-0" style={{ animation: 'sakConstellationDrift 24s ease-in-out infinite' }}>
                   {(() => {
                     const nodes = [
-                      { label: 'Reading', left: 55, top: 8, color: '#059669', delay: 0, factor: 1.0 },
-                      { label: 'Writing', left: 82, top: 15, color: '#d97706', delay: 0.4, factor: 0.8 },
-                      { label: 'Speaking', left: 92, top: 39, color: '#0284c7', delay: 0.8, factor: 1.2 },
-                      { label: 'Reasoning', left: 85, top: 66, color: '#7c3aed', delay: 1.2, factor: 0.9 },
-                      { label: 'Voice AI', left: 61, top: 87, color: '#059669', delay: 1.6, factor: 1.1 },
-                      { label: 'Tracing', left: 30, top: 87, color: '#d97706', delay: 2.0, factor: 0.85 },
-                      { label: 'Hindi', left: 7, top: 63, color: '#0284c7', delay: 2.4, factor: 1.15 },
-                      { label: 'Tamil', left: 3, top: 36, color: '#7c3aed', delay: 0.6, factor: 0.95 },
-                      { label: 'Bengali', left: 17, top: 12, color: '#059669', delay: 1.0, factor: 1.05 },
+                      { label: t.secReading || 'Reading', left: 55, top: 8, color: '#059669', delay: 0, factor: 1.0 },
+                      { label: t.secWriting || 'Writing', left: 82, top: 15, color: '#d97706', delay: 0.4, factor: 0.8 },
+                      { label: t.secSpeaking || 'Speaking', left: 92, top: 39, color: '#0284c7', delay: 0.8, factor: 1.2 },
+                      { label: t.secReasoning || 'Reasoning', left: 85, top: 66, color: '#7c3aed', delay: 1.2, factor: 0.9 },
+                      { label: t.voiceAiLabel || 'Voice AI', left: 61, top: 87, color: '#059669', delay: 1.6, factor: 1.1 },
+                      { label: t.tracingLabel || 'Tracing', left: 30, top: 87, color: '#d97706', delay: 2.0, factor: 0.85 },
+                      { label: t.langHindi || 'हिन्दी', left: 7, top: 63, color: '#0284c7', delay: 2.4, factor: 1.15 },
+                      { label: t.langTamil || 'தமிழ்', left: 3, top: 36, color: '#7c3aed', delay: 0.6, factor: 0.95 },
+                      { label: t.langBengali || 'বাংলা', left: 17, top: 12, color: '#059669', delay: 1.0, factor: 1.05 },
                     ];
                     const hubX = 50 + starOffset.x * 0.25;
                     const hubY = 50 + starOffset.y * 0.25;
@@ -3058,7 +3058,7 @@ export default function App() {
 
               {/* Scroll hint */}
               <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 opacity-60">
-                <span className="text-[10px] font-extrabold text-emerald-900 uppercase tracking-[0.3em]">Scroll</span>
+                <span className="text-[10px] font-extrabold text-emerald-900 uppercase tracking-[0.3em]">{t.scrollLabel || "Scroll"}</span>
                 <span className="w-px h-6 bg-emerald-600 animate-bounce" />
               </div>
             </section>
