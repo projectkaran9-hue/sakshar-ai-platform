@@ -70,10 +70,7 @@ export default function PushNotificationManager({ userId, fullName }) {
 
   // ── Subscribe to push ────────────────────────────────────────────────────
   const subscribe = useCallback(async () => {
-    if (!vapidKey) {
-      showToast('⚠️ Push service not configured. Start the backend first.');
-      return;
-    }
+    const activeKey = vapidKey || import.meta.env.VITE_VAPID_PUBLIC_KEY || 'BEEekF8FWfjdAemfVSPWgAdzSyFiRBl7FNrsh2DW2JdcbGWQOMuS7CTh-RTn5VfHVK8mtDy_8e6bqgGuVlohJ1w';
     setIsLoading(true);
     try {
       const perm = await Notification.requestPermission();
@@ -87,7 +84,7 @@ export default function PushNotificationManager({ userId, fullName }) {
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidKey),
+        applicationServerKey: urlBase64ToUint8Array(activeKey),
       });
 
       setSubscription(sub);
