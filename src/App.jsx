@@ -3206,9 +3206,9 @@ export default function App() {
 
                 <div className="grid sm:grid-cols-3 gap-6">
                   {[
-                    { n: '01 / READING', icon: '📖', title: 'Interactive Reading', desc: 'Custom content decks built around daily local tasks, with tap-to-explain glossaries for unfamiliar words.' },
-                    { n: '02 / WRITING', icon: '✍️', title: 'Real-Time Tracing', desc: 'Trace characters on screen and get stroke-by-stroke correction — try it above in the live sandbox.' },
-                    { n: '03 / SPEAKING', icon: '🗣️', title: 'Voice Verification', desc: 'Speak aloud and hear how close you are — private, patient pronunciation feedback powered by AI.' },
+                    { n: t.mod1Tag || '01 / READING', icon: '📖', title: t.mod1Title || 'Interactive Reading', desc: t.mod1Desc || 'Custom content decks built around daily local tasks, with tap-to-explain glossaries for unfamiliar words.' },
+                    { n: t.mod2Tag || '02 / WRITING', icon: '✍️', title: t.mod2Title || 'Real-Time Tracing', desc: t.mod2Desc || 'Trace characters on screen and get stroke-by-stroke correction — try it above in the live sandbox.' },
+                    { n: t.mod3Tag || '03 / SPEAKING', icon: '🗣️', title: t.mod3Title || 'Voice Verification', desc: t.mod3Desc || 'Speak aloud and hear how close you are — private, patient pronunciation feedback powered by AI.' },
                   ].map((feat, i) => (
                     <div key={i} className="bg-white/[0.03] border border-white/10 rounded-3xl p-8 hover:bg-white/[0.06] hover:-translate-y-1.5 transition-all duration-300 cursor-default">
                       <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-2xl mb-6">{feat.icon}</div>
@@ -3224,10 +3224,10 @@ export default function App() {
             {/* ══════════════════ IMPACT STATS ══════════════════ */}
             <section id="sak-impact-section" className="bg-black px-6 py-20 border-t border-white/10">
               <div className="max-w-6xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-8">
-                <CountUpStat value={20} suffix="+" label="Regional Languages" accent="text-indigo-400" />
-                <CountUpStat value={95} suffix="%" label="Pronunciation Accuracy" accent="text-indigo-400" />
-                <CountUpStat value={10} suffix="K+" label="Learners Onboarded" accent="text-indigo-400" />
-                <CountUpStat value={4} suffix="" label="Literacy Modules" accent="text-indigo-400" />
+                <CountUpStat value={20} suffix="+" label={t.stat1Label || "Regional Languages"} accent="text-indigo-400" />
+                <CountUpStat value={95} suffix="%" label={t.stat2Label || "Pronunciation Accuracy"} accent="text-indigo-400" />
+                <CountUpStat value={10} suffix="K+" label={t.stat3Label || "Learners Onboarded"} accent="text-indigo-400" />
+                <CountUpStat value={3} suffix="" label={t.stat4Label || "Literacy Modules"} accent="text-indigo-400" />
               </div>
             </section>
 
@@ -3236,7 +3236,7 @@ export default function App() {
               <div className="max-w-4xl mx-auto">
                 <span className="text-[11px] font-bold tracking-[0.3em] text-gray-400 uppercase">{t.beginYourJourney || "Begin Your Journey"}</span>
                 <h2 className="sak-serif text-4xl sm:text-6xl text-white leading-tight mt-4 mb-8">
-                  Every word you learn<br /><em className="italic text-amber-400">opens a door.</em>
+                  {t.ctaHeadlineLine1 || "Every word you learn"}<br /><em className="italic text-amber-400">{t.ctaHeadlineLine2 || "opens a door."}</em>
                 </h2>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                   <button
