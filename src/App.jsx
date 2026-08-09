@@ -2082,6 +2082,39 @@ export default function App() {
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [otpMessage, setOtpMessage] = useState('');
 
+  // Hero Background Video Config state & listener
+  const [bgVideoConfig, setBgVideoConfig] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sakshar_bg_video_config');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {
+      enabled: true,
+      sourceType: 'preset',
+      url: 'https://assets.mixkit.co/videos/preview/mixkit-stars-in-the-night-sky-4000-large.mp4',
+      opacity: 0.45,
+      blur: 0,
+      overlayColor: '#0c1a10',
+      overlayOpacity: 0.4
+    };
+  });
+
+  useEffect(() => {
+    const handleVideoUpdate = (e) => {
+      if (e.detail) {
+        setBgVideoConfig(e.detail);
+      } else {
+        try {
+          const saved = localStorage.getItem('sakshar_bg_video_config');
+          if (saved) setBgVideoConfig(JSON.parse(saved));
+        } catch {}
+      }
+    };
+
+    window.addEventListener('sakshar_bg_video_updated', handleVideoUpdate);
+    return () => window.removeEventListener('sakshar_bg_video_updated', handleVideoUpdate);
+  }, []);
+
   // Voice language auto-detection states
   const [isVoiceListening, setIsVoiceListening] = useState(false);
   const [voiceDetectedLang, setVoiceDetectedLang] = useState(null);
@@ -2857,7 +2890,35 @@ export default function App() {
             )}
 
             {/* ══════════════════════════════ HERO ══════════════════════════════ */}
-            <section className="relative min-h-[92vh] flex items-center px-6 pt-16 pb-10 overflow-hidden" style={{ background: 'linear-gradient(180deg, #FBFDFB 0%, #F1F9F5 45%, #E6F4ED 100%)' }}>
+            <section className="relative min-h-[92vh] flex items-center px-6 pt-16 pb-10 overflow-hidden" style={{ background: bgVideoConfig?.enabled && bgVideoConfig?.url ? '#060e08' : 'linear-gradient(180deg, #FBFDFB 0%, #F1F9F5 45%, #E6F4ED 100%)' }}>
+
+              {/* 🎥 Admin Configured Hero Video Background */}
+              {bgVideoConfig?.enabled && bgVideoConfig?.url && (
+                <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+                  <video
+                    key={bgVideoConfig.url}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover transition-opacity duration-700"
+                    style={{
+                      opacity: bgVideoConfig.opacity ?? 0.45,
+                      filter: `blur(${bgVideoConfig.blur ?? 0}px)`
+                    }}
+                  >
+                    <source src={bgVideoConfig.url} type="video/mp4" />
+                    <source src={bgVideoConfig.url} type="video/webm" />
+                  </video>
+                  <div 
+                    className="absolute inset-0 transition-all duration-300"
+                    style={{
+                      backgroundColor: bgVideoConfig.overlayColor || '#0c1a10',
+                      opacity: bgVideoConfig.overlayOpacity ?? 0.4
+                    }}
+                  />
+                </div>
+              )}
 
               {/* Soothing Starfield / Sparkles */}
               <div className="absolute inset-0 pointer-events-none">

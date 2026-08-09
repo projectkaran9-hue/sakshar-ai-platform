@@ -65,6 +65,91 @@ const AdminDashboard = ({
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // ════════════════ ADMIN HERO BACKGROUND VIDEO STATE ════════════════
+  const defaultVideoPresets = [
+    { id: 'particles', name: '🌌 Cosmic Particle Flow', url: 'https://assets.mixkit.co/videos/preview/mixkit-stars-in-the-night-sky-4000-large.mp4' },
+    { id: 'fluid', name: '🌊 Emerald Fluid Wave', url: 'https://assets.mixkit.co/videos/preview/mixkit-abstract-green-fluid-lines-41445-large.mp4' },
+    { id: 'aurora', name: '🍃 Northern Lights Aurora', url: 'https://assets.mixkit.co/videos/preview/mixkit-curved-lines-of-light-in-a-dark-space-41551-large.mp4' },
+    { id: 'constellation', name: '✨ Starry Constellation', url: 'https://assets.mixkit.co/videos/preview/mixkit-animation-of-futuristic-lines-99-large.mp4' }
+  ];
+
+  const [bgVideoConfig, setBgVideoConfig] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sakshar_bg_video_config');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {
+      enabled: true,
+      sourceType: 'preset',
+      url: defaultVideoPresets[0].url,
+      fileName: 'cosmic_particles.mp4',
+      opacity: 0.45,
+      blur: 0,
+      overlayColor: '#0c1a10',
+      overlayOpacity: 0.4
+    };
+  });
+
+  const [customVideoUrlInput, setCustomVideoUrlInput] = useState('');
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+
+  const handleSaveVideoConfig = (newConfig) => {
+    const updated = { ...bgVideoConfig, ...newConfig, updatedAt: new Date().toISOString() };
+    setBgVideoConfig(updated);
+    try {
+      localStorage.setItem('sakshar_bg_video_config', JSON.stringify(updated));
+    } catch (e) {
+      console.warn('Storage notice:', e);
+    }
+    window.dispatchEvent(new CustomEvent('sakshar_bg_video_updated', { detail: updated }));
+    showToast('🎥 Background video updated & applied live to Landing Page!');
+  };
+
+  const handleVideoFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('video/')) {
+      showToast('⚠️ Please select a valid video file (.mp4, .webm, .mov).');
+      return;
+    }
+
+    setIsUploadingVideo(true);
+    const blobUrl = URL.createObjectURL(file);
+    
+    if (file.size <= 15 * 1024 * 1024) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target.result;
+        handleSaveVideoConfig({
+          sourceType: 'file',
+          url: dataUrl,
+          fileName: file.name,
+          enabled: true
+        });
+        setIsUploadingVideo(false);
+      };
+      reader.onerror = () => {
+        handleSaveVideoConfig({
+          sourceType: 'file',
+          url: blobUrl,
+          fileName: file.name,
+          enabled: true
+        });
+        setIsUploadingVideo(false);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      handleSaveVideoConfig({
+        sourceType: 'file',
+        url: blobUrl,
+        fileName: file.name,
+        enabled: true
+      });
+      setIsUploadingVideo(false);
+    }
+  };
+
   // ════════════════ ADMIN PUSH BROADCASTER STATE ════════════════
   const [pushTitle, setPushTitle] = useState('Sakshar AI Learning Alert');
   const [pushBody, setPushBody] = useState('Complete your daily lesson today to keep your 7-day streak going! 🔥');
@@ -976,6 +1061,12 @@ const AdminDashboard = ({
                     >
                       🔔 Push Broadcaster
                     </button>
+                    <button 
+                      onClick={() => setActiveTab('video-bg')}
+                      className={`w-full text-left py-1.5 px-2 rounded-lg text-xs transition cursor-pointer ${activeTab === 'video-bg' ? 'text-purple-300 font-bold bg-purple-500/20 border-l-2 border-purple-400 pl-2.5' : 'text-slate-400 hover:text-white'}`}
+                    >
+                      🎥 Hero Video Background
+                    </button>
                   </div>
                 )}
               </div>
@@ -1043,6 +1134,7 @@ const AdminDashboard = ({
                  activeTab === 'courses' ? 'Applications / Course Manager' :
                  activeTab === 'calendar' ? 'Applications / Calendar' :
                  activeTab === 'push-notifications' ? 'Applications / Push Broadcaster' :
+                  activeTab === 'video-bg' ? 'Applications / Hero Video Background' :
                  activeTab === 'settings' ? 'Authentication & System Config' : 'Analytics Overview'}
               </h2>
               <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 flex items-center gap-1">
@@ -1926,6 +2018,287 @@ const AdminDashboard = ({
                       </button>
                     </div>
                   </div>
+
+            {/* ════════════════ VIEW 9: HERO BACKGROUND VIDEO MANAGER ════════════════ */}
+            {activeTab === 'video-bg' && (
+              <div className="space-y-6 animate-fade-in max-w-5xl">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                      <span>🎥</span> Landing Page Hero Video Background Manager
+                    </h3>
+                    <p className="text-xs text-slate-500 font-medium">Upload a custom video file or paste a video URL to render directly behind the Landing Page Hero</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={bgVideoConfig.enabled} 
+                        onChange={(e) => handleSaveVideoConfig({ enabled: e.target.checked })}
+                        className="sr-only peer" 
+                      />
+                      <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                      <span className="ml-2.5 text-xs font-bold text-slate-800">
+                        {bgVideoConfig.enabled ? '🟢 Video Active' : '⚪ Video Disabled'}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  
+                  {/* LEFT: VIDEO UPLOADER & PRESETS */}
+                  <div className="lg:col-span-7 space-y-6">
+                    
+                    {/* UPLOAD FILE CARD */}
+                    <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-4">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                          <span>📤</span> Upload Custom Video File
+                        </h4>
+                        <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-200">
+                          MP4 / WebM / MOV
+                        </span>
+                      </div>
+
+                      <div className="relative border-2 border-dashed border-purple-200 hover:border-purple-400 bg-purple-50/40 rounded-2xl p-6 text-center transition-all cursor-pointer group">
+                        <input 
+                          type="file" 
+                          accept="video/mp4,video/webm,video/ogg,video/quicktime"
+                          onChange={handleVideoFileUpload}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                        />
+                        <div className="space-y-2 pointer-events-none">
+                          <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center text-2xl mx-auto group-hover:scale-110 transition-transform">
+                            {isUploadingVideo ? '⏳' : '🎬'}
+                          </div>
+                          <p className="text-xs font-bold text-slate-800">
+                            {isUploadingVideo ? 'Processing video file...' : 'Click or Drag & Drop Video File Here'}
+                          </p>
+                          <p className="text-[10px] text-slate-500 font-medium">
+                            Supports .mp4, .webm, .mov (Recommended resolution: 1080p, short seamless loop)
+                          </p>
+                        </div>
+                      </div>
+
+                      {bgVideoConfig.sourceType === 'file' && bgVideoConfig.fileName && (
+                        <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs">
+                          <div className="flex items-center gap-2">
+                            <span>✅</span>
+                            <span className="font-bold text-emerald-900 truncate max-w-xs">{bgVideoConfig.fileName}</span>
+                          </div>
+                          <span className="text-[9px] font-black uppercase text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">Active Upload</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* DIRECT URL INPUT CARD */}
+                    <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-4">
+                      <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <span>🔗</span> Or Paste Video URL (MP4 Stream Link)
+                      </h4>
+
+                      <div className="flex gap-2">
+                        <input 
+                          type="url" 
+                          value={customVideoUrlInput}
+                          onChange={(e) => setCustomVideoUrlInput(e.target.value)}
+                          placeholder="https://example.com/video.mp4"
+                          className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!customVideoUrlInput.trim()) {
+                              showToast('⚠️ Please enter a valid video URL.');
+                              return;
+                            }
+                            handleSaveVideoConfig({
+                              sourceType: 'url',
+                              url: customVideoUrlInput.trim(),
+                              fileName: 'Custom Stream URL',
+                              enabled: true
+                            });
+                          }}
+                          className="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-md shadow-purple-500/20"
+                        >
+                          Apply URL
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* PRESET VIDEOS CARD */}
+                    <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-4">
+                      <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <span>✨</span> Or Select From Curated Video Presets
+                      </h4>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        {defaultVideoPresets.map((preset) => (
+                          <button
+                            key={preset.id}
+                            type="button"
+                            onClick={() => handleSaveVideoConfig({
+                              sourceType: 'preset',
+                              url: preset.url,
+                              fileName: preset.name,
+                              enabled: true
+                            })}
+                            className={`p-3 rounded-2xl border text-left transition cursor-pointer relative overflow-hidden ${
+                              bgVideoConfig.url === preset.url
+                                ? 'bg-purple-50 border-purple-500 text-purple-900 ring-2 ring-purple-500/20'
+                                : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-800'
+                            }`}
+                          >
+                            <span className="block text-xs font-bold">{preset.name}</span>
+                            <span className="block text-[9px] text-slate-500 mt-1 font-medium">HD Loop Stream</span>
+                            {bgVideoConfig.url === preset.url && (
+                              <span className="absolute top-2 right-2 text-xs">✓</span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* RIGHT: LIVE PREVIEW & CONTROLS */}
+                  <div className="lg:col-span-5 space-y-6">
+                    
+                    {/* LIVE PREVIEW BOX */}
+                    <div className="bg-slate-900 rounded-3xl border border-slate-800 p-5 text-white space-y-4 shadow-xl relative overflow-hidden">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                          Live Hero Background Preview
+                        </span>
+                        <span className="text-xs">👁️</span>
+                      </div>
+
+                      {/* Mock Landing Hero Container */}
+                      <div className="relative h-56 rounded-2xl overflow-hidden border border-white/10 flex flex-col justify-center items-center p-4 text-center">
+                        {bgVideoConfig.enabled && bgVideoConfig.url ? (
+                          <>
+                            <video
+                              key={bgVideoConfig.url}
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                              style={{
+                                opacity: bgVideoConfig.opacity ?? 0.45,
+                                filter: `blur(${bgVideoConfig.blur ?? 0}px)`
+                              }}
+                            >
+                              <source src={bgVideoConfig.url} type="video/mp4" />
+                            </video>
+                            <div 
+                              className="absolute inset-0 pointer-events-none"
+                              style={{
+                                backgroundColor: bgVideoConfig.overlayColor || '#0c1a10',
+                                opacity: bgVideoConfig.overlayOpacity ?? 0.4
+                              }}
+                            />
+                          </>
+                        ) : (
+                          <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-emerald-950 to-slate-900" />
+                        )}
+
+                        {/* Overlaid Landing Page Hero Content Preview */}
+                        <div className="relative z-10 space-y-2">
+                          <span className="text-[9px] font-black tracking-widest text-emerald-300 uppercase">The AI Literacy Companion</span>
+                          <h4 className="sak-serif text-lg font-bold text-white leading-tight">Empowering Literacy<br /><em className="italic text-emerald-400 font-extrabold">Through AI Intelligence</em></h4>
+                          <div className="pt-2 flex items-center justify-center gap-2">
+                            <span className="px-3 py-1 bg-emerald-600 text-white rounded-full text-[9px] font-black">Get Started →</span>
+                            <span className="px-3 py-1 bg-white/10 text-white rounded-full text-[9px] font-bold border border-white/20">Try Live Demo</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* OVERLAY & STYLING CONTROLS */}
+                    <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-5">
+                      <h4 className="text-sm font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                        <span>🎛️</span> Visual Overlay Controls
+                      </h4>
+
+                      <div className="space-y-4">
+                        <div>
+                          <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+                            <span>Video Opacity</span>
+                            <span className="text-purple-600 font-mono">{Math.round((bgVideoConfig.opacity ?? 0.45) * 100)}%</span>
+                          </div>
+                          <input 
+                            type="range"
+                            min="0.05"
+                            max="1.0"
+                            step="0.05"
+                            value={bgVideoConfig.opacity ?? 0.45}
+                            onChange={(e) => handleSaveVideoConfig({ opacity: parseFloat(e.target.value) })}
+                            className="w-full accent-purple-600 cursor-pointer"
+                          />
+                        </div>
+
+                        <div>
+                          <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+                            <span>Darkening Tint Opacity</span>
+                            <span className="text-purple-600 font-mono">{Math.round((bgVideoConfig.overlayOpacity ?? 0.4) * 100)}%</span>
+                          </div>
+                          <input 
+                            type="range"
+                            min="0.0"
+                            max="0.9"
+                            step="0.05"
+                            value={bgVideoConfig.overlayOpacity ?? 0.4}
+                            onChange={(e) => handleSaveVideoConfig({ overlayOpacity: parseFloat(e.target.value) })}
+                            className="w-full accent-purple-600 cursor-pointer"
+                          />
+                        </div>
+
+                        <div>
+                          <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+                            <span>Video Blur Effect</span>
+                            <span className="text-purple-600 font-mono">{bgVideoConfig.blur ?? 0}px</span>
+                          </div>
+                          <input 
+                            type="range"
+                            min="0"
+                            max="15"
+                            step="1"
+                            value={bgVideoConfig.blur ?? 0}
+                            onChange={(e) => handleSaveVideoConfig({ blur: parseInt(e.target.value) })}
+                            className="w-full accent-purple-600 cursor-pointer"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Overlay Color Tint</label>
+                          <div className="flex items-center gap-2">
+                            <input 
+                              type="color"
+                              value={bgVideoConfig.overlayColor || '#0c1a10'}
+                              onChange={(e) => handleSaveVideoConfig({ overlayColor: e.target.value })}
+                              className="w-9 h-9 rounded-xl border border-slate-200 cursor-pointer p-0.5"
+                            />
+                            <span className="text-xs font-mono text-slate-600 font-bold uppercase">{bgVideoConfig.overlayColor || '#0c1a10'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleSaveVideoConfig({ enabled: true })}
+                        className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs font-black rounded-2xl shadow-lg shadow-purple-500/25 transition cursor-pointer"
+                      >
+                        💾 Save & Apply Background Video Live
+                      </button>
+                    </div>
+
+                  </div>
+
+                </div>
+              </div>
+            )}
 
             {/* ════════════════ VIEW 8: PUSH NOTIFICATION BROADCASTER ════════════════ */}
             {activeTab === 'push-notifications' && (
