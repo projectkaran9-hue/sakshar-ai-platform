@@ -2034,6 +2034,122 @@ const AdminDashboard = ({
                       </button>
                     </div>
                   </div>
+
+                  {/* MULTI-API PROVIDER HUB & FAILOVER ENGINE */}
+                  <div className="p-5 bg-gradient-to-br from-purple-50/70 to-indigo-50/70 rounded-3xl border border-purple-200/80 space-y-4 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-purple-700 font-mono text-[10px] font-bold uppercase tracking-wider bg-purple-100 px-2 py-0.5 rounded border border-purple-200">
+                          Multi-API AI Tutor & Evaluation Engine Hub
+                        </span>
+                        <h4 className="text-sm font-black text-slate-900 mt-1">AI Models & Token Failover Switcher</h4>
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full border border-emerald-200">
+                        🟢 Active & Failover Ready
+                      </span>
+                    </div>
+
+                    {/* AI TUTOR MODEL SELECTOR */}
+                    <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 space-y-2">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="font-bold text-slate-800 text-xs">AI Tutor Primary Model</p>
+                          <p className="text-[10px] text-slate-400 font-medium">Used for live conversational tutoring & lesson explanations</p>
+                        </div>
+                        <select
+                          value={selectedAiModel}
+                          onChange={(e) => handleSelectAiEngine(e.target.value)}
+                          className="px-3 py-1.5 bg-purple-50 border border-purple-300 rounded-xl text-xs font-bold text-purple-800 focus:outline-none cursor-pointer"
+                        >
+                          <option value="Gemini 1.5 Flash">⚡ Google Gemini 1.5 Flash (Default)</option>
+                          <option value="Gemini 1.5 Pro">🧠 Google Gemini 1.5 Pro (High Precision)</option>
+                          <option value="Bedrock Claude 3.5 Sonnet">🎨 AWS Bedrock Claude 3.5 Sonnet</option>
+                          <option value="OpenAI GPT-4o Mini">🤖 OpenAI GPT-4o Mini API</option>
+                          <option value="Local Rule Engine">🏠 Sakshar Offline Local Engine (Emergency)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* AI EVALUATION ENGINE SELECTOR */}
+                    <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 space-y-2">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="font-bold text-slate-800 text-xs">AI Speech & Tracing Evaluator</p>
+                          <p className="text-[10px] text-slate-400 font-medium">Scores pronunciation, phonics audio & handwriting accuracy</p>
+                        </div>
+                        <select
+                          value={selectedAiEvaluator}
+                          onChange={(e) => handleSelectAiEvaluator(e.target.value)}
+                          className="px-3 py-1.5 bg-indigo-50 border border-indigo-300 rounded-xl text-xs font-bold text-indigo-800 focus:outline-none cursor-pointer"
+                        >
+                          <option value="Sakshar Multilingual Evaluator">🎯 Sakshar Multilingual Engine (Native)</option>
+                          <option value="Gemini Audio & Canvas AI">⚡ Gemini Audio & Vision API</option>
+                          <option value="Whisper Speech Scorer">🎙️ OpenAI Whisper & GPT-4o Scorer</option>
+                          <option value="Local Rule Scorer">🏠 Sakshar Local Canvas Scorer (Fallback)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* AUTOMATIC TOKEN LIMIT FAILOVER TOGGLE */}
+                    <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 flex items-center justify-between gap-4">
+                      <div>
+                        <p className="font-bold text-slate-800 text-xs">Token Limit Auto-Failover</p>
+                        <p className="text-[10px] text-slate-500 font-medium">Automatically switch to Local Fallback Engine if API quota or rate limit is exhausted</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleToggleAutoFailover}
+                        className={`px-3 py-1.5 rounded-xl font-bold text-xs cursor-pointer transition border ${
+                          autoFailoverEnabled 
+                            ? 'bg-emerald-500 text-white border-emerald-600 shadow-sm' 
+                            : 'bg-slate-200 text-slate-600 border-slate-300'
+                        }`}
+                      >
+                        {autoFailoverEnabled ? '✓ Auto-Failover ON' : '✕ Disabled'}
+                      </button>
+                    </div>
+
+                    {/* CUSTOM API KEY PROVIDER ENDPOINT */}
+                    <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 space-y-2">
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase font-mono">Custom API Key / Secret Token (Optional Backup Provider)</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="password"
+                          placeholder="AIzaSy... / sk-proj-..."
+                          value={customApiKey}
+                          onChange={(e) => setCustomApiKey(e.target.value)}
+                          className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs text-slate-800"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleSaveCustomKey}
+                          className="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-sm transition cursor-pointer"
+                        >
+                          Save Key Token
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Multilingual Voice Engine Toggle */}
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                    <span className="text-slate-400 font-mono text-[10px]">MULTILINGUAL VOICE RECOGNITION</span>
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-800">Speech-to-Text Recognition</span>
+                      <button
+                        onClick={() => {
+                          setSpeechEngineActive(!speechEngineActive);
+                          showToast(speechEngineActive ? 'Paused Speech Engine' : 'Activated 20 Indian Speech Languages');
+                        }}
+                        className={`px-3 py-1 rounded-full font-bold text-[10px] cursor-pointer transition ${
+                          speechEngineActive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-200 text-slate-600'
+                        }`}
+                      >
+                        {speechEngineActive ? '● 20 Regional Languages Active' : '○ Speech Engine Paused'}
+                      </button>
+                    </div>
+                  </div>
+
                 </div>
               </div>
             )}
@@ -2567,121 +2683,7 @@ const AdminDashboard = ({
               </div>
             )}
 
-                  {/* MULTI-API PROVIDER HUB & FAILOVER ENGINE */}
-                  <div className="p-5 bg-gradient-to-br from-purple-50/70 to-indigo-50/70 rounded-3xl border border-purple-200/80 space-y-4 shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-purple-700 font-mono text-[10px] font-bold uppercase tracking-wider bg-purple-100 px-2 py-0.5 rounded border border-purple-200">
-                          Multi-API AI Tutor & Evaluation Engine Hub
-                        </span>
-                        <h4 className="text-sm font-black text-slate-900 mt-1">AI Models & Token Failover Switcher</h4>
-                      </div>
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full border border-emerald-200">
-                        🟢 Active & Failover Ready
-                      </span>
-                    </div>
 
-                    {/* AI TUTOR MODEL SELECTOR */}
-                    <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 space-y-2">
-                      <div className="flex items-center justify-between gap-4">
-                        <div>
-                          <p className="font-bold text-slate-800 text-xs">AI Tutor Primary Model</p>
-                          <p className="text-[10px] text-slate-400 font-medium">Used for live conversational tutoring & lesson explanations</p>
-                        </div>
-                        <select
-                          value={selectedAiModel}
-                          onChange={(e) => handleSelectAiEngine(e.target.value)}
-                          className="px-3 py-1.5 bg-purple-50 border border-purple-300 rounded-xl text-xs font-bold text-purple-800 focus:outline-none cursor-pointer"
-                        >
-                          <option value="Gemini 1.5 Flash">⚡ Google Gemini 1.5 Flash (Default)</option>
-                          <option value="Gemini 1.5 Pro">🧠 Google Gemini 1.5 Pro (High Precision)</option>
-                          <option value="Bedrock Claude 3.5 Sonnet">🎨 AWS Bedrock Claude 3.5 Sonnet</option>
-                          <option value="OpenAI GPT-4o Mini">🤖 OpenAI GPT-4o Mini API</option>
-                          <option value="Local Rule Engine">🏠 Sakshar Offline Local Engine (Emergency)</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* AI EVALUATION ENGINE SELECTOR */}
-                    <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 space-y-2">
-                      <div className="flex items-center justify-between gap-4">
-                        <div>
-                          <p className="font-bold text-slate-800 text-xs">AI Speech & Tracing Evaluator</p>
-                          <p className="text-[10px] text-slate-400 font-medium">Scores pronunciation, phonics audio & handwriting accuracy</p>
-                        </div>
-                        <select
-                          value={selectedAiEvaluator}
-                          onChange={(e) => handleSelectAiEvaluator(e.target.value)}
-                          className="px-3 py-1.5 bg-indigo-50 border border-indigo-300 rounded-xl text-xs font-bold text-indigo-800 focus:outline-none cursor-pointer"
-                        >
-                          <option value="Sakshar Multilingual Evaluator">🎯 Sakshar Multilingual Engine (Native)</option>
-                          <option value="Gemini Audio & Canvas AI">⚡ Gemini Audio & Vision API</option>
-                          <option value="Whisper Speech Scorer">🎙️ OpenAI Whisper & GPT-4o Scorer</option>
-                          <option value="Local Rule Scorer">🏠 Sakshar Local Canvas Scorer (Fallback)</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* AUTOMATIC TOKEN LIMIT FAILOVER TOGGLE */}
-                    <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 flex items-center justify-between gap-4">
-                      <div>
-                        <p className="font-bold text-slate-800 text-xs">Token Limit Auto-Failover</p>
-                        <p className="text-[10px] text-slate-500 font-medium">Automatically switch to Local Fallback Engine if API quota or rate limit is exhausted</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleToggleAutoFailover}
-                        className={`px-3 py-1.5 rounded-xl font-bold text-xs cursor-pointer transition border ${
-                          autoFailoverEnabled 
-                            ? 'bg-emerald-500 text-white border-emerald-600 shadow-sm' 
-                            : 'bg-slate-200 text-slate-600 border-slate-300'
-                        }`}
-                      >
-                        {autoFailoverEnabled ? '✓ Auto-Failover ON' : '✕ Disabled'}
-                      </button>
-                    </div>
-
-                    {/* CUSTOM API KEY PROVIDER ENDPOINT */}
-                    <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 space-y-2">
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase font-mono">Custom API Key / Secret Token (Optional Backup Provider)</label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="password"
-                          placeholder="AIzaSy... / sk-proj-..."
-                          value={customApiKey}
-                          onChange={(e) => setCustomApiKey(e.target.value)}
-                          className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs text-slate-800"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleSaveCustomKey}
-                          className="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-sm transition cursor-pointer"
-                        >
-                          Save Key Token
-                        </button>
-                      </div>
-                    </div>
-
-                  </div>
-
-                  {/* Multilingual Voice Engine Toggle */}
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-                    <span className="text-slate-400 font-mono text-[10px]">MULTILINGUAL VOICE RECOGNITION</span>
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-800">Speech-to-Text Recognition</span>
-                      <button
-                        onClick={() => {
-                          setSpeechEngineActive(!speechEngineActive);
-                          showToast(speechEngineActive ? 'Paused Speech Engine' : 'Activated 20 Indian Speech Languages');
-                        }}
-                        className={`px-3 py-1 rounded-full font-bold text-[10px] cursor-pointer transition ${
-                          speechEngineActive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-200 text-slate-600'
-                        }`}
-                      >
-                        {speechEngineActive ? '● 20 Regional Languages Active' : '○ Speech Engine Paused'}
-                      </button>
-                    </div>
-                  </div>
 
           </div>
         </main>
