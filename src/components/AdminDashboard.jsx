@@ -2779,8 +2779,10 @@ const AdminDashboard = ({
 
                     </div>
 
-                    {/* RIGHT: LIVE SIDE PANEL PREVIEW BOX */}
+                    {/* RIGHT: LIVE SIDE PANEL PREVIEW BOX & OVERLAY CONTROLS */}
                     <div className="lg:col-span-5 space-y-6">
+                      
+                      {/* LIVE PREVIEW BOX */}
                       <div className="bg-slate-900 rounded-3xl border border-slate-800 p-5 text-white space-y-4 shadow-xl relative overflow-hidden">
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
@@ -2797,10 +2799,20 @@ const AdminDashboard = ({
                             <img 
                               src={authBgConfig[activeMediaSection]?.url || 'https://images.unsplash.com/photo-1506880018603-83d5b814b5a6'} 
                               alt="Side panel bg"
-                              className="absolute inset-0 w-full h-full object-cover"
+                              className="absolute inset-0 w-full h-full object-cover transition-all duration-300"
+                              style={{
+                                opacity: authBgConfig[activeMediaSection]?.opacity ?? 1.0,
+                                filter: `blur(${authBgConfig[activeMediaSection]?.blur ?? 0}px)`
+                              }}
                             />
                           )}
-                          <div className="absolute inset-0 bg-[#3A4D39]/70 mix-blend-multiply pointer-events-none" />
+                          <div 
+                            className="absolute inset-0 pointer-events-none transition-all duration-300"
+                            style={{
+                              backgroundColor: authBgConfig[activeMediaSection]?.overlayColor || '#3A4D39',
+                              opacity: authBgConfig[activeMediaSection]?.overlayOpacity ?? 0.8
+                            }}
+                          />
                           <div className="relative z-10 text-white space-y-1">
                             <h4 className="text-lg font-bold leading-tight">
                               {activeMediaSection === 'login' ? 'Every lesson brings you closer to your goals.' : 'Start your journey to reading and writing today.'}
@@ -2813,13 +2825,23 @@ const AdminDashboard = ({
                           type="button"
                           onClick={() => {
                             const defaultCfg = activeMediaSection === 'login' ? {
+                              enabled: true,
                               mediaType: 'image',
                               url: 'https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&q=80&w=1000',
-                              fileName: 'Person Reading Image'
+                              fileName: 'Person Reading Image',
+                              opacity: 1.0,
+                              overlayOpacity: 0.8,
+                              blur: 0,
+                              overlayColor: '#3A4D39'
                             } : {
+                              enabled: true,
                               mediaType: 'image',
                               url: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=1000',
-                              fileName: 'Library Books Image'
+                              fileName: 'Library Books Image',
+                              opacity: 1.0,
+                              overlayOpacity: 0.8,
+                              blur: 0,
+                              overlayColor: '#3A4D39'
                             };
                             if (activeMediaSection === 'login') {
                               handleSaveAuthBgConfig({ login: defaultCfg });
@@ -2834,6 +2856,101 @@ const AdminDashboard = ({
                           <span>Reset {activeMediaSection === 'login' ? 'Sign In' : 'Create Account'} Background</span>
                         </button>
                       </div>
+
+                      {/* OVERLAY & STYLING CONTROLS */}
+                      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-5">
+                        <h4 className="text-sm font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                          <span>🎛️</span> Visual Overlay & Styling Controls
+                        </h4>
+
+                        <div className="space-y-4">
+                          <div>
+                            <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+                              <span>Media Opacity</span>
+                              <span className="text-purple-600 font-mono">{Math.round((authBgConfig[activeMediaSection]?.opacity ?? 1.0) * 100)}%</span>
+                            </div>
+                            <input 
+                              type="range"
+                              min="0.1"
+                              max="1.0"
+                              step="0.05"
+                              value={authBgConfig[activeMediaSection]?.opacity ?? 1.0}
+                              onChange={(e) => {
+                                const val = parseFloat(e.target.value);
+                                const page = activeMediaSection;
+                                handleSaveAuthBgConfig({
+                                  [page]: { ...authBgConfig[page], opacity: val }
+                                });
+                              }}
+                              className="w-full accent-purple-600 cursor-pointer"
+                            />
+                          </div>
+
+                          <div>
+                            <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+                              <span>Darkening Tint Opacity</span>
+                              <span className="text-purple-600 font-mono">{Math.round((authBgConfig[activeMediaSection]?.overlayOpacity ?? 0.8) * 100)}%</span>
+                            </div>
+                            <input 
+                              type="range"
+                              min="0.0"
+                              max="0.95"
+                              step="0.05"
+                              value={authBgConfig[activeMediaSection]?.overlayOpacity ?? 0.8}
+                              onChange={(e) => {
+                                const val = parseFloat(e.target.value);
+                                const page = activeMediaSection;
+                                handleSaveAuthBgConfig({
+                                  [page]: { ...authBgConfig[page], overlayOpacity: val }
+                                });
+                              }}
+                              className="w-full accent-purple-600 cursor-pointer"
+                            />
+                          </div>
+
+                          <div>
+                            <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+                              <span>Media Blur Effect</span>
+                              <span className="text-purple-600 font-mono">{authBgConfig[activeMediaSection]?.blur ?? 0}px</span>
+                            </div>
+                            <input 
+                              type="range"
+                              min="0"
+                              max="20"
+                              step="1"
+                              value={authBgConfig[activeMediaSection]?.blur ?? 0}
+                              onChange={(e) => {
+                                const val = parseInt(e.target.value);
+                                const page = activeMediaSection;
+                                handleSaveAuthBgConfig({
+                                  [page]: { ...authBgConfig[page], blur: val }
+                                });
+                              }}
+                              className="w-full accent-purple-600 cursor-pointer"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">Overlay Color Tint</label>
+                            <div className="flex items-center gap-2">
+                              <input 
+                                type="color"
+                                value={authBgConfig[activeMediaSection]?.overlayColor || '#3A4D39'}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  const page = activeMediaSection;
+                                  handleSaveAuthBgConfig({
+                                    [page]: { ...authBgConfig[page], overlayColor: val }
+                                  });
+                                }}
+                                className="w-9 h-9 rounded-xl border border-slate-200 cursor-pointer p-0.5"
+                              />
+                              <span className="text-xs font-mono text-slate-600 font-bold uppercase">{authBgConfig[activeMediaSection]?.overlayColor || '#3A4D39'}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
                     </div>
 
                   </div>

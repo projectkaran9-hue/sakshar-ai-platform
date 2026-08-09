@@ -3375,10 +3375,20 @@ export default function App() {
                 <img 
                   src={authBgConfig?.login?.url || "https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&q=80&w=1000"} 
                   alt="Person reading" 
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className="absolute inset-0 w-full h-full object-cover transition-all duration-300"
+                  style={{
+                    opacity: authBgConfig?.login?.opacity ?? 1.0,
+                    filter: `blur(${authBgConfig?.login?.blur ?? 0}px)`
+                  }}
                 />
               )}
-              <div className="absolute inset-0 bg-[#3A4D39]/80 mix-blend-multiply vignette-overlay pointer-events-none"></div>
+              <div 
+                className="absolute inset-0 vignette-overlay pointer-events-none transition-all duration-300"
+                style={{
+                  backgroundColor: authBgConfig?.login?.overlayColor || '#3A4D39',
+                  opacity: authBgConfig?.login?.overlayOpacity ?? 0.8
+                }}
+              />
               <div className="absolute bottom-16 left-16 right-16 text-white z-10 animate-auth-caption pointer-events-none">
                 <h2 className="text-4xl font-bold leading-tight mb-4">{t.loginLeftTitle}</h2>
                 <p className="text-lg opacity-90 leading-relaxed">{t.loginLeftSub}</p>
@@ -3499,10 +3509,20 @@ export default function App() {
                 <img 
                   src={authBgConfig?.register?.url || "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=1000"} 
                   alt="Books" 
-                  className="absolute inset-0 w-full h-full object-cover" 
+                  className="absolute inset-0 w-full h-full object-cover transition-all duration-300" 
+                  style={{
+                    opacity: authBgConfig?.register?.opacity ?? 1.0,
+                    filter: `blur(${authBgConfig?.register?.blur ?? 0}px)`
+                  }}
                 />
               )}
-              <div className="absolute inset-0 bg-[#3A4D39]/80 mix-blend-multiply vignette-overlay pointer-events-none"></div>
+              <div 
+                className="absolute inset-0 vignette-overlay pointer-events-none transition-all duration-300"
+                style={{
+                  backgroundColor: authBgConfig?.register?.overlayColor || '#3A4D39',
+                  opacity: authBgConfig?.register?.overlayOpacity ?? 0.8
+                }}
+              />
               <div className="absolute bottom-16 left-16 right-16 text-white z-10 animate-auth-caption pointer-events-none">
                 <h2 className="text-4xl font-bold leading-tight mb-4">{t.registerLeftTitle}</h2>
                 <p className="text-lg opacity-90 leading-relaxed">{t.registerLeftSub}</p>
