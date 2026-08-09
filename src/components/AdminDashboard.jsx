@@ -2020,7 +2020,6 @@ const AdminDashboard = ({
                 </div>
 
                 <div className="space-y-4 text-xs font-semibold text-slate-700">
-                  
                   {/* Database Ping Test */}
                   <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
                     <span className="text-slate-400 font-mono text-[10px]">SUPABASE REALTIME ENGINE</span>
@@ -2035,6 +2034,9 @@ const AdminDashboard = ({
                       </button>
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
 
             {/* ════════════════ VIEW 9: HERO BACKGROUND VIDEO MANAGER ════════════════ */}
             {activeTab === 'video-bg' && (
@@ -2680,10 +2682,6 @@ const AdminDashboard = ({
                       </button>
                     </div>
                   </div>
-
-                </div>
-              </div>
-            )}
 
           </div>
         </main>
