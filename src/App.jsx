@@ -4,6 +4,7 @@ import Premium from './components/Premium';
 import AdminDashboard from './components/AdminDashboard';
 import SplashScreen from './components/SplashScreen';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
+import HeroVideoBackground from './components/HeroVideoBackground';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { signUpUser, signInUser, signInWithGoogle, getCurrentUser } from './services/auth';
 import { supabase } from './services/supabase';
@@ -2893,48 +2894,7 @@ export default function App() {
             <section className="relative min-h-[92vh] flex items-center px-6 pt-16 pb-10 overflow-hidden" style={{ background: bgVideoConfig?.enabled && bgVideoConfig?.url ? '#060e08' : 'linear-gradient(180deg, #FBFDFB 0%, #F1F9F5 45%, #E6F4ED 100%)' }}>
 
               {/* 🎥 Admin Configured Hero Video Background (File / URL / YouTube Embed) */}
-              {bgVideoConfig?.enabled && bgVideoConfig?.url && (
-                <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-                  {bgVideoConfig.sourceType === 'youtube' || (bgVideoConfig.url && bgVideoConfig.url.includes('youtube')) ? (
-                    <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden flex items-center justify-center">
-                      <iframe
-                        src={bgVideoConfig.url}
-                        title="Sakshar AI Landing Background Video"
-                        className="w-[180%] h-[180%] border-0 pointer-events-none"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        style={{
-                          opacity: bgVideoConfig.opacity ?? 0.45,
-                          filter: `blur(${bgVideoConfig.blur ?? 0}px)`,
-                          transform: 'scale(1.35)'
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    <video
-                      key={bgVideoConfig.url}
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      className="w-full h-full object-cover transition-opacity duration-700"
-                      style={{
-                        opacity: bgVideoConfig.opacity ?? 0.45,
-                        filter: `blur(${bgVideoConfig.blur ?? 0}px)`
-                      }}
-                    >
-                      <source src={bgVideoConfig.url} type="video/mp4" />
-                      <source src={bgVideoConfig.url} type="video/webm" />
-                    </video>
-                  )}
-                  <div 
-                    className="absolute inset-0 transition-all duration-300"
-                    style={{
-                      backgroundColor: bgVideoConfig.overlayColor || '#0c1a10',
-                      opacity: bgVideoConfig.overlayOpacity ?? 0.4
-                    }}
-                  />
-                </div>
-              )}
+              <HeroVideoBackground config={bgVideoConfig} />
 
               {/* Soothing Starfield / Sparkles */}
               <div className="absolute inset-0 pointer-events-none">

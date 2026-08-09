@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabase';
 import { updateUserProfileTable, fetchAdminStudentsDB, insertStudentDB, deleteStudentDB, fetchAdminCoursesDB, insertCourseDB } from '../services/db';
+import HeroVideoBackground, { saveVideoToIndexedDB } from './HeroVideoBackground';
 
 /**
  * Sakshar AI Admin Dashboard Component — 100% Fully Workable & Interactive
@@ -131,7 +132,7 @@ const AdminDashboard = ({
     });
   };
 
-  const handleVideoFileUpload = (e) => {
+  const handleVideoFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -141,37 +142,27 @@ const AdminDashboard = ({
     }
 
     setIsUploadingVideo(true);
-    const blobUrl = URL.createObjectURL(file);
-    
-    if (file.size <= 15 * 1024 * 1024) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const dataUrl = event.target.result;
-        handleSaveVideoConfig({
-          sourceType: 'file',
-          url: dataUrl,
-          fileName: file.name,
-          enabled: true
-        });
-        setIsUploadingVideo(false);
-      };
-      reader.onerror = () => {
-        handleSaveVideoConfig({
-          sourceType: 'file',
-          url: blobUrl,
-          fileName: file.name,
-          enabled: true
-        });
-        setIsUploadingVideo(false);
-      };
-      reader.readAsDataURL(file);
-    } else {
+    try {
+      // Store in IndexedDB for 100% reliable cross-session video persistence (no 5MB localStorage limit)
+      await saveVideoToIndexedDB(file);
+      const blobUrl = URL.createObjectURL(file);
+
       handleSaveVideoConfig({
         sourceType: 'file',
         url: blobUrl,
         fileName: file.name,
         enabled: true
       });
+      showToast(`🎬 Video "${file.name}" saved & applied to Landing Page Hero!`);
+    } catch (err) {
+      const blobUrl = URL.createObjectURL(file);
+      handleSaveVideoConfig({
+        sourceType: 'file',
+        url: blobUrl,
+        fileName: file.name,
+        enabled: true
+      });
+    } finally {
       setIsUploadingVideo(false);
     }
   };
@@ -2253,45 +2244,7 @@ const AdminDashboard = ({
                       {/* Mock Landing Hero Container */}
                       <div className="relative h-56 rounded-2xl overflow-hidden border border-white/10 flex flex-col justify-center items-center p-4 text-center">
                         {bgVideoConfig.enabled && bgVideoConfig.url ? (
-                          <>
-                            {bgVideoConfig.sourceType === 'youtube' || (bgVideoConfig.url && bgVideoConfig.url.includes('youtube')) ? (
-                              <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden flex items-center justify-center">
-                                <iframe
-                                  src={bgVideoConfig.url}
-                                  title="Background YouTube Video"
-                                  className="w-[180%] h-[180%] border-0 pointer-events-none"
-                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                  style={{
-                                    opacity: bgVideoConfig.opacity ?? 0.45,
-                                    filter: `blur(${bgVideoConfig.blur ?? 0}px)`,
-                                    transform: 'scale(1.35)'
-                                  }}
-                                />
-                              </div>
-                            ) : (
-                              <video
-                                key={bgVideoConfig.url}
-                                autoPlay
-                                loop
-                                muted
-                                playsInline
-                                className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                                style={{
-                                  opacity: bgVideoConfig.opacity ?? 0.45,
-                                  filter: `blur(${bgVideoConfig.blur ?? 0}px)`
-                                }}
-                              >
-                                <source src={bgVideoConfig.url} type="video/mp4" />
-                              </video>
-                            )}
-                            <div 
-                              className="absolute inset-0 pointer-events-none"
-                              style={{
-                                backgroundColor: bgVideoConfig.overlayColor || '#0c1a10',
-                                opacity: bgVideoConfig.overlayOpacity ?? 0.4
-                              }}
-                            />
-                          </>
+                          <HeroVideoBackground config={bgVideoConfig} />
                         ) : (
                           <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-emerald-950 to-slate-900" />
                         )}
