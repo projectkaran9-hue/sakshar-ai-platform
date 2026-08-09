@@ -86,11 +86,22 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
     return () => { isMounted = false; };
   }, [config?.url, config?.sourceType, config?.mediaType, config?.updatedAt]);
 
-  // Programmatically enforce muted autoplay for HTML5 video element
+  // Programmatically enforce muted autoplay & clear MediaSession OS controls
   useEffect(() => {
+    if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
+      try {
+        navigator.mediaSession.metadata = null;
+        navigator.mediaSession.playbackState = 'none';
+        ['play', 'pause', 'seekbackward', 'seekforward', 'previoustrack', 'nexttrack'].forEach((action) => {
+          try { navigator.mediaSession.setActionHandler(action, null); } catch {}
+        });
+      } catch {}
+    }
+
     if (videoRef.current) {
       videoRef.current.defaultMuted = true;
       videoRef.current.muted = true;
+      videoRef.current.volume = 0;
       const playPromise = videoRef.current.play();
       if (playPromise !== undefined) {
         playPromise.catch((err) => {
@@ -161,14 +172,15 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
         </video>
       )}
 
-      {/* Visual Overlay Tint */}
+      {/* Visual Overlay Tint & Interactive Shield */}
       <div 
-        className="absolute inset-0 transition-all duration-300 pointer-events-none"
+        className="absolute inset-0 transition-all duration-300 pointer-events-none z-10"
         style={{
           backgroundColor: overlayColor,
           opacity: overlayOpacity
         }}
       />
+      <div className="absolute inset-0 z-20 pointer-events-none select-none bg-transparent" />
     </div>
   );
 }

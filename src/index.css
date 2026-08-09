@@ -738,3 +738,13 @@ video::-webkit-media-controls-volume-slider {
 video::-aria-media-controls {
   display: none !important;
 }
+
+/* Prevent native video control overlays & media session popups */
+video::-webkit-media-controls-container,
+video::-webkit-media-controls-panel-container,
+video::-webkit-media-controls-play-button-container {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
