@@ -2091,10 +2091,12 @@ export default function App() {
     } catch {}
     return {
       login: {
+        enabled: true,
         mediaType: 'image',
         url: 'https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&q=80&w=1000'
       },
       register: {
+        enabled: true,
         mediaType: 'image',
         url: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=1000'
       }

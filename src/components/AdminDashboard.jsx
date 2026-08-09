@@ -140,27 +140,49 @@ const AdminDashboard = ({
     setIsUploadingVideo(true);
     try {
       const isVideo = file.type.startsWith('video/');
-      const blobUrl = URL.createObjectURL(file);
+      const dbKey = targetPage === 'login' ? 'auth_login_bg' : 'auth_register_bg';
+
       if (isVideo) {
-        await saveVideoToIndexedDB(file);
-      }
-
-      const mediaType = isVideo ? 'video' : 'image';
-      const pageCfg = {
-        mediaType: mediaType,
-        url: blobUrl,
-        fileName: file.name
-      };
-
-      if (targetPage === 'login') {
-        handleSaveAuthBgConfig({ login: pageCfg });
+        await saveVideoToIndexedDB(file, dbKey);
+        const blobUrl = URL.createObjectURL(file);
+        const pageCfg = {
+          enabled: true,
+          mediaType: 'video',
+          sourceType: 'file',
+          indexedDbKey: dbKey,
+          url: blobUrl,
+          fileName: file.name
+        };
+        if (targetPage === 'login') {
+          handleSaveAuthBgConfig({ login: pageCfg });
+        } else {
+          handleSaveAuthBgConfig({ register: pageCfg });
+        }
+        showToast(`✅ ${targetPage === 'login' ? 'Sign In' : 'Create Account'} side video background updated with "${file.name}"!`);
+        setIsUploadingVideo(false);
       } else {
-        handleSaveAuthBgConfig({ register: pageCfg });
+        // Image File: Convert to Data URL for instant, permanent storage across windows
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const dataUrl = event.target.result;
+          const pageCfg = {
+            enabled: true,
+            mediaType: 'image',
+            url: dataUrl,
+            fileName: file.name
+          };
+          if (targetPage === 'login') {
+            handleSaveAuthBgConfig({ login: pageCfg });
+          } else {
+            handleSaveAuthBgConfig({ register: pageCfg });
+          }
+          showToast(`✅ ${targetPage === 'login' ? 'Sign In' : 'Create Account'} side image updated with "${file.name}"!`);
+          setIsUploadingVideo(false);
+        };
+        reader.readAsDataURL(file);
       }
-      showToast(`✅ ${targetPage === 'login' ? 'Sign In' : 'Create Account'} side background updated with "${file.name}"!`);
     } catch (err) {
       showToast('⚠️ Error processing file.');
-    } finally {
       setIsUploadingVideo(false);
     }
   };
@@ -2694,7 +2716,9 @@ const AdminDashboard = ({
                               const isVid = val.includes('.mp4') || val.includes('.webm') || isYt;
                               
                               const pageCfg = {
+                                enabled: true,
                                 mediaType: isYt ? 'youtube' : isVid ? 'video' : 'image',
+                                sourceType: isYt ? 'youtube' : isVid ? 'url' : 'image',
                                 youtubeId: ytId,
                                 url: isYt ? `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=0` : val,
                                 fileName: isYt ? `YouTube ID: ${ytId}` : 'Custom Media URL'
@@ -2726,6 +2750,7 @@ const AdminDashboard = ({
                               type="button"
                               onClick={() => {
                                 const pageCfg = {
+                                  enabled: true,
                                   mediaType: 'image',
                                   url: preset.url,
                                   fileName: preset.name

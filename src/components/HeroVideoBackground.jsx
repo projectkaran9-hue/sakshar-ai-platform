@@ -5,7 +5,7 @@ const DB_NAME = 'SaksharVideoDB';
 const DB_VERSION = 1;
 const STORE_NAME = 'video_files';
 
-export const saveVideoToIndexedDB = (fileOrBlob) => {
+export const saveVideoToIndexedDB = (fileOrBlob, key = 'hero_video_bg') => {
   return new Promise((resolve, reject) => {
     try {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -19,7 +19,7 @@ export const saveVideoToIndexedDB = (fileOrBlob) => {
         const db = e.target.result;
         const tx = db.transaction(STORE_NAME, 'readwrite');
         const store = tx.objectStore(STORE_NAME);
-        store.put(fileOrBlob, 'hero_video_bg');
+        store.put(fileOrBlob, key);
         tx.oncomplete = () => resolve(true);
         tx.onerror = (err) => reject(err);
       };
@@ -30,7 +30,7 @@ export const saveVideoToIndexedDB = (fileOrBlob) => {
   });
 };
 
-export const getVideoFromIndexedDB = () => {
+export const getVideoFromIndexedDB = (key = 'hero_video_bg') => {
   return new Promise((resolve) => {
     try {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -44,7 +44,7 @@ export const getVideoFromIndexedDB = () => {
         const db = e.target.result;
         const tx = db.transaction(STORE_NAME, 'readonly');
         const store = tx.objectStore(STORE_NAME);
-        const getReq = store.get('hero_video_bg');
+        const getReq = store.get(key);
         getReq.onsuccess = () => {
           if (getReq.result) {
             const blobUrl = URL.createObjectURL(getReq.result);
@@ -69,8 +69,11 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
   // Load stored IndexedDB video blob if file upload type
   useEffect(() => {
     let isMounted = true;
-    if (config?.sourceType === 'file') {
-      getVideoFromIndexedDB().then((idbUrl) => {
+    const isFile = config?.sourceType === 'file' || config?.mediaType === 'video' || config?.mediaType === 'file';
+    const dbKey = config?.indexedDbKey || (config?.title?.includes('Sign In') ? 'auth_login_bg' : config?.title?.includes('Create Account') ? 'auth_register_bg' : 'hero_video_bg');
+
+    if (isFile) {
+      getVideoFromIndexedDB(dbKey).then((idbUrl) => {
         if (isMounted && idbUrl) {
           setVideoSrc(idbUrl);
         } else if (isMounted && config?.url) {
@@ -81,7 +84,7 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
       setVideoSrc(config?.url || '');
     }
     return () => { isMounted = false; };
-  }, [config?.url, config?.sourceType, config?.updatedAt]);
+  }, [config?.url, config?.sourceType, config?.mediaType, config?.updatedAt]);
 
   // Programmatically enforce muted autoplay for HTML5 video element
   useEffect(() => {
@@ -97,7 +100,7 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
     }
   }, [videoSrc]);
 
-  if (!config?.enabled || !videoSrc) {
+  if (config?.enabled === false || !videoSrc) {
     return null;
   }
 
