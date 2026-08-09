@@ -3813,6 +3813,7 @@ export default function App() {
             targetLang={targetLang}
             age={age}
             selectedLevel={educationalLevel}
+            assessmentBgConfig={authBgConfig?.assessment}
             onComplete={(assessedLevel) => {
               setEducationalLevel(assessedLevel);
               setView('dashboard');

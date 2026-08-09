@@ -1,3 +1,4 @@
+import HeroVideoBackground from './HeroVideoBackground';
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '../services/supabase';
@@ -1221,14 +1222,63 @@ export default function InitialAssessment({ userId, fullName, lang, targetLang, 
   };
   const activeTheme = SECTION_THEMES[currentQuestion.type] || SECTION_THEMES.reading;
 
+  // Listen for live assessment background updates
+  const [activeBgCfg, setActiveBgCfg] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sakshar_auth_bg_config');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.assessment) return parsed.assessment;
+      }
+    } catch {}
+    return assessmentBgConfig || {};
+  });
+
+  useEffect(() => {
+    const handleBgUpdate = (e) => {
+      if (e.detail?.assessment) {
+        setActiveBgCfg(e.detail.assessment);
+      }
+    };
+    window.addEventListener('sakshar_auth_bg_updated', handleBgUpdate);
+    return () => window.removeEventListener('sakshar_auth_bg_updated', handleBgUpdate);
+  }, []);
+
+  const bgConfigToUse = activeBgCfg?.enabled !== false ? (activeBgCfg || assessmentBgConfig) : null;
+
   return (
     <div className="min-h-screen bg-[#05060c] flex items-center justify-center p-6 pt-24 relative overflow-hidden">
+      {/* Custom Admin Assessment Media Background */}
+      {bgConfigToUse?.enabled !== false && (
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          {bgConfigToUse?.mediaType === 'video' || bgConfigToUse?.mediaType === 'youtube' || bgConfigToUse?.url?.includes('.mp4') ? (
+            <HeroVideoBackground config={bgConfigToUse} />
+          ) : (
+            <img 
+              src={bgConfigToUse?.url || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=1000"} 
+              alt="Assessment background" 
+              className="absolute inset-0 w-full h-full object-cover transition-all duration-300"
+              style={{
+                opacity: bgConfigToUse?.opacity ?? 0.35,
+                filter: `blur(${bgConfigToUse?.blur ?? 2}px)`
+              }}
+            />
+          )}
+        </div>
+      )}
+
       {/* Animated network-sphere backdrop */}
       <NexusOrbBackdrop />
       {/* Vignette so the card content stays legible over the sphere */}
       <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse at 50% 46%, rgba(5,6,12,0.25) 0%, rgba(5,6,12,0.55) 55%, #05060c 92%)' }}
+        className="absolute inset-0 pointer-events-none transition-all duration-300"
+        style={{ 
+          backgroundColor: bgConfigToUse?.overlayColor || '#05060c',
+          opacity: bgConfigToUse?.overlayOpacity ?? 0.7,
+          background: bgConfigToUse?.overlayColor 
+            ? undefined 
+            : 'radial-gradient(ellipse at 50% 46%, rgba(5,6,12,0.25) 0%, rgba(5,6,12,0.55) 55%, #05060c 92%)' 
+        }}
       />
 
       {/* Slow-drifting color blobs — reserved for the welcome moment only,

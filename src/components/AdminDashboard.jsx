@@ -113,6 +113,16 @@ const AdminDashboard = ({
         mediaType: 'image',
         url: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=1000',
         fileName: 'Library Books Image'
+      },
+      assessment: {
+        enabled: true,
+        mediaType: 'image',
+        url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=1000',
+        fileName: 'Digital Learning Assessment',
+        opacity: 0.35,
+        overlayOpacity: 0.7,
+        blur: 2,
+        overlayColor: '#05060c'
       }
     };
   });
@@ -140,7 +150,7 @@ const AdminDashboard = ({
     setIsUploadingVideo(true);
     try {
       const isVideo = file.type.startsWith('video/');
-      const dbKey = targetPage === 'login' ? 'auth_login_bg' : 'auth_register_bg';
+      const dbKey = targetPage === 'login' ? 'auth_login_bg' : targetPage === 'register' ? 'auth_register_bg' : 'auth_assessment_bg';
 
       if (isVideo) {
         await saveVideoToIndexedDB(file, dbKey);
@@ -2289,6 +2299,17 @@ const AdminDashboard = ({
                   >
                     <span>📝</span> Create Account Side Background
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveMediaSection('assessment')}
+                    className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-2 ${
+                      activeMediaSection === 'assessment'
+                        ? 'bg-purple-600 text-white shadow-md shadow-purple-500/25'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                    }`}
+                  >
+                    <span>📋</span> Initial Assessment Background
+                  </button>
                 </div>
 
                 {activeMediaSection === 'hero' && (
@@ -2316,13 +2337,17 @@ const AdminDashboard = ({
                   </div>
                 )}
 
-                {(activeMediaSection === 'login' || activeMediaSection === 'register') && (
+                {(activeMediaSection === 'login' || activeMediaSection === 'register' || activeMediaSection === 'assessment') && (
                   <div>
                     <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                      <span>{activeMediaSection === 'login' ? '🔑' : '📝'}</span> 
-                      {activeMediaSection === 'login' ? 'Sign In (Login) Page Side Background' : 'Create Account (Register) Page Side Background'}
+                      <span>{activeMediaSection === 'login' ? '🔑' : activeMediaSection === 'register' ? '📝' : '📋'}</span> 
+                      {activeMediaSection === 'login' ? 'Sign In (Login) Page Side Background' : activeMediaSection === 'register' ? 'Create Account (Register) Page Side Background' : 'Initial Placement Assessment Background'}
                     </h3>
-                    <p className="text-xs text-slate-500 font-medium">Upload a custom image/video file, paste YouTube link or select curated presets for the split-screen authentication panel</p>
+                    <p className="text-xs text-slate-500 font-medium">
+                      {activeMediaSection === 'assessment' 
+                        ? 'Upload a custom video/image file or paste a video URL to render behind the initial placement assessment screen'
+                        : 'Upload a custom image/video file, paste YouTube link or select curated presets for the split-screen authentication panel'}
+                    </p>
                   </div>
                 )}
 
@@ -2639,7 +2664,7 @@ const AdminDashboard = ({
                 )}
 
                 {/* 🔑 / 📝 AUTH PAGE SIDE BACKGROUND MANAGER (SIGN IN & REGISTER) */}
-                {(activeMediaSection === 'login' || activeMediaSection === 'register') && (
+                {(activeMediaSection === 'login' || activeMediaSection === 'register' || activeMediaSection === 'assessment') && (
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     
                     {/* LEFT: FILE UPLOADER & URL INPUT */}
