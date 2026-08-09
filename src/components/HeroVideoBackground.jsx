@@ -133,12 +133,15 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
           <iframe
             src={youtubeEmbedUrl}
             title="Sakshar AI Hero Background Video"
-            className="w-[220%] h-[220%] max-w-none border-0 pointer-events-none"
+            className="w-[220%] h-[220%] max-w-none border-0 pointer-events-none select-none"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            tabIndex={-1}
+            aria-hidden="true"
             style={{
               opacity: opacity,
               filter: `blur(${blur}px)`,
-              transform: 'scale(1.4)'
+              transform: 'scale(1.4)',
+              pointerEvents: 'none'
             }}
           />
         </div>
@@ -180,7 +183,14 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
           opacity: overlayOpacity
         }}
       />
-      <div className="absolute inset-0 z-20 pointer-events-none select-none bg-transparent" />
+      <div 
+        className="absolute inset-0 z-20 pointer-events-auto select-none touch-none bg-transparent cursor-default" 
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+        onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); }}
+        onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
+        onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); }}
+        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+      />
     </div>
   );
 }
