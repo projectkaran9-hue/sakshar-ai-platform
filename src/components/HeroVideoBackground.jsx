@@ -112,7 +112,7 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
 
   let youtubeEmbedUrl = videoSrc;
   if (isYouTube && config.youtubeId) {
-    youtubeEmbedUrl = `https://www.youtube-nocookie.com/embed/${config.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${config.youtubeId}&controls=0&showinfo=0&rel=0&iv_load_policy=3&disablekb=1&modestbranding=1&enablejsapi=1&playsinline=1`;
+    youtubeEmbedUrl = `https://www.youtube-nocookie.com/embed/${config.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${config.youtubeId}&controls=0&showinfo=0&rel=0&iv_load_policy=3&disablekb=1&modestbranding=1&enablejsapi=1&playsinline=1&fs=0&autohide=1`;
   }
 
   return (
@@ -139,10 +139,20 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
           loop
           muted
           playsInline
-          className="w-full h-full object-cover transition-opacity duration-700 pointer-events-none"
+          webkit-playsinline="true"
+          x5-playsinline="true"
+          x5-video-player-type="h5"
+          x5-video-player-fullscreen="true"
+          disablePictureInPicture
+          disableRemotePlayback
+          controls={false}
+          tabIndex={-1}
+          aria-hidden="true"
+          className="w-full h-full object-cover transition-opacity duration-700 pointer-events-none select-none"
           style={{
             opacity: opacity,
-            filter: `blur(${blur}px)`
+            filter: `blur(${blur}px)`,
+            pointerEvents: 'none'
           }}
         >
           <source src={videoSrc} type="video/mp4" />
