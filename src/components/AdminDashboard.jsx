@@ -2135,9 +2135,10 @@ const AdminDashboard = ({
                         <button
                           type="button"
                           onClick={handleApplyYouTubeUrl}
-                          className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-black rounded-xl transition cursor-pointer shadow-md shadow-red-500/20 flex items-center gap-1.5"
+                          className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-black rounded-xl transition cursor-pointer shadow-md shadow-red-500/30 flex items-center justify-center gap-2 active:scale-95 shrink-0"
                         >
-                          <span>▶</span> Apply YouTube
+                          <span className="text-sm">▶</span>
+                          <span>Apply YouTube</span>
                         </button>
                       </div>
 
@@ -2187,9 +2188,10 @@ const AdminDashboard = ({
                               enabled: true
                             });
                           }}
-                          className="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-md shadow-purple-500/20"
+                          className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-black rounded-xl transition cursor-pointer shadow-md shadow-purple-500/30 flex items-center justify-center gap-2 active:scale-95 shrink-0"
                         >
-                          Apply URL
+                          <span>🔗</span>
+                          <span>Apply URL</span>
                         </button>
                       </div>
                     </div>
@@ -2211,16 +2213,18 @@ const AdminDashboard = ({
                               fileName: preset.name,
                               enabled: true
                             })}
-                            className={`p-3 rounded-2xl border text-left transition cursor-pointer relative overflow-hidden ${
+                            className={`p-3.5 rounded-2xl border text-left transition cursor-pointer relative overflow-hidden ${
                               bgVideoConfig.url === preset.url
-                                ? 'bg-purple-50 border-purple-500 text-purple-900 ring-2 ring-purple-500/20'
-                                : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-800'
+                                ? 'bg-purple-100/80 border-purple-600 text-purple-950 ring-2 ring-purple-500/30 shadow-sm'
+                                : 'bg-slate-50 border-slate-200 hover:bg-slate-100/90 text-slate-900'
                             }`}
                           >
-                            <span className="block text-xs font-bold">{preset.name}</span>
-                            <span className="block text-[9px] text-slate-500 mt-1 font-medium">HD Loop Stream</span>
+                            <span className="block text-xs font-extrabold text-slate-900">{preset.name}</span>
+                            <span className="block text-[9px] text-slate-600 mt-1 font-bold">HD Loop Stream</span>
                             {bgVideoConfig.url === preset.url && (
-                              <span className="absolute top-2 right-2 text-xs">✓</span>
+                              <span className="absolute top-2 right-2 bg-purple-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full shadow-sm">
+                                ACTIVE
+                              </span>
                             )}
                           </button>
                         ))}
@@ -2330,13 +2334,38 @@ const AdminDashboard = ({
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleSaveVideoConfig({ enabled: true })}
-                        className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs font-black rounded-2xl shadow-lg shadow-purple-500/25 transition cursor-pointer"
-                      >
-                        💾 Save & Apply Background Video Live
-                      </button>
+                      <div className="space-y-2 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => handleSaveVideoConfig({ enabled: true })}
+                          className="w-full py-3.5 bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-800 hover:from-purple-800 hover:to-indigo-800 text-white text-xs font-black rounded-2xl shadow-xl shadow-purple-500/30 active:scale-[0.98] transition cursor-pointer flex items-center justify-center gap-2"
+                        >
+                          <span>💾</span>
+                          <span>Save & Apply Background Video Live</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const defaultCfg = {
+                              enabled: true,
+                              sourceType: 'preset',
+                              url: 'https://assets.mixkit.co/videos/preview/mixkit-stars-in-the-night-sky-4000-large.mp4',
+                              fileName: 'Cosmic Particle Flow',
+                              opacity: 0.45,
+                              blur: 0,
+                              overlayColor: '#0c1a10',
+                              overlayOpacity: 0.4
+                            };
+                            handleSaveVideoConfig(defaultCfg);
+                            showToast('🔄 Reset background video to default preset!');
+                          }}
+                          className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-200 transition cursor-pointer flex items-center justify-center gap-1.5"
+                        >
+                          <span>🔄</span>
+                          <span>Reset Default Background</span>
+                        </button>
+                      </div>
                     </div>
 
                   </div>
