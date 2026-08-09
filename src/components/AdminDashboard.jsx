@@ -90,7 +90,15 @@ const AdminDashboard = ({
     };
   });
 
+  const extractYouTubeId = (url) => {
+    if (!url || typeof url !== 'string') return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
   const [customVideoUrlInput, setCustomVideoUrlInput] = useState('');
+  const [youtubeUrlInput, setYoutubeUrlInput] = useState('');
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
 
   const handleSaveVideoConfig = (newConfig) => {
@@ -103,6 +111,24 @@ const AdminDashboard = ({
     }
     window.dispatchEvent(new CustomEvent('sakshar_bg_video_updated', { detail: updated }));
     showToast('🎥 Background video updated & applied live to Landing Page!');
+  };
+
+  const handleApplyYouTubeUrl = () => {
+    const videoId = extractYouTubeId(youtubeUrlInput);
+    if (!videoId) {
+      showToast('⚠️ Invalid YouTube link. Please paste a valid YouTube video URL or Short link.');
+      return;
+    }
+
+    const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&iv_load_policy=3&disablekb=1&modestbranding=1&enablejsapi=1`;
+
+    handleSaveVideoConfig({
+      sourceType: 'youtube',
+      youtubeId: videoId,
+      url: embedUrl,
+      fileName: `YouTube Video (ID: ${videoId})`,
+      enabled: true
+    });
   };
 
   const handleVideoFileUpload = (e) => {
@@ -2092,10 +2118,60 @@ const AdminDashboard = ({
                       )}
                     </div>
 
+                    {/* YOUTUBE LINK INPUT CARD */}
+                    <div className="bg-gradient-to-br from-red-50/90 to-white rounded-3xl border border-red-200/80 p-6 shadow-sm space-y-4">
+                      <div className="flex items-center justify-between pb-3 border-b border-red-100">
+                        <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                          <span className="text-red-600 text-base">▶</span> Paste Any YouTube Link
+                        </h4>
+                        <span className="text-[10px] font-bold text-red-700 bg-red-100 px-2.5 py-1 rounded-full border border-red-200">
+                          YouTube Auto-Loop Embed
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                        Paste a YouTube video URL or Shorts link (e.g. <code className="bg-red-100/60 px-1 py-0.5 rounded text-red-800 font-mono text-[10px]">https://www.youtube.com/watch?v=...</code>) to render as background
+                      </p>
+
+                      <div className="flex gap-2">
+                        <input 
+                          type="url" 
+                          value={youtubeUrlInput}
+                          onChange={(e) => setYoutubeUrlInput(e.target.value)}
+                          placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                          className="flex-1 px-3.5 py-2.5 bg-white border border-red-200 rounded-xl text-xs font-medium text-slate-800 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleApplyYouTubeUrl}
+                          className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-black rounded-xl transition cursor-pointer shadow-md shadow-red-500/20 flex items-center gap-1.5"
+                        >
+                          <span>▶</span> Apply YouTube
+                        </button>
+                      </div>
+
+                      {bgVideoConfig.sourceType === 'youtube' && bgVideoConfig.youtubeId && (
+                        <div className="flex items-center justify-between bg-red-100/80 border border-red-300 rounded-xl p-3 text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="text-red-700 font-black">▶ Active YouTube Embed:</span>
+                            <span className="font-mono text-red-900 font-bold">ID: {bgVideoConfig.youtubeId}</span>
+                          </div>
+                          <a 
+                            href={`https://www.youtube.com/watch?v=${bgVideoConfig.youtubeId}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-[10px] font-bold text-red-700 hover:underline"
+                          >
+                            View on YouTube ↗
+                          </a>
+                        </div>
+                      )}
+                    </div>
+
                     {/* DIRECT URL INPUT CARD */}
                     <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-4">
                       <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                        <span>🔗</span> Or Paste Video URL (MP4 Stream Link)
+                        <span>🔗</span> Or Paste Direct Video File URL (MP4 Stream Link)
                       </h4>
 
                       <div className="flex gap-2">
@@ -2178,20 +2254,36 @@ const AdminDashboard = ({
                       <div className="relative h-56 rounded-2xl overflow-hidden border border-white/10 flex flex-col justify-center items-center p-4 text-center">
                         {bgVideoConfig.enabled && bgVideoConfig.url ? (
                           <>
-                            <video
-                              key={bgVideoConfig.url}
-                              autoPlay
-                              loop
-                              muted
-                              playsInline
-                              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                              style={{
-                                opacity: bgVideoConfig.opacity ?? 0.45,
-                                filter: `blur(${bgVideoConfig.blur ?? 0}px)`
-                              }}
-                            >
-                              <source src={bgVideoConfig.url} type="video/mp4" />
-                            </video>
+                            {bgVideoConfig.sourceType === 'youtube' || (bgVideoConfig.url && bgVideoConfig.url.includes('youtube')) ? (
+                              <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden flex items-center justify-center">
+                                <iframe
+                                  src={bgVideoConfig.url}
+                                  title="Background YouTube Video"
+                                  className="w-[180%] h-[180%] border-0 pointer-events-none"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  style={{
+                                    opacity: bgVideoConfig.opacity ?? 0.45,
+                                    filter: `blur(${bgVideoConfig.blur ?? 0}px)`,
+                                    transform: 'scale(1.35)'
+                                  }}
+                                />
+                              </div>
+                            ) : (
+                              <video
+                                key={bgVideoConfig.url}
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                                className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                                style={{
+                                  opacity: bgVideoConfig.opacity ?? 0.45,
+                                  filter: `blur(${bgVideoConfig.blur ?? 0}px)`
+                                }}
+                              >
+                                <source src={bgVideoConfig.url} type="video/mp4" />
+                              </video>
+                            )}
                             <div 
                               className="absolute inset-0 pointer-events-none"
                               style={{
