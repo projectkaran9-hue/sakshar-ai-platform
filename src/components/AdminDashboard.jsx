@@ -66,12 +66,19 @@ const AdminDashboard = ({
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // ════════════════ ADMIN HERO BACKGROUND VIDEO STATE ════════════════
+  // ════════════════ ADMIN HERO & AUTH BACKGROUND MEDIA STATE ════════════════
   const defaultVideoPresets = [
     { id: 'particles', name: '🌌 Cosmic Particle Flow', url: 'https://assets.mixkit.co/videos/preview/mixkit-stars-in-the-night-sky-4000-large.mp4' },
     { id: 'fluid', name: '🌊 Emerald Fluid Wave', url: 'https://assets.mixkit.co/videos/preview/mixkit-abstract-green-fluid-lines-41445-large.mp4' },
     { id: 'aurora', name: '🍃 Northern Lights Aurora', url: 'https://assets.mixkit.co/videos/preview/mixkit-curved-lines-of-light-in-a-dark-space-41551-large.mp4' },
     { id: 'constellation', name: '✨ Starry Constellation', url: 'https://assets.mixkit.co/videos/preview/mixkit-animation-of-futuristic-lines-99-large.mp4' }
+  ];
+
+  const defaultAuthImagePresets = [
+    { id: 'reading', name: '📚 Person Reading (Default Sign In)', url: 'https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&q=80&w=1000' },
+    { id: 'books', name: '📖 Library Books (Default Register)', url: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=1000' },
+    { id: 'study', name: '✍️ Focused Study Space', url: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&q=80&w=1000' },
+    { id: 'students', name: '🎓 Indian Learning Classroom', url: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&q=80&w=1000' }
   ];
 
   const [bgVideoConfig, setBgVideoConfig] = useState(() => {
@@ -90,6 +97,74 @@ const AdminDashboard = ({
       overlayOpacity: 0.4
     };
   });
+
+  const [authBgConfig, setAuthBgConfig] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sakshar_auth_bg_config');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {
+      login: {
+        mediaType: 'image',
+        url: 'https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&q=80&w=1000',
+        fileName: 'Person Reading Image'
+      },
+      register: {
+        mediaType: 'image',
+        url: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=1000',
+        fileName: 'Library Books Image'
+      }
+    };
+  });
+
+  const [activeMediaSection, setActiveMediaSection] = useState('hero'); // 'hero', 'login', 'register'
+  const [loginUrlInput, setLoginUrlInput] = useState('');
+  const [registerUrlInput, setRegisterUrlInput] = useState('');
+
+  const handleSaveAuthBgConfig = (newAuthCfg) => {
+    const updated = { ...authBgConfig, ...newAuthCfg, updatedAt: new Date().toISOString() };
+    setAuthBgConfig(updated);
+    try {
+      localStorage.setItem('sakshar_auth_bg_config', JSON.stringify(updated));
+    } catch (e) {
+      console.warn('Storage notice:', e);
+    }
+    window.dispatchEvent(new CustomEvent('sakshar_auth_bg_updated', { detail: updated }));
+    showToast('🖼️ Authentication side background updated live!');
+  };
+
+  const handleAuthFileUpload = async (e, targetPage) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingVideo(true);
+    try {
+      const isVideo = file.type.startsWith('video/');
+      const blobUrl = URL.createObjectURL(file);
+      if (isVideo) {
+        await saveVideoToIndexedDB(file);
+      }
+
+      const mediaType = isVideo ? 'video' : 'image';
+      const pageCfg = {
+        mediaType: mediaType,
+        url: blobUrl,
+        fileName: file.name
+      };
+
+      if (targetPage === 'login') {
+        handleSaveAuthBgConfig({ login: pageCfg });
+      } else {
+        handleSaveAuthBgConfig({ register: pageCfg });
+      }
+      showToast(`✅ ${targetPage === 'login' ? 'Sign In' : 'Create Account'} side background updated with "${file.name}"!`);
+    } catch (err) {
+      showToast('⚠️ Error processing file.');
+    } finally {
+      setIsUploadingVideo(false);
+    }
+  };
+
 
   const extractYouTubeId = (url) => {
     if (!url || typeof url !== 'string') return null;
@@ -1082,7 +1157,7 @@ const AdminDashboard = ({
                       onClick={() => setActiveTab('video-bg')}
                       className={`w-full text-left py-1.5 px-2 rounded-lg text-xs transition cursor-pointer ${activeTab === 'video-bg' ? 'text-purple-300 font-bold bg-purple-500/20 border-l-2 border-purple-400 pl-2.5' : 'text-slate-400 hover:text-white'}`}
                     >
-                      🎥 Hero Video Background
+                      🎨 Hero & Auth Backgrounds
                     </button>
                   </div>
                 )}
@@ -1151,7 +1226,7 @@ const AdminDashboard = ({
                  activeTab === 'courses' ? 'Applications / Course Manager' :
                  activeTab === 'calendar' ? 'Applications / Calendar' :
                  activeTab === 'push-notifications' ? 'Applications / Push Broadcaster' :
-                  activeTab === 'video-bg' ? 'Applications / Hero Video Background' :
+                  activeTab === 'video-bg' ? 'Applications / Hero & Auth Backgrounds' :
                  activeTab === 'settings' ? 'Authentication & System Config' : 'Analytics Overview'}
               </h2>
               <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 flex items-center gap-1">
@@ -2157,29 +2232,79 @@ const AdminDashboard = ({
             {/* ════════════════ VIEW 9: HERO BACKGROUND VIDEO MANAGER ════════════════ */}
             {activeTab === 'video-bg' && (
               <div className="space-y-6 animate-fade-in max-w-5xl">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                      <span>🎥</span> Landing Page Hero Video Background Manager
-                    </h3>
-                    <p className="text-xs text-slate-500 font-medium">Upload a custom video file or paste a video URL to render directly behind the Landing Page Hero</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={bgVideoConfig.enabled} 
-                        onChange={(e) => handleSaveVideoConfig({ enabled: e.target.checked })}
-                        className="sr-only peer" 
-                      />
-                      <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-                      <span className="ml-2.5 text-xs font-bold text-slate-800">
-                        {bgVideoConfig.enabled ? '🟢 Video Active' : '⚪ Video Disabled'}
-                      </span>
-                    </label>
-                  </div>
+                {/* SUB NAVIGATION TABS FOR HERO & AUTH BACKGROUNDS */}
+                <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 w-fit">
+                  <button
+                    type="button"
+                    onClick={() => setActiveMediaSection('hero')}
+                    className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-2 ${
+                      activeMediaSection === 'hero'
+                        ? 'bg-purple-600 text-white shadow-md shadow-purple-500/25'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                    }`}
+                  >
+                    <span>🎥</span> Landing Page Hero Background
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveMediaSection('login')}
+                    className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-2 ${
+                      activeMediaSection === 'login'
+                        ? 'bg-purple-600 text-white shadow-md shadow-purple-500/25'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                    }`}
+                  >
+                    <span>🔑</span> Sign In Page Side Background
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveMediaSection('register')}
+                    className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-2 ${
+                      activeMediaSection === 'register'
+                        ? 'bg-purple-600 text-white shadow-md shadow-purple-500/25'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                    }`}
+                  >
+                    <span>📝</span> Create Account Side Background
+                  </button>
                 </div>
 
+                {activeMediaSection === 'hero' && (
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                        <span>🎥</span> Landing Page Hero Video Background Manager
+                      </h3>
+                      <p className="text-xs text-slate-500 font-medium">Upload a custom video file, paste YouTube link or MP4 URL to render directly behind the Landing Page Hero</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={bgVideoConfig.enabled} 
+                          onChange={(e) => handleSaveVideoConfig({ enabled: e.target.checked })}
+                          className="sr-only peer" 
+                        />
+                        <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                        <span className="ml-2.5 text-xs font-bold text-slate-800">
+                          {bgVideoConfig.enabled ? '🟢 Video Active' : '⚪ Video Disabled'}
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {(activeMediaSection === 'login' || activeMediaSection === 'register') && (
+                  <div>
+                    <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                      <span>{activeMediaSection === 'login' ? '🔑' : '📝'}</span> 
+                      {activeMediaSection === 'login' ? 'Sign In (Login) Page Side Background' : 'Create Account (Register) Page Side Background'}
+                    </h3>
+                    <p className="text-xs text-slate-500 font-medium">Upload a custom image/video file, paste YouTube link or select curated presets for the split-screen authentication panel</p>
+                  </div>
+                )}
+
+                {activeMediaSection === 'hero' && (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                   
                   {/* LEFT: VIDEO UPLOADER & PRESETS */}
@@ -2489,6 +2614,205 @@ const AdminDashboard = ({
                   </div>
 
                 </div>
+                )}
+
+                {/* 🔑 / 📝 AUTH PAGE SIDE BACKGROUND MANAGER (SIGN IN & REGISTER) */}
+                {(activeMediaSection === 'login' || activeMediaSection === 'register') && (
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    
+                    {/* LEFT: FILE UPLOADER & URL INPUT */}
+                    <div className="lg:col-span-7 space-y-6">
+                      
+                      {/* FILE UPLOAD CARD */}
+                      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-4">
+                        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                          <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            <span>📤</span> Upload Image or Video File
+                          </h4>
+                          <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-full border border-purple-200">
+                            JPG / PNG / WEBP / MP4
+                          </span>
+                        </div>
+
+                        <div className="relative border-2 border-dashed border-indigo-200 hover:border-indigo-400 bg-indigo-50/40 rounded-2xl p-6 text-center transition-all cursor-pointer group">
+                          <input 
+                            type="file" 
+                            accept="image/*,video/mp4,video/webm"
+                            onChange={(e) => handleAuthFileUpload(e, activeMediaSection)}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                          />
+                          <div className="space-y-2 pointer-events-none">
+                            <div className="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center text-2xl mx-auto group-hover:scale-110 transition-transform">
+                              🖼️
+                            </div>
+                            <p className="text-xs font-bold text-slate-800">
+                              Click or Drag & Drop Image / Video File Here
+                            </p>
+                            <p className="text-[10px] text-slate-500 font-medium">
+                              Upload custom background for {activeMediaSection === 'login' ? 'Sign In' : 'Create Account'} side panel
+                            </p>
+                          </div>
+                        </div>
+
+                        {authBgConfig[activeMediaSection]?.fileName && (
+                          <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs">
+                            <div className="flex items-center gap-2">
+                              <span>✅</span>
+                              <span className="font-bold text-emerald-900 truncate max-w-xs">{authBgConfig[activeMediaSection].fileName}</span>
+                            </div>
+                            <span className="text-[9px] font-black uppercase text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                              Active {authBgConfig[activeMediaSection].mediaType === 'video' ? 'Video' : 'Image'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* URL INPUT CARD */}
+                      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-4">
+                        <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                          <span>🔗</span> Or Paste Image / YouTube / MP4 URL
+                        </h4>
+
+                        <div className="flex gap-2">
+                          <input 
+                            type="url" 
+                            value={activeMediaSection === 'login' ? loginUrlInput : registerUrlInput}
+                            onChange={(e) => activeMediaSection === 'login' ? setLoginUrlInput(e.target.value) : setRegisterUrlInput(e.target.value)}
+                            placeholder="https://images.unsplash.com/photo-... or YouTube URL"
+                            className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const val = (activeMediaSection === 'login' ? loginUrlInput : registerUrlInput).trim();
+                              if (!val) {
+                                showToast('⚠️ Please enter a URL.');
+                                return;
+                              }
+                              const ytId = extractYouTubeId(val);
+                              const isYt = !!ytId;
+                              const isVid = val.includes('.mp4') || val.includes('.webm') || isYt;
+                              
+                              const pageCfg = {
+                                mediaType: isYt ? 'youtube' : isVid ? 'video' : 'image',
+                                youtubeId: ytId,
+                                url: isYt ? `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=0` : val,
+                                fileName: isYt ? `YouTube ID: ${ytId}` : 'Custom Media URL'
+                              };
+
+                              if (activeMediaSection === 'login') {
+                                handleSaveAuthBgConfig({ login: pageCfg });
+                              } else {
+                                handleSaveAuthBgConfig({ register: pageCfg });
+                              }
+                            }}
+                            className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-black rounded-xl transition cursor-pointer shadow-md shadow-purple-500/20 shrink-0"
+                          >
+                            Apply URL
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* PRESET MEDIA CARDS */}
+                      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-4">
+                        <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                          <span>✨</span> Or Select From Curated Auth Presets
+                        </h4>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          {defaultAuthImagePresets.map((preset) => (
+                            <button
+                              key={preset.id}
+                              type="button"
+                              onClick={() => {
+                                const pageCfg = {
+                                  mediaType: 'image',
+                                  url: preset.url,
+                                  fileName: preset.name
+                                };
+                                if (activeMediaSection === 'login') {
+                                  handleSaveAuthBgConfig({ login: pageCfg });
+                                } else {
+                                  handleSaveAuthBgConfig({ register: pageCfg });
+                                }
+                              }}
+                              className={`p-3 rounded-2xl border text-left transition cursor-pointer relative overflow-hidden ${
+                                authBgConfig[activeMediaSection]?.url === preset.url
+                                  ? 'bg-purple-100/80 border-purple-600 text-purple-950 ring-2 ring-purple-500/30'
+                                  : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-900'
+                              }`}
+                            >
+                              <span className="block text-xs font-extrabold text-slate-900">{preset.name}</span>
+                              <span className="block text-[9px] text-slate-500 mt-1 font-bold">Unsplash HD Photo</span>
+                              {authBgConfig[activeMediaSection]?.url === preset.url && (
+                                <span className="absolute top-2 right-2 bg-purple-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">ACTIVE</span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                    </div>
+
+                    {/* RIGHT: LIVE SIDE PANEL PREVIEW BOX */}
+                    <div className="lg:col-span-5 space-y-6">
+                      <div className="bg-slate-900 rounded-3xl border border-slate-800 p-5 text-white space-y-4 shadow-xl relative overflow-hidden">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                            {activeMediaSection === 'login' ? 'Sign In Side Panel Preview' : 'Create Account Side Panel Preview'}
+                          </span>
+                          <span className="text-xs">👁️</span>
+                        </div>
+
+                        {/* Mock Auth Side Panel */}
+                        <div className="relative h-64 rounded-2xl overflow-hidden border border-white/10 flex flex-col justify-end p-6">
+                          {authBgConfig[activeMediaSection]?.mediaType === 'video' || authBgConfig[activeMediaSection]?.mediaType === 'youtube' ? (
+                            <HeroVideoBackground config={authBgConfig[activeMediaSection]} />
+                          ) : (
+                            <img 
+                              src={authBgConfig[activeMediaSection]?.url || 'https://images.unsplash.com/photo-1506880018603-83d5b814b5a6'} 
+                              alt="Side panel bg"
+                              className="absolute inset-0 w-full h-full object-cover"
+                            />
+                          )}
+                          <div className="absolute inset-0 bg-[#3A4D39]/70 mix-blend-multiply pointer-events-none" />
+                          <div className="relative z-10 text-white space-y-1">
+                            <h4 className="text-lg font-bold leading-tight">
+                              {activeMediaSection === 'login' ? 'Every lesson brings you closer to your goals.' : 'Start your journey to reading and writing today.'}
+                            </h4>
+                            <p className="text-[10px] text-white/80">Sakshar AI Personal Tutors</p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const defaultCfg = activeMediaSection === 'login' ? {
+                              mediaType: 'image',
+                              url: 'https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&q=80&w=1000',
+                              fileName: 'Person Reading Image'
+                            } : {
+                              mediaType: 'image',
+                              url: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=1000',
+                              fileName: 'Library Books Image'
+                            };
+                            if (activeMediaSection === 'login') {
+                              handleSaveAuthBgConfig({ login: defaultCfg });
+                            } else {
+                              handleSaveAuthBgConfig({ register: defaultCfg });
+                            }
+                            showToast(`🔄 Reset ${activeMediaSection === 'login' ? 'Sign In' : 'Create Account'} side background to default!`);
+                          }}
+                          className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl border border-slate-700 transition cursor-pointer flex items-center justify-center gap-1.5"
+                        >
+                          <span>🔄</span>
+                          <span>Reset {activeMediaSection === 'login' ? 'Sign In' : 'Create Account'} Background</span>
+                        </button>
+                      </div>
+                    </div>
+
+                  </div>
+                )}
               </div>
             )}
 

@@ -2083,6 +2083,40 @@ export default function App() {
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [otpMessage, setOtpMessage] = useState('');
 
+  // Hero & Auth Page Background Media State & Listener
+  const [authBgConfig, setAuthBgConfig] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sakshar_auth_bg_config');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {
+      login: {
+        mediaType: 'image',
+        url: 'https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&q=80&w=1000'
+      },
+      register: {
+        mediaType: 'image',
+        url: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=1000'
+      }
+    };
+  });
+
+  useEffect(() => {
+    const handleAuthBgUpdate = (e) => {
+      if (e.detail) {
+        setAuthBgConfig(e.detail);
+      } else {
+        try {
+          const saved = localStorage.getItem('sakshar_auth_bg_config');
+          if (saved) setAuthBgConfig(JSON.parse(saved));
+        } catch {}
+      }
+    };
+
+    window.addEventListener('sakshar_auth_bg_updated', handleAuthBgUpdate);
+    return () => window.removeEventListener('sakshar_auth_bg_updated', handleAuthBgUpdate);
+  }, []);
+
   // Hero Background Video Config state & listener
   const [bgVideoConfig, setBgVideoConfig] = useState(() => {
     try {
@@ -3332,14 +3366,18 @@ export default function App() {
         {/* LOGIN VIEW */}
         {view === 'login' && (
           <div className="flex min-h-[calc(100vh-80px)]">
-            <div className="w-1/2 relative hidden md:block animate-auth-panel">
-              <img 
-                src="https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&q=80&w=1000" 
-                alt="Person reading" 
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-[#3A4D39]/80 mix-blend-multiply vignette-overlay"></div>
-              <div className="absolute bottom-16 left-16 right-16 text-white z-10 animate-auth-caption">
+            <div className="w-1/2 relative hidden md:block animate-auth-panel overflow-hidden">
+              {authBgConfig?.login?.mediaType === 'video' || authBgConfig?.login?.mediaType === 'youtube' || authBgConfig?.login?.url?.includes('.mp4') ? (
+                <HeroVideoBackground config={authBgConfig.login} />
+              ) : (
+                <img 
+                  src={authBgConfig?.login?.url || "https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&q=80&w=1000"} 
+                  alt="Person reading" 
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              )}
+              <div className="absolute inset-0 bg-[#3A4D39]/80 mix-blend-multiply vignette-overlay pointer-events-none"></div>
+              <div className="absolute bottom-16 left-16 right-16 text-white z-10 animate-auth-caption pointer-events-none">
                 <h2 className="text-4xl font-bold leading-tight mb-4">{t.loginLeftTitle}</h2>
                 <p className="text-lg opacity-90 leading-relaxed">{t.loginLeftSub}</p>
               </div>
@@ -3452,10 +3490,18 @@ export default function App() {
         {/* REGISTER VIEW */}
         {view === 'register' && (
           <div className="flex min-h-[calc(100vh-80px)]">
-            <div className="w-1/2 relative hidden md:block animate-auth-panel">
-              <img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=1000" alt="Books" className="absolute inset-0 w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-[#3A4D39]/80 mix-blend-multiply vignette-overlay"></div>
-              <div className="absolute bottom-16 left-16 right-16 text-white z-10 animate-auth-caption">
+            <div className="w-1/2 relative hidden md:block animate-auth-panel overflow-hidden">
+              {authBgConfig?.register?.mediaType === 'video' || authBgConfig?.register?.mediaType === 'youtube' || authBgConfig?.register?.url?.includes('.mp4') ? (
+                <HeroVideoBackground config={authBgConfig.register} />
+              ) : (
+                <img 
+                  src={authBgConfig?.register?.url || "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=1000"} 
+                  alt="Books" 
+                  className="absolute inset-0 w-full h-full object-cover" 
+                />
+              )}
+              <div className="absolute inset-0 bg-[#3A4D39]/80 mix-blend-multiply vignette-overlay pointer-events-none"></div>
+              <div className="absolute bottom-16 left-16 right-16 text-white z-10 animate-auth-caption pointer-events-none">
                 <h2 className="text-4xl font-bold leading-tight mb-4">{t.registerLeftTitle}</h2>
                 <p className="text-lg opacity-90 leading-relaxed">{t.registerLeftSub}</p>
               </div>
