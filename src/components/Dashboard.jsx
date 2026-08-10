@@ -5612,105 +5612,155 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
               @keyframes sakWaveHand { 0%, 100% { transform: rotate(0deg); } 15% { transform: rotate(14deg); } 30% { transform: rotate(-8deg); } 45% { transform: rotate(14deg); } 60% { transform: rotate(-4deg); } 75% { transform: rotate(10deg); } }
               @keyframes sakMsgIn { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
             `}</style>
-            {/* Welcome greeting Title */}
-            <div className="animate-card-pop">
-              <h2 className="text-3xl sm:text-4xl font-black tracking-tight dash-gradient-title">
-                {t.welcomeBack || 'Welcome back'}, {fullName || 'Learner'}!
-              </h2>
-            </div>
+            {/* 🌟 Ultra-Premium Glassmorphic Welcome Hero Card */}
+            <div className="animate-card-pop relative rounded-3xl p-6 sm:p-8 overflow-hidden shadow-xl border border-emerald-500/20 text-white" style={{ background: 'linear-gradient(135deg, #0b1f13 0%, #133a23 45%, #1b4d30 75%, #0d2617 100%)' }}>
+              {/* Background ambient radial glows */}
+              <div className="absolute top-0 right-0 w-80 h-80 rounded-full blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(52,211,153,0.25) 0%, transparent 70%)' }} />
+              <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.18) 0%, transparent 70%)' }} />
 
-            {/* In-progress course cards */}
-            <div className="grid sm:grid-cols-2 gap-5">
-              {/* Card 1: Foundational Education — only shown for Foundational-level accounts, opens the dedicated Foundational page */}
-              {educationalLevel === 'none' && (
-              <div 
-                onClick={() => setCurrentNav('foundational')}
-                className="animate-pop-in delay-0 bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-1 active:scale-[0.98] transition-all duration-200 cursor-pointer flex flex-col justify-between h-56 group relative"
-              >
-                <div>
+              <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div className="space-y-3 max-w-xl">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 backdrop-blur-md">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      {getLanguageNativeLabel(lang)} • AI Tutor Active
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-400/30 backdrop-blur-md">
+                      🔥 {streakCount} Day Streak
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold bg-yellow-400/15 text-yellow-300 border border-yellow-400/30 backdrop-blur-md">
+                      ⭐ {parseInt(localStorage.getItem('game_xp') || '0')} XP
+                    </span>
+                  </div>
+
+                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-white">
+                    {t.welcomeBack || 'Welcome back'}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300">{fullName || 'Learner'}</span>! <span className="inline-block animate-wave" style={{ animation: 'sakWaveHand 2.2s infinite' }}>👋</span>
+                  </h2>
+
+                  <p className="text-emerald-100/90 text-sm font-medium leading-relaxed">
+                    Master regional literacy with AI tutoring, interactive letter tracing, phonics audio, and fun gamified lessons in <strong className="text-white font-bold">{getLanguageNativeLabel(lang)}</strong>.
+                  </p>
+
+                  {/* Quick Skill Practice Chips */}
+                  <div className="pt-2 flex flex-wrap items-center gap-2">
+                    <button 
+                      onClick={() => setActiveModule('reading')}
+                      className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black text-xs shadow-lg shadow-emerald-900/30 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer flex items-center gap-2"
+                    >
+                      <span>📖 Reading Practice</span>
+                      <span>→</span>
+                    </button>
+                    <button 
+                      onClick={() => setActiveModule('writing')}
+                      className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/15 backdrop-blur-md hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer flex items-center gap-2"
+                    >
+                      <span>✍️ Letter Tracing</span>
+                    </button>
+                    <button 
+                      onClick={() => setActiveModule('speaking')}
+                      className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/15 backdrop-blur-md hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer flex items-center gap-2"
+                    >
+                      <span>🗣️ AI Speech Practice</span>
+                    </button>
+                    <button 
+                      onClick={() => setActiveModule('level_assessment')}
+                      className="px-4 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 font-bold text-xs border border-amber-400/30 backdrop-blur-md hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer flex items-center gap-2"
+                    >
+                      <span>🎯 Assessment</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Right side trophy / XP progress widget */}
+                <div className="shrink-0 bg-white/10 border border-white/15 backdrop-blur-xl rounded-2xl p-5 w-full lg:w-64 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="w-10 h-10 rounded-full bg-[#5C67F2]/10 border border-[#5C67F2]/20 flex items-center justify-center text-lg font-bold">👤</span>
-                    <span className="text-[9px] font-black tracking-wider text-[#5C67F2] bg-[#5C67F2]/5 border border-[#5C67F2]/10 px-2.5 py-1 rounded-full uppercase">Illustration</span>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-300">Level Progress</span>
+                    <span className="text-xs font-black text-yellow-300">Level {Math.floor(parseInt(localStorage.getItem('game_xp') || '0') / 100) + 1}</span>
                   </div>
-                  <h3 className="text-base font-black text-gray-900 mt-4 leading-tight group-hover:text-[#5C67F2] transition">Foundational Education</h3>
-                </div>
-
-                <div className="flex items-end justify-between mt-4">
-                  <div>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Participant:</p>
-                    <div className="flex -space-x-1.5 mt-1">
-                      <div className="w-5 h-5 rounded-full bg-indigo-200 border border-white text-[8px] font-bold flex items-center justify-center">A</div>
-                      <div className="w-5 h-5 rounded-full bg-pink-200 border border-white text-[8px] font-bold flex items-center justify-center">B</div>
-                      <div className="w-5 h-5 rounded-full bg-yellow-200 border border-white text-[8px] font-bold flex items-center justify-center">C</div>
-                    </div>
+                  
+                  {/* Progress Bar */}
+                  <div className="w-full h-2.5 bg-black/30 rounded-full overflow-hidden p-0.5 border border-white/10">
+                    <div className="h-full bg-gradient-to-r from-emerald-400 to-teal-300 rounded-full transition-all duration-500" style={{ width: `${Math.min(parseInt(localStorage.getItem('game_xp') || '0') % 100, 100)}%` }} />
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Progress:</p>
-                      <p className="text-xs font-black text-emerald-600 mt-0.5">75%</p>
-                    </div>
-                    {/* Ring progress arc */}
-                    <div className="relative w-8 h-8">
-                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                        <path className="text-gray-100" strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                        <path className="text-emerald-500 transition-all duration-700 ease-out animate-ring-draw" strokeDasharray="75, 100" strokeWidth="3.5" strokeLinecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                      </svg>
-                    </div>
+                  <div className="flex items-center justify-between text-[10px] font-bold text-emerald-100/70">
+                    <span>{parseInt(localStorage.getItem('game_xp') || '0')} XP</span>
+                    <span>100 XP next level</span>
                   </div>
-                </div>
 
-                <div className="border-t border-gray-100/70 pt-3 mt-3 flex items-center justify-between text-[10px] text-gray-400 font-bold">
-                  <span className="flex items-center gap-1">👤 Furkan</span>
-                  <span className="flex items-center gap-1">📖 25 Lessons</span>
+                  <button
+                    onClick={() => setIsGameModalOpen(true)}
+                    className="w-full py-2 bg-gradient-to-r from-yellow-400 to-amber-500 text-yellow-950 rounded-xl font-black text-xs hover:opacity-95 transition cursor-pointer flex items-center justify-center gap-1.5 shadow-md"
+                  >
+                    <span>🎮 Open Arcade Hub</span>
+                  </button>
                 </div>
               </div>
-              )}
+            </div>
 
-              {/* Card 2: Drawing & Anatomy */}
+            {/* 🚀 Core Literacy Modules Grid */}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div 
-                onClick={() => {
-                  setSelectedModalCourse({ lesson_id: "l2_reading", title: "Simple Sentence Reading Practice", level: educationalLevel });
-                  setIsCourseModalOpen(true);
-                }}
-                className="animate-pop-in delay-1 bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-1 active:scale-[0.98] transition-all duration-200 cursor-pointer flex flex-col justify-between h-56 group relative"
+                onClick={() => setActiveModule('reading')}
+                className="group bg-gradient-to-br from-emerald-900/90 to-teal-950 p-5 rounded-2xl border border-emerald-500/30 text-white shadow-lg hover:shadow-emerald-900/40 hover:-translate-y-1 transition-all duration-300 cursor-pointer relative overflow-hidden"
               >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="w-10 h-10 rounded-full bg-pink-100 border border-pink-200 flex items-center justify-center text-lg font-bold">👤</span>
-                    <span className="text-[9px] font-black tracking-wider text-pink-700 bg-pink-50 border border-pink-100 px-2.5 py-1 rounded-full uppercase">UI/UX</span>
-                  </div>
-                  <h3 className="text-base font-black text-gray-900 mt-4 leading-tight group-hover:text-pink-700 transition">Drawing & Anatomy</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-3xl p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-400/30 group-hover:scale-110 transition-transform">📖</span>
+                  <span className="text-[9px] font-black uppercase tracking-wider text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-400/20">Module 1</span>
                 </div>
-
-                <div className="flex items-end justify-between mt-4">
-                  <div>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Participant:</p>
-                    <div className="flex -space-x-1.5 mt-1">
-                      <div className="w-5 h-5 rounded-full bg-purple-200 border border-white text-[8px] font-bold flex items-center justify-center">D</div>
-                      <div className="w-5 h-5 rounded-full bg-yellow-200 border border-white text-[8px] font-bold flex items-center justify-center">E</div>
-                      <div className="w-5 h-5 rounded-full bg-indigo-200 border border-white text-[8px] font-bold flex items-center justify-center">F</div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Progress:</p>
-                      <p className="text-xs font-black text-emerald-600 mt-0.5">60%</p>
-                    </div>
-                    {/* Ring progress arc */}
-                    <div className="relative w-8 h-8">
-                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                        <path className="text-gray-100" strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                        <path className="text-emerald-500 transition-all duration-700 ease-out animate-ring-draw" strokeDasharray="60, 100" strokeWidth="3.5" strokeLinecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                      </svg>
-                    </div>
-                  </div>
+                <h3 className="text-base font-black text-white group-hover:text-emerald-300 transition">Reading Practice</h3>
+                <p className="text-xs text-emerald-200/70 mt-1 font-medium">Interactive regional sentence reading & comprehension.</p>
+                <div className="mt-4 pt-3 border-t border-emerald-500/20 flex items-center justify-between text-xs font-bold text-emerald-300">
+                  <span>Start Practice</span>
+                  <span className="group-hover:translate-x-1 transition-transform">→</span>
                 </div>
+              </div>
 
-                <div className="border-t border-gray-100/70 pt-3 mt-3 flex items-center justify-between text-[10px] text-gray-400 font-bold">
-                  <span className="flex items-center gap-1">👤 Furkan</span>
-                  <span className="flex items-center gap-1">📖 20 Lessons</span>
+              <div 
+                onClick={() => setActiveModule('writing')}
+                className="group bg-gradient-to-br from-purple-900/90 to-indigo-950 p-5 rounded-2xl border border-purple-500/30 text-white shadow-lg hover:shadow-purple-900/40 hover:-translate-y-1 transition-all duration-300 cursor-pointer relative overflow-hidden"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-3xl p-2.5 rounded-xl bg-purple-500/20 border border-purple-400/30 group-hover:scale-110 transition-transform">✍️</span>
+                  <span className="text-[9px] font-black uppercase tracking-wider text-purple-300 bg-purple-500/20 px-2 py-0.5 rounded-full border border-purple-400/20">Module 2</span>
+                </div>
+                <h3 className="text-base font-black text-white group-hover:text-purple-300 transition">Letter Tracing</h3>
+                <p className="text-xs text-purple-200/70 mt-1 font-medium">Digital handwriting canvas for regional alphabets.</p>
+                <div className="mt-4 pt-3 border-t border-purple-500/20 flex items-center justify-between text-xs font-bold text-purple-300">
+                  <span>Open Canvas</span>
+                  <span className="group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+              </div>
+
+              <div 
+                onClick={() => setActiveModule('speaking')}
+                className="group bg-gradient-to-br from-cyan-900/90 to-blue-950 p-5 rounded-2xl border border-cyan-500/30 text-white shadow-lg hover:shadow-cyan-900/40 hover:-translate-y-1 transition-all duration-300 cursor-pointer relative overflow-hidden"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-3xl p-2.5 rounded-xl bg-cyan-500/20 border border-cyan-400/30 group-hover:scale-110 transition-transform">🗣️</span>
+                  <span className="text-[9px] font-black uppercase tracking-wider text-cyan-300 bg-cyan-500/20 px-2 py-0.5 rounded-full border border-cyan-400/20">Module 3</span>
+                </div>
+                <h3 className="text-base font-black text-white group-hover:text-cyan-300 transition">AI Voice Speech</h3>
+                <p className="text-xs text-cyan-200/70 mt-1 font-medium">Real-time regional pronunciation & voice feedback.</p>
+                <div className="mt-4 pt-3 border-t border-cyan-500/20 flex items-center justify-between text-xs font-bold text-cyan-300">
+                  <span>Speak Now</span>
+                  <span className="group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+              </div>
+
+              <div 
+                onClick={() => setActiveModule('level_assessment')}
+                className="group bg-gradient-to-br from-amber-900/90 to-orange-950 p-5 rounded-2xl border border-amber-500/30 text-white shadow-lg hover:shadow-amber-900/40 hover:-translate-y-1 transition-all duration-300 cursor-pointer relative overflow-hidden"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-3xl p-2.5 rounded-xl bg-amber-500/20 border border-amber-400/30 group-hover:scale-110 transition-transform">🎯</span>
+                  <span className="text-[9px] font-black uppercase tracking-wider text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-400/20">Module 4</span>
+                </div>
+                <h3 className="text-base font-black text-white group-hover:text-amber-300 transition">Level Assessment</h3>
+                <p className="text-xs text-amber-200/70 mt-1 font-medium">Test your literacy proficiency & earn badges.</p>
+                <div className="mt-4 pt-3 border-t border-amber-500/20 flex items-center justify-between text-xs font-bold text-amber-300">
+                  <span>Take Quiz</span>
+                  <span className="group-hover:translate-x-1 transition-transform">→</span>
                 </div>
               </div>
             </div>
