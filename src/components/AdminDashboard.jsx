@@ -74,6 +74,13 @@ const AdminDashboard = ({
     { id: 'constellation', name: '✨ Starry Constellation', url: 'https://assets.mixkit.co/videos/preview/mixkit-animation-of-futuristic-lines-99-large.mp4' }
   ];
 
+  const defaultSplashPresets = [
+    { id: 'splash_drop', name: '💧 Water Droplet Impact Drop', url: 'https://assets.mixkit.co/videos/preview/mixkit-water-drop-impact-in-slow-motion-41527-large.mp4' },
+    { id: 'splash_stars', name: '🌌 Cosmic Particle Starfield Drop', url: 'https://assets.mixkit.co/videos/preview/mixkit-stars-in-the-night-sky-4000-large.mp4' },
+    { id: 'splash_fluid', name: '🌊 Emerald Fluid Wave Drop', url: 'https://assets.mixkit.co/videos/preview/mixkit-abstract-green-fluid-lines-41445-large.mp4' },
+    { id: 'splash_aurora', name: '🍃 Northern Lights Ripple Drop', url: 'https://assets.mixkit.co/videos/preview/mixkit-curved-lines-of-light-in-a-dark-space-41551-large.mp4' }
+  ];
+
   const defaultAuthImagePresets = [
     { id: 'reading', name: '📚 Person Reading (Default Sign In)', url: 'https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&q=80&w=1000' },
     { id: 'books', name: '📖 Library Books (Default Register)', url: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=1000' },
@@ -162,7 +169,7 @@ const AdminDashboard = ({
     setIsUploadingVideo(true);
     try {
       const isVideo = file.type.startsWith('video/');
-      const dbKey = targetPage === 'login' ? 'auth_login_bg' : targetPage === 'register' ? 'auth_register_bg' : 'auth_assessment_bg';
+      const dbKey = targetPage === 'login' ? 'auth_login_bg' : targetPage === 'register' ? 'auth_register_bg' : targetPage === 'assessment' ? 'auth_assessment_bg' : 'auth_splash_bg';
 
       if (isVideo) {
         await saveVideoToIndexedDB(file, dbKey);
@@ -175,15 +182,10 @@ const AdminDashboard = ({
           url: blobUrl,
           fileName: file.name
         };
-        if (targetPage === 'login') {
-          handleSaveAuthBgConfig({ login: pageCfg });
-        } else {
-          handleSaveAuthBgConfig({ register: pageCfg });
-        }
-        showToast(`✅ ${targetPage === 'login' ? 'Sign In' : 'Create Account'} side video background updated with "${file.name}"!`);
+        handleSaveAuthBgConfig({ [targetPage]: pageCfg });
+        showToast(`✅ Updated ${targetPage} background video with "${file.name}"!`);
         setIsUploadingVideo(false);
       } else {
-        // Image File: Convert to Data URL for instant, permanent storage across windows
         const reader = new FileReader();
         reader.onload = (event) => {
           const dataUrl = event.target.result;
@@ -193,12 +195,8 @@ const AdminDashboard = ({
             url: dataUrl,
             fileName: file.name
           };
-          if (targetPage === 'login') {
-            handleSaveAuthBgConfig({ login: pageCfg });
-          } else {
-            handleSaveAuthBgConfig({ register: pageCfg });
-          }
-          showToast(`✅ ${targetPage === 'login' ? 'Sign In' : 'Create Account'} side image updated with "${file.name}"!`);
+          handleSaveAuthBgConfig({ [targetPage]: pageCfg });
+          showToast(`✅ Updated ${targetPage} background image with "${file.name}"!`);
           setIsUploadingVideo(false);
         };
         reader.readAsDataURL(file);
@@ -2762,7 +2760,7 @@ const AdminDashboard = ({
                           <button
                             type="button"
                             onClick={() => {
-                              const val = (activeMediaSection === 'login' ? loginUrlInput : registerUrlInput).trim();
+                              const val = (activeMediaSection === 'login' ? loginUrlInput : activeMediaSection === 'register' ? registerUrlInput : activeMediaSection === 'assessment' ? assessmentUrlInput : splashUrlInput).trim();
                               if (!val) {
                                 showToast('⚠️ Please enter a URL.');
                                 return;
@@ -2796,22 +2794,18 @@ const AdminDashboard = ({
                         </h4>
 
                         <div className="grid grid-cols-2 gap-3">
-                          {defaultAuthImagePresets.map((preset) => (
+                          {(activeMediaSection === 'splash' ? defaultSplashPresets : defaultAuthImagePresets).map((preset) => (
                             <button
                               key={preset.id}
                               type="button"
                               onClick={() => {
                                 const pageCfg = {
                                   enabled: true,
-                                  mediaType: 'image',
+                                  mediaType: preset.url.includes('.mp4') ? 'video' : 'image',
                                   url: preset.url,
                                   fileName: preset.name
                                 };
-                                if (activeMediaSection === 'login') {
-                                  handleSaveAuthBgConfig({ login: pageCfg });
-                                } else {
-                                  handleSaveAuthBgConfig({ register: pageCfg });
-                                }
+                                handleSaveAuthBgConfig({ [activeMediaSection]: pageCfg });
                               }}
                               className={`p-3 rounded-2xl border text-left transition cursor-pointer relative overflow-hidden ${
                                 authBgConfig[activeMediaSection]?.url === preset.url
@@ -2820,7 +2814,7 @@ const AdminDashboard = ({
                               }`}
                             >
                               <span className="block text-xs font-extrabold text-slate-900">{preset.name}</span>
-                              <span className="block text-[9px] text-slate-500 mt-1 font-bold">Unsplash HD Photo</span>
+                              <span className="block text-[9px] text-slate-500 mt-1 font-bold">{preset.url.includes('.mp4') ? 'HD Video Stream' : 'Unsplash HD Photo'}</span>
                               {authBgConfig[activeMediaSection]?.url === preset.url && (
                                 <span className="absolute top-2 right-2 bg-purple-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">ACTIVE</span>
                               )}
@@ -2876,7 +2870,16 @@ const AdminDashboard = ({
                         <button
                           type="button"
                           onClick={() => {
-                            const defaultCfg = activeMediaSection === 'login' ? {
+                            const defaultCfg = activeMediaSection === 'splash' ? {
+                              enabled: true,
+                              mediaType: 'video',
+                              url: 'https://assets.mixkit.co/videos/preview/mixkit-water-drop-impact-in-slow-motion-41527-large.mp4',
+                              fileName: 'Water Droplet Drop Video',
+                              opacity: 0.65,
+                              overlayOpacity: 0.5,
+                              blur: 0,
+                              overlayColor: '#030a16'
+                            } : activeMediaSection === 'login' ? {
                               enabled: true,
                               mediaType: 'image',
                               url: 'https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&q=80&w=1000',
@@ -2895,17 +2898,13 @@ const AdminDashboard = ({
                               blur: 0,
                               overlayColor: '#3A4D39'
                             };
-                            if (activeMediaSection === 'login') {
-                              handleSaveAuthBgConfig({ login: defaultCfg });
-                            } else {
-                              handleSaveAuthBgConfig({ register: defaultCfg });
-                            }
-                            showToast(`🔄 Reset ${activeMediaSection === 'login' ? 'Sign In' : 'Create Account'} side background to default!`);
+                            handleSaveAuthBgConfig({ [activeMediaSection]: defaultCfg });
+                            showToast(`🔄 Reset ${activeMediaSection} background to default!`);
                           }}
                           className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl border border-slate-700 transition cursor-pointer flex items-center justify-center gap-1.5"
                         >
                           <span>🔄</span>
-                          <span>Reset {activeMediaSection === 'login' ? 'Sign In' : 'Create Account'} Background</span>
+                          <span>Reset {activeMediaSection} Background</span>
                         </button>
                       </div>
 
