@@ -64,7 +64,17 @@ export const getVideoFromIndexedDB = (key = 'hero_video_bg') => {
 
 export default function HeroVideoBackground({ config = {}, className = "" }) {
   const [videoSrc, setVideoSrc] = useState(config?.url || '');
+  const [isReady, setIsReady] = useState(false);
   const videoRef = useRef(null);
+
+  // Mask initial YouTube player startup overlay (|◀, ||, ▶|) & provide 0ms instant load preview
+  useEffect(() => {
+    setIsReady(false);
+    const timer = setTimeout(() => {
+      setIsReady(true);
+    }, 2200);
+    return () => clearTimeout(timer);
+  }, [videoSrc]);
 
   // Load stored IndexedDB video blob if file upload type
   useEffect(() => {
@@ -158,17 +168,33 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
           />
         ))}
       </div>
+      {/* 🖼️ Instant 0ms HD Poster Backdrop (masks YouTube startup overlay & eliminates load period) */}
+      {isYouTube && config?.youtubeId && (
+        <img
+          src={`https://img.youtube.com/vi/${config.youtubeId}/maxresdefault.jpg`}
+          alt="Instant Background Poster"
+          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 pointer-events-none select-none"
+          style={{
+            opacity: isReady ? 0 : opacity,
+            filter: `blur(${blur}px)`
+          }}
+          onError={(e) => {
+            e.currentTarget.src = `https://img.youtube.com/vi/${config.youtubeId}/hqdefault.jpg`;
+          }}
+        />
+      )}
+
       {isYouTube ? (
         <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden flex items-center justify-center">
           <iframe
             src={youtubeEmbedUrl}
             title="Sakshar AI Hero Background Video"
-            className="absolute -top-[50%] -left-[50%] w-[200%] h-[200%] max-w-none border-0 pointer-events-none select-none"
+            className="absolute -top-[50%] -left-[50%] w-[200%] h-[200%] max-w-none border-0 pointer-events-none select-none transition-opacity duration-1000"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             tabIndex={-1}
             aria-hidden="true"
             style={{
-              opacity: opacity,
+              opacity: isReady ? opacity : 0,
               filter: `blur(${blur}px)`,
               transform: 'scale(1.4)',
               transformOrigin: 'center center',
