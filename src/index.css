@@ -761,3 +761,44 @@ video::-webkit-media-controls-play-button-container {
     background-position: 0% 50%;
   }
 }
+
+/* ===================================================================
+   MOBILE COMPATIBILITY & TOUCH OPTIMIZATIONS
+   =================================================================== */
+
+/* Tap highlight removal & smooth touch manipulation */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Touch friendly button minimum touch targets */
+button, input, select, a {
+  touch-action: manipulation;
+}
+
+/* Custom smooth horizontal inertia scrolling on mobile tables & cards */
+.mobile-touch-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.mobile-touch-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile drawer slide animation */
+@keyframes slideDownDrawer {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-mobile-drawer {
+  animation: slideDownDrawer 0.25s ease-out forwards;
+}

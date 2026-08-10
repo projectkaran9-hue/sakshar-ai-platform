@@ -8,7 +8,9 @@ import HeroVideoBackground, { saveVideoToIndexedDB } from './HeroVideoBackground
  * All buttons, forms, modals, search inputs, course publishers, student editors,
  * analytics views, system config toggles, and event schedulers are fully functional.
  */
-const AdminDashboard = ({ 
+const AdminDashboard = ({
+  mobileAdminSidebarOpen: propMobileSidebar,
+ 
   onBackToPlatform, 
   t, 
   currentLearner = {}, 
@@ -144,6 +146,7 @@ const AdminDashboard = ({
     };
   });
 
+  const [mobileAdminSidebarOpen, setMobileAdminSidebarOpen] = useState(false);
   const [activeLanguageTrack, setActiveLanguageTrack] = useState('hindi');
   const [dateRangeFilter, setDateRangeFilter] = useState('May 6 – Jun 5, 2025');
   const [showAiInsightModal, setShowAiInsightModal] = useState(false);
@@ -1285,6 +1288,7 @@ const AdminDashboard = ({
           {/* TOP HEADER BAR */}
           <header className="bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-6 py-3.5 flex flex-col lg:flex-row items-center justify-between gap-4 shrink-0 shadow-sm">
             <div className="flex items-center gap-3">
+              <button type="button" onClick={() => setMobileAdminSidebarOpen(!mobileAdminSidebarOpen)} className="lg:hidden p-2 bg-slate-100 rounded-xl text-slate-800 text-base font-bold">☰</button>
               <h2 className="text-xl font-black text-slate-900 tracking-tight">
                 Analytics Overview
               </h2>

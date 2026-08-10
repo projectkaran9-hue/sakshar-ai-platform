@@ -2025,6 +2025,7 @@ export default function App() {
   // Plays once when the app first opens. sessionStorage keeps it from
   // replaying on in-app view changes or a same-tab reload, without
   // touching any auth/routing/API logic below.
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(() => {
     try {
       const savedAuth = localStorage.getItem('sakshar_auth_bg_config');
@@ -2857,49 +2858,108 @@ export default function App() {
       {view !== 'dashboard' && view !== 'initial-assessment' && (
         view === 'landing' ? (
           /* ── Light editorial nav on the landing page ── */
-          <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-emerald-100/60 px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <img src="/logo.png" alt="SaksharAI Logo" className="h-14 sm:h-16 w-auto object-contain" />
-            </div>
-            <div className="hidden md:flex items-center gap-10">
-              {[[t.navApproach || 'Approach', 'sak-approach-section'], [t.navFeatures || 'Features', 'sak-features-section'], [t.navImpact || 'Impact', 'sak-impact-section']].map(([label, id]) => (
-                <button
-                  key={id}
-                  onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })}
-                  className="text-[11px] font-black tracking-[0.2em] text-gray-600 hover:text-emerald-700 uppercase transition-colors duration-200 cursor-pointer"
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            <div className="flex items-center gap-3 sm:gap-4">
-              {/* Language switcher on landing page */}
-              <select
-                value={lang}
-                onChange={(e) => { const l = e.target.value; setLang(l); try { localStorage.setItem('sakshar_user_selected_lang', l); } catch {} }}
-                className="bg-gray-50 border border-gray-200 text-xs font-semibold rounded-lg px-2.5 py-1.5 text-gray-700 focus:ring-1 focus:ring-[#1C2D1A] cursor-pointer outline-none hidden sm:block"
-              >
-                {targetLanguages.map((l) => (
-                  <option key={l.value} value={l.value}>{l.native}</option>
+          <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-emerald-100/60 px-4 sm:px-6 py-3.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <img src="/logo.png" alt="SaksharAI Logo" className="h-12 sm:h-16 w-auto object-contain cursor-pointer" onClick={() => setView('landing')} />
+              </div>
+              <div className="hidden md:flex items-center gap-8">
+                {[[t.navApproach || 'Approach', 'sak-approach-section'], [t.navFeatures || 'Features', 'sak-features-section'], [t.navImpact || 'Impact', 'sak-impact-section']].map(([label, id]) => (
+                  <button
+                    key={id}
+                    onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })}
+                    className="text-[11px] font-black tracking-[0.2em] text-gray-600 hover:text-emerald-700 uppercase transition-colors duration-200 cursor-pointer"
+                  >
+                    {label}
+                  </button>
                 ))}
-              </select>
-              <button 
-                onClick={() => setView('admin')} 
-                className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-3 py-1.5 rounded-full transition-colors cursor-pointer"
-              >
-                <span>🛡️</span>
-                <span>Admin Portal</span>
-              </button>
-              <button onClick={() => setView('login')} className="hidden sm:inline text-xs font-bold text-gray-700 hover:text-emerald-800 transition-colors cursor-pointer">
-                {t.signIn}
-              </button>
-              <button
-                onClick={() => setView('login')}
-                className="px-6 py-2.5 bg-[#1C2D1A] hover:bg-emerald-950 text-white text-xs font-black rounded-full shadow-md transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer"
-              >
-                {t.getStarted || 'Get Started'}
-              </button>
+              </div>
+              <div className="flex items-center gap-2 sm:gap-4">
+                {/* Language switcher on landing page */}
+                <select
+                  value={lang}
+                  onChange={(e) => { const l = e.target.value; setLang(l); try { localStorage.setItem('sakshar_user_selected_lang', l); } catch {} }}
+                  className="bg-gray-50 border border-gray-200 text-xs font-semibold rounded-lg px-2.5 py-1.5 text-gray-700 focus:ring-1 focus:ring-[#1C2D1A] cursor-pointer outline-none hidden sm:block"
+                >
+                  {targetLanguages.map((l) => (
+                    <option key={l.value} value={l.value}>{l.native}</option>
+                  ))}
+                </select>
+                <button 
+                  onClick={() => setView('admin')} 
+                  className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-3 py-1.5 rounded-full transition-colors cursor-pointer"
+                >
+                  <span>🛡️</span>
+                  <span>Admin</span>
+                </button>
+                <button onClick={() => setView('login')} className="hidden sm:inline text-xs font-bold text-gray-700 hover:text-emerald-800 transition-colors cursor-pointer">
+                  {t.signIn}
+                </button>
+                <button
+                  onClick={() => setView('login')}
+                  className="px-5 sm:px-6 py-2 sm:py-2.5 bg-[#1C2D1A] hover:bg-emerald-950 text-white text-xs font-black rounded-full shadow-md transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer"
+                >
+                  {t.getStarted || 'Get Started'}
+                </button>
+
+                {/* Mobile Hamburger Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setMobileNavOpen(!mobileNavOpen)}
+                  className="md:hidden p-2 rounded-xl text-gray-700 hover:bg-emerald-50 text-xl cursor-pointer"
+                  aria-label="Toggle Navigation Menu"
+                >
+                  {mobileNavOpen ? '✕' : '☰'}
+                </button>
+              </div>
             </div>
+
+            {/* Mobile Dropdown Drawer */}
+            {mobileNavOpen && (
+              <div className="md:hidden pt-4 pb-3 space-y-3 border-t border-emerald-100 mt-3 animate-mobile-drawer">
+                <div className="flex flex-col space-y-2">
+                  {[[t.navApproach || 'Approach', 'sak-approach-section'], [t.navFeatures || 'Features', 'sak-features-section'], [t.navImpact || 'Impact', 'sak-impact-section']].map(([label, id]) => (
+                    <button
+                      key={id}
+                      onClick={() => {
+                        setMobileNavOpen(false);
+                        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      className="text-left px-3 py-2 text-xs font-bold text-gray-700 hover:bg-emerald-50 rounded-xl"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="pt-2 border-t border-gray-100 flex flex-col space-y-2">
+                  <div className="flex items-center justify-between px-3">
+                    <span className="text-xs font-bold text-gray-500">Preferred Language</span>
+                    <select
+                      value={lang}
+                      onChange={(e) => { const l = e.target.value; setLang(l); setMobileNavOpen(false); try { localStorage.setItem('sakshar_user_selected_lang', l); } catch {} }}
+                      className="bg-gray-100 border border-gray-200 text-xs font-bold rounded-lg px-2.5 py-1 text-gray-800"
+                    >
+                      {targetLanguages.map((l) => (
+                        <option key={l.value} value={l.value}>{l.native}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <button 
+                    onClick={() => { setMobileNavOpen(false); setView('admin'); }} 
+                    className="text-left px-3 py-2 text-xs font-bold text-purple-700 bg-purple-50 rounded-xl flex items-center gap-2"
+                  >
+                    <span>🛡️</span> Admin Portal
+                  </button>
+                  <button 
+                    onClick={() => { setMobileNavOpen(false); setView('login'); }} 
+                    className="text-left px-3 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 rounded-xl"
+                  >
+                    {t.signIn} / {t.getStarted || 'Get Started'}
+                  </button>
+                </div>
+              </div>
+            )}
           </nav>
         ) : (
           /* ── Original light nav used on login / register / other non-dashboard views ── */
