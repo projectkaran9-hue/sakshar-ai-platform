@@ -1309,7 +1309,7 @@ const AdminDashboard = ({
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   
                   {/* Active Users Right Now Card (2 Cols) */}
-                  <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 p-6 shadow-sm flex flex-col justify-between space-y-4">
+                  <div className="lg:col-span-2 bg-white/95 backdrop-blur-xl rounded-3xl border border-slate-200/80 p-6 shadow-[0_15px_40px_-15px_rgba(0,0,0,0.06)] flex flex-col justify-between space-y-4 hover:shadow-xl transition-all duration-300">
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active users right now</p>
@@ -1386,7 +1386,7 @@ const AdminDashboard = ({
 
                     {/* 4 Bottom KPI Mini Cards */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                      <div className="bg-purple-50/60 border border-purple-100 p-3 rounded-2xl">
+                      <div className="bg-gradient-to-br from-purple-50/80 to-purple-100/40 border border-purple-200/60 p-3.5 rounded-2xl shadow-sm hover:scale-105 transition-transform duration-200">
                         <div className="flex items-center gap-2 text-xs font-bold text-purple-700">
                           <span className="p-1 rounded-lg bg-purple-200/60">👥</span>
                           <span>Users</span>
@@ -1397,7 +1397,7 @@ const AdminDashboard = ({
                         </div>
                       </div>
 
-                      <div className="bg-emerald-50/60 border border-emerald-100 p-3 rounded-2xl">
+                      <div className="bg-gradient-to-br from-emerald-50/80 to-emerald-100/40 border border-emerald-200/60 p-3.5 rounded-2xl shadow-sm hover:scale-105 transition-transform duration-200">
                         <div className="flex items-center gap-2 text-xs font-bold text-emerald-700">
                           <span className="p-1 rounded-lg bg-emerald-200/60">🖱️</span>
                           <span>Clicks</span>
@@ -1408,7 +1408,7 @@ const AdminDashboard = ({
                         </div>
                       </div>
 
-                      <div className="bg-rose-50/60 border border-rose-100 p-3 rounded-2xl">
+                      <div className="bg-gradient-to-br from-rose-50/80 to-rose-100/40 border border-rose-200/60 p-3.5 rounded-2xl shadow-sm hover:scale-105 transition-transform duration-200">
                         <div className="flex items-center gap-2 text-xs font-bold text-rose-700">
                           <span className="p-1 rounded-lg bg-rose-200/60">🏷️</span>
                           <span>Assessed</span>
@@ -1419,7 +1419,7 @@ const AdminDashboard = ({
                         </div>
                       </div>
 
-                      <div className="bg-cyan-50/60 border border-cyan-100 p-3 rounded-2xl">
+                      <div className="bg-gradient-to-br from-cyan-50/80 to-cyan-100/40 border border-cyan-200/60 p-3.5 rounded-2xl shadow-sm hover:scale-105 transition-transform duration-200">
                         <div className="flex items-center gap-2 text-xs font-bold text-cyan-700">
                           <span className="p-1 rounded-lg bg-cyan-200/60">📦</span>
                           <span>Courses</span>
@@ -1433,7 +1433,7 @@ const AdminDashboard = ({
                   </div>
 
                   {/* Learning Accomplishments Summary Card (1 Col) */}
-                  <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm flex flex-col justify-between space-y-6">
+                  <div className="bg-white/95 backdrop-blur-xl rounded-3xl border border-slate-200/80 p-6 shadow-[0_15px_40px_-15px_rgba(0,0,0,0.06)] flex flex-col justify-between space-y-6 hover:shadow-xl transition-all duration-300">
                     <div>
                       <h4 className="text-sm font-bold text-slate-500">Total Assessments Passed</h4>
                       <p className="text-4xl font-black text-purple-700 mt-2">2,845</p>
