@@ -72,7 +72,7 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
     setIsReady(false);
     const timer = setTimeout(() => {
       setIsReady(true);
-    }, 2200);
+    }, 3000);
     return () => clearTimeout(timer);
   }, [videoSrc]);
 
@@ -196,7 +196,7 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
             style={{
               opacity: isReady ? opacity : 0,
               filter: `blur(${blur}px)`,
-              transform: 'scale(1.4)',
+              transform: 'scale(3.5) translateY(-10%)',
               transformOrigin: 'center center',
               pointerEvents: 'none',
               userSelect: 'none'
