@@ -1199,7 +1199,7 @@ const AdminDashboard = ({
                       onClick={() => setActiveTab('video-bg')}
                       className={`w-full text-left py-1.5 px-2 rounded-lg text-xs transition cursor-pointer ${activeTab === 'video-bg' ? 'text-purple-300 font-bold bg-purple-500/20 border-l-2 border-purple-400 pl-2.5' : 'text-slate-400 hover:text-white'}`}
                     >
-                      🎨 Hero & Auth Backgrounds
+                      🎨 Backgrounds Control
                     </button>
                   </div>
                 )}
@@ -1268,7 +1268,7 @@ const AdminDashboard = ({
                  activeTab === 'courses' ? 'Applications / Course Manager' :
                  activeTab === 'calendar' ? 'Applications / Calendar' :
                  activeTab === 'push-notifications' ? 'Applications / Push Broadcaster' :
-                  activeTab === 'video-bg' ? 'Applications / Hero & Auth Backgrounds' :
+                  activeTab === 'video-bg' ? 'Applications / Backgrounds Control' :
                  activeTab === 'settings' ? 'Authentication & System Config' : 'Analytics Overview'}
               </h2>
               <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 flex items-center gap-1">
