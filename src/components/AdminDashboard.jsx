@@ -144,6 +144,9 @@ const AdminDashboard = ({
     };
   });
 
+  const [activeLanguageTrack, setActiveLanguageTrack] = useState('hindi');
+  const [dateRangeFilter, setDateRangeFilter] = useState('May 6 – Jun 5, 2025');
+  const [showAiInsightModal, setShowAiInsightModal] = useState(false);
   const [activeMediaSection, setActiveMediaSection] = useState('hero'); // 'hero', 'login', 'register'
   const [loginUrlInput, setLoginUrlInput] = useState('');
   const [registerUrlInput, setRegisterUrlInput] = useState('');
