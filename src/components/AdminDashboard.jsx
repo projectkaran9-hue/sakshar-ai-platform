@@ -123,6 +123,16 @@ const AdminDashboard = ({
         overlayOpacity: 0.7,
         blur: 2,
         overlayColor: '#05060c'
+      },
+      splash: {
+        enabled: true,
+        mediaType: 'video',
+        url: 'https://assets.mixkit.co/videos/preview/mixkit-water-drop-impact-in-slow-motion-41527-large.mp4',
+        fileName: 'Water Droplet Drop Video',
+        opacity: 0.65,
+        overlayOpacity: 0.5,
+        blur: 0,
+        overlayColor: '#030a16'
       }
     };
   });
@@ -130,6 +140,8 @@ const AdminDashboard = ({
   const [activeMediaSection, setActiveMediaSection] = useState('hero'); // 'hero', 'login', 'register'
   const [loginUrlInput, setLoginUrlInput] = useState('');
   const [registerUrlInput, setRegisterUrlInput] = useState('');
+  const [splashUrlInput, setSplashUrlInput] = useState('');
+  const [assessmentUrlInput, setAssessmentUrlInput] = useState('');
 
   const handleSaveAuthBgConfig = (newAuthCfg) => {
     const updated = { ...authBgConfig, ...newAuthCfg, updatedAt: new Date().toISOString() };
@@ -2310,6 +2322,17 @@ const AdminDashboard = ({
                   >
                     <span>📋</span> Initial Assessment Background
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveMediaSection('splash')}
+                    className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-2 ${
+                      activeMediaSection === 'splash'
+                        ? 'bg-purple-600 text-white shadow-md shadow-purple-500/25'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                    }`}
+                  >
+                    <span>💧</span> App Splash / Intro Drop Background
+                  </button>
                 </div>
 
                 {activeMediaSection === 'hero' && (
@@ -2337,14 +2360,16 @@ const AdminDashboard = ({
                   </div>
                 )}
 
-                {(activeMediaSection === 'login' || activeMediaSection === 'register' || activeMediaSection === 'assessment') && (
+                {(activeMediaSection === 'login' || activeMediaSection === 'register' || activeMediaSection === 'assessment' || activeMediaSection === 'splash') && (
                   <div>
                     <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                      <span>{activeMediaSection === 'login' ? '🔑' : activeMediaSection === 'register' ? '📝' : '📋'}</span> 
-                      {activeMediaSection === 'login' ? 'Sign In (Login) Page Side Background' : activeMediaSection === 'register' ? 'Create Account (Register) Page Side Background' : 'Initial Placement Assessment Background'}
+                      <span>{activeMediaSection === 'login' ? '🔑' : activeMediaSection === 'register' ? '📝' : activeMediaSection === 'assessment' ? '📋' : '💧'}</span> 
+                      {activeMediaSection === 'login' ? 'Sign In (Login) Page Side Background' : activeMediaSection === 'register' ? 'Create Account (Register) Page Side Background' : activeMediaSection === 'assessment' ? 'Initial Placement Assessment Background' : 'App Splash / Intro Drop Animation Background'}
                     </h3>
                     <p className="text-xs text-slate-500 font-medium">
-                      {activeMediaSection === 'assessment' 
+                      {activeMediaSection === 'splash'
+                        ? 'Upload a custom video/image file or paste YouTube link to render behind the initial drop-like intro animation before the landing page'
+                        : activeMediaSection === 'assessment' 
                         ? 'Upload a custom video/image file or paste a video URL to render behind the initial placement assessment screen'
                         : 'Upload a custom image/video file, paste YouTube link or select curated presets for the split-screen authentication panel'}
                     </p>
@@ -2696,7 +2721,7 @@ const AdminDashboard = ({
                               Click or Drag & Drop Image / Video File Here
                             </p>
                             <p className="text-[10px] text-slate-500 font-medium">
-                              Upload custom background for {activeMediaSection === 'login' ? 'Sign In' : 'Create Account'} side panel
+                              Upload custom background for {activeMediaSection === 'login' ? 'Sign In' : activeMediaSection === 'register' ? 'Create Account' : activeMediaSection === 'assessment' ? 'Initial Assessment' : 'App Splash Intro Drop'} screen
                             </p>
                           </div>
                         </div>
@@ -2723,9 +2748,15 @@ const AdminDashboard = ({
                         <div className="flex gap-2">
                           <input 
                             type="url" 
-                            value={activeMediaSection === 'login' ? loginUrlInput : registerUrlInput}
-                            onChange={(e) => activeMediaSection === 'login' ? setLoginUrlInput(e.target.value) : setRegisterUrlInput(e.target.value)}
-                            placeholder="https://images.unsplash.com/photo-... or YouTube URL"
+                            value={activeMediaSection === 'login' ? loginUrlInput : activeMediaSection === 'register' ? registerUrlInput : activeMediaSection === 'assessment' ? assessmentUrlInput : splashUrlInput}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (activeMediaSection === 'login') setLoginUrlInput(val);
+                              else if (activeMediaSection === 'register') setRegisterUrlInput(val);
+                              else if (activeMediaSection === 'assessment') setAssessmentUrlInput(val);
+                              else setSplashUrlInput(val);
+                            }}
+                            placeholder="https://assets.mixkit.co/... or YouTube URL"
                             className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
                           />
                           <button
@@ -2749,11 +2780,7 @@ const AdminDashboard = ({
                                 fileName: isYt ? `YouTube ID: ${ytId}` : 'Custom Media URL'
                               };
 
-                              if (activeMediaSection === 'login') {
-                                handleSaveAuthBgConfig({ login: pageCfg });
-                              } else {
-                                handleSaveAuthBgConfig({ register: pageCfg });
-                              }
+                              handleSaveAuthBgConfig({ [activeMediaSection]: pageCfg });
                             }}
                             className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-black rounded-xl transition cursor-pointer shadow-md shadow-purple-500/20 shrink-0"
                           >
@@ -2811,7 +2838,7 @@ const AdminDashboard = ({
                       <div className="bg-slate-900 rounded-3xl border border-slate-800 p-5 text-white space-y-4 shadow-xl relative overflow-hidden">
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                            {activeMediaSection === 'login' ? 'Sign In Side Panel Preview' : 'Create Account Side Panel Preview'}
+                            {activeMediaSection === 'login' ? 'Sign In Side Panel Preview' : activeMediaSection === 'register' ? 'Create Account Side Panel Preview' : activeMediaSection === 'assessment' ? 'Initial Assessment Screen Preview' : 'App Splash Drop Intro Preview'}
                           </span>
                           <span className="text-xs">👁️</span>
                         </div>

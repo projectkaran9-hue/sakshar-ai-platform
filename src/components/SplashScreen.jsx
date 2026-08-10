@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import HeroVideoBackground from './HeroVideoBackground';
 
 /**
  * SplashScreen
@@ -18,6 +19,33 @@ import React, { useEffect, useMemo, useState } from 'react';
 export default function SplashScreen({ onComplete }) {
   const [exiting, setExiting] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
+
+  const [splashBgConfig, setSplashBgConfig] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sakshar_auth_bg_config');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.splash) return parsed.splash;
+      }
+    } catch {}
+    return {
+      enabled: true,
+      mediaType: 'video',
+      url: 'https://assets.mixkit.co/videos/preview/mixkit-water-drop-impact-in-slow-motion-41527-large.mp4',
+      opacity: 0.65,
+      blur: 0,
+      overlayColor: '#030a16',
+      overlayOpacity: 0.5
+    };
+  });
+
+  useEffect(() => {
+    const handleSplashBgUpdate = (e) => {
+      if (e.detail?.splash) setSplashBgConfig(e.detail.splash);
+    };
+    window.addEventListener('sakshar_auth_bg_updated', handleSplashBgUpdate);
+    return () => window.removeEventListener('sakshar_auth_bg_updated', handleSplashBgUpdate);
+  }, []);
 
   // Stable, randomized splash-particle burst vectors (computed once).
   const particles = useMemo(() => {
@@ -67,8 +95,13 @@ export default function SplashScreen({ onComplete }) {
         exiting ? 'splash-exit' : ''
       }`}
     >
+      {/* 🎥 Custom Video Background for App Intro Splash Drop Screen */}
+      {splashBgConfig?.enabled !== false && splashBgConfig?.url && (
+        <HeroVideoBackground config={splashBgConfig} className="z-0" />
+      )}
+
       {/* Water-surface gradient backdrop */}
-      <div className="splash-water-bg" />
+      <div className="splash-water-bg" style={{ opacity: splashBgConfig?.enabled !== false ? 0.35 : 1.0 }} />
       <div className="splash-water-shimmer" />
 
       {!reducedMotion && (
