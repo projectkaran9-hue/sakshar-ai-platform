@@ -209,6 +209,7 @@ const AdminDashboard = ({
           sourceType: 'file',
           indexedDbKey: dbKey,
           url: blobUrl,
+          streamUrl: 'https://assets.mixkit.co/videos/preview/mixkit-water-drop-impact-in-slow-motion-41527-large.mp4',
           fileName: file.name
         };
         handleSaveAuthBgConfig({ [targetPage]: pageCfg });

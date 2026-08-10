@@ -100,12 +100,16 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
       getVideoFromIndexedDB(dbKey).then((idbUrl) => {
         if (isMounted && idbUrl) {
           setVideoSrc(idbUrl);
-        } else if (isMounted && config?.url) {
+        } else if (isMounted && config?.url && !config.url.startsWith('blob:')) {
           setVideoSrc(config.url);
+        } else if (isMounted) {
+          // Fallback for mobile devices when blob URL from laptop is invalid
+          setVideoSrc(config?.streamUrl || 'https://assets.mixkit.co/videos/preview/mixkit-water-drop-impact-in-slow-motion-41527-large.mp4');
         }
       });
     } else {
-      setVideoSrc(config?.url || '');
+      const targetUrl = config?.url && !config.url.startsWith('blob:') ? config.url : (config?.streamUrl || 'https://assets.mixkit.co/videos/preview/mixkit-water-drop-impact-in-slow-motion-41527-large.mp4');
+      setVideoSrc(targetUrl);
     }
     return () => { isMounted = false; };
   }, [config?.url, config?.sourceType, config?.mediaType, config?.updatedAt]);
