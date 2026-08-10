@@ -139,6 +139,30 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
     }
   }, [videoSrc]);
 
+  
+  // Mobile OS Autoplay Unblocker: If mobile browser blocks silent autoplay, first tap/scroll plays video
+  useEffect(() => {
+    const unblockAutoplay = () => {
+      if (videoRef.current) {
+        videoRef.current.muted = true;
+        videoRef.current.play().catch(() => {});
+      }
+      window.removeEventListener('touchstart', unblockAutoplay);
+      window.removeEventListener('scroll', unblockAutoplay);
+      window.removeEventListener('click', unblockAutoplay);
+    };
+
+    window.addEventListener('touchstart', unblockAutoplay, { passive: true });
+    window.addEventListener('scroll', unblockAutoplay, { passive: true });
+    window.addEventListener('click', unblockAutoplay, { passive: true });
+
+    return () => {
+      window.removeEventListener('touchstart', unblockAutoplay);
+      window.removeEventListener('scroll', unblockAutoplay);
+      window.removeEventListener('click', unblockAutoplay);
+    };
+  }, [videoSrc]);
+
   if (config?.enabled === false || !videoSrc) {
     return null;
   }
@@ -208,7 +232,7 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
             src={youtubeEmbedUrl}
             title="Sakshar AI Hero Background Video"
             className="absolute -top-[50%] -left-[50%] w-[200%] h-[200%] max-w-none border-0 pointer-events-none select-none transition-opacity duration-1000"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             tabIndex={-1}
             aria-hidden="true"
             style={{
