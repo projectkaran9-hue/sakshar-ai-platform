@@ -140,7 +140,8 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
             style={{
               opacity: opacity,
               filter: `blur(${blur}px)`,
-              transform: 'scale(2.2)',
+              transform: 'scale(2.8) translate(-16%, -16%)',
+              transformOrigin: 'center center',
               pointerEvents: 'none',
               userSelect: 'none'
             }}
