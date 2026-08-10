@@ -253,11 +253,14 @@ const AdminDashboard = ({
     const updated = { ...bgVideoConfig, ...newConfig, updatedAt: new Date().toISOString() };
     setBgVideoConfig(updated);
     try {
-      localStorage.setItem('sakshar_bg_video_config', JSON.stringify(updated));
+      saveSystemConfigDB('hero_bg_config', updated);
+      saveSystemConfigDB('bg_video_config', updated);
     } catch (e) {
       console.warn('Storage notice:', e);
     }
     window.dispatchEvent(new CustomEvent('sakshar_bg_video_updated', { detail: updated }));
+    window.dispatchEvent(new CustomEvent('sakshar_hero_bg_updated', { detail: updated }));
+    broadcastAdminUpdate('HERO_BG_UPDATED', updated);
     showToast('🎥 Background video updated & applied live to Landing Page!');
   };
 
@@ -274,6 +277,7 @@ const AdminDashboard = ({
       sourceType: 'youtube',
       youtubeId: videoId,
       url: embedUrl,
+      streamUrl: embedUrl,
       fileName: `YouTube Video (ID: ${videoId})`,
       enabled: true
     });
