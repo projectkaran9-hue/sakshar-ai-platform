@@ -153,6 +153,27 @@ const AdminDashboard = ({
   const [splashUrlInput, setSplashUrlInput] = useState('');
   const [assessmentUrlInput, setAssessmentUrlInput] = useState('');
 
+  const handleExportAnalyticsReport = () => {
+    const trackName = activeLanguageTrack ? activeLanguageTrack.toUpperCase() : 'HINDI';
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + "Track,Assessments,Percentage,PassRate,AvgScore\n"
+      + "Hindi Track,14200,40%,88%,92%\n"
+      + "Telugu Track,7800,22%,84%,87%\n"
+      + "Bengali Track,6400,18%,82%,85%\n"
+      + "Tamil Track,4200,12%,86%,89%\n"
+      + "Marathi Track,2800,8%,81%,84%\n";
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Sakshar_AI_Analytics_Report_${trackName}_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    if (typeof showToast === 'function') {
+      showToast(`📥 Exported Analytics Report (${trackName} Track) to CSV!`);
+    }
+  };
+
   const handleSaveAuthBgConfig = (newAuthCfg) => {
     const updated = { ...authBgConfig, ...newAuthCfg, updatedAt: new Date().toISOString() };
     setAuthBgConfig(updated);
