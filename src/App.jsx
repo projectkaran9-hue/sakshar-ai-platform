@@ -2029,23 +2029,32 @@ export default function App() {
   // touching any auth/routing/API logic below.
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  // ⚡ Sakshar AI Instant Real-Time Background & Global Sync Listener
+  // ⚡ Real-time toast notification for admin updates visible to ALL users
+  const [realtimeSyncToast, setRealtimeSyncToast] = useState(null);
+  const showSyncToast = (msg) => {
+    setRealtimeSyncToast(msg);
+    setTimeout(() => setRealtimeSyncToast(null), 4500);
+  };
+
+  // ⚡ Sakshar AI Instant Real-Time Global Sync Listener — ALL admin changes push to ALL users
   useEffect(() => {
     const unsubscribe = subscribeToGlobalSync((event) => {
       if (!event || !event.type) return;
 
       if (event.type === 'HERO_BG_UPDATED' && event.payload) {
         setBgVideoConfig(event.payload);
+        showSyncToast('🎨 Landing page background updated by admin');
       } else if (event.type === 'AUTH_BG_UPDATED' && event.payload) {
         setAuthBgConfig(event.payload);
+        showSyncToast('🖼️ Authentication background updated by admin');
       } else if (event.type === 'PUSH_BROADCAST' && event.payload) {
-        // Broadcast alerts
-      } else if (event.type === 'COURSE_UPDATE') {
-        // Course update
-      } else if (event.type === 'SYSTEM_SETTINGS_UPDATED') {
-        // System settings
+        showSyncToast(`🔔 ${event.payload.title || 'New notification'}: ${event.payload.body || ''}`);
+      } else if (event.type === 'COURSE_UPDATE' && event.payload) {
+        showSyncToast(`📚 Course ${event.payload.action || 'update'}: Content has been refreshed`);
+      } else if (event.type === 'SYSTEM_SETTINGS_UPDATED' && event.payload) {
+        showSyncToast(`⚙️ System setting updated: ${event.payload.setting || 'configuration'}`);
       } else if (event.type === 'STUDENT_UPDATED') {
-        // Student update
+        showSyncToast('👤 Learner profile updated by admin');
       }
     });
 
@@ -2066,7 +2075,7 @@ export default function App() {
   });
   const [contentRevealed, setContentRevealed] = useState(true);
 
-  
+  // ⚡ Fetch latest cloud configs from Supabase on mount — ensures new devices/phones get admin settings instantly
   useEffect(() => {
     const loadCloudConfigs = async () => {
       try {
@@ -2897,6 +2906,16 @@ export default function App() {
       {isLoading && view === 'landing' && (
         <div className="fixed inset-0 bg-white/80 z-50 flex items-center justify-center font-medium text-sm">
           Loading system instance context...
+        </div>
+      )}
+
+      {/* ⚡ Real-Time Admin Sync Toast — visible to ALL users on ALL devices */}
+      {realtimeSyncToast && (
+        <div className="fixed top-4 right-4 z-[9999] max-w-sm animate-slide-in-right">
+          <div className="bg-gradient-to-r from-[#0b1021]/95 to-[#1a1f3a]/95 backdrop-blur-xl text-white px-5 py-3.5 rounded-xl shadow-2xl border border-white/10 flex items-center gap-3">
+            <span className="text-sm font-medium leading-snug">{realtimeSyncToast}</span>
+            <button onClick={() => setRealtimeSyncToast(null)} className="text-white/50 hover:text-white text-lg ml-2 shrink-0">✕</button>
+          </div>
         </div>
       )}
 
