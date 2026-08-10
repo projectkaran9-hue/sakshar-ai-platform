@@ -2028,6 +2028,24 @@ export default function App() {
   // replaying on in-app view changes or a same-tab reload, without
   // touching any auth/routing/API logic below.
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  // ⚡ Sakshar AI Instant Real-Time Background & Global Sync Listener
+  useEffect(() => {
+    const unsubscribe = subscribeToGlobalSync((event) => {
+      if (!event || !event.type) return;
+
+      if (event.type === 'HERO_BG_UPDATED' && event.payload) {
+        setBgVideoConfig(event.payload);
+      } else if (event.type === 'AUTH_BG_UPDATED' && event.payload) {
+        setAuthBgConfig(event.payload);
+      } else if (event.type === 'PUSH_BROADCAST' && event.payload) {
+        // Broadcast alerts
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const [showSplash, setShowSplash] = useState(() => {
     try {
       const savedAuth = localStorage.getItem('sakshar_auth_bg_config');
@@ -2216,7 +2234,11 @@ export default function App() {
     };
 
     window.addEventListener('sakshar_bg_video_updated', handleVideoUpdate);
-    return () => window.removeEventListener('sakshar_bg_video_updated', handleVideoUpdate);
+    window.addEventListener('sakshar_hero_bg_updated', handleVideoUpdate);
+    return () => {
+      window.removeEventListener('sakshar_bg_video_updated', handleVideoUpdate);
+      window.removeEventListener('sakshar_hero_bg_updated', handleVideoUpdate);
+    };
   }, []);
 
   // Voice language auto-detection states
