@@ -1,24 +1,19 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import HeroVideoBackground from './HeroVideoBackground';
 
 /**
  * SplashScreen
  * ------------------------------------------------------------------
- * A one-time, full-viewport intro animation: a droplet falls, hits the
- * center of the screen, and realistic ripples + particles expand
- * outward across a dark-blue-to-cyan "water surface" gradient.
- *
- * Plays once (per browser tab session — see App.jsx), then calls
- * onComplete() so the parent can unmount it and reveal the app.
- *
- * Fully respects prefers-reduced-motion: when set, the droplet/ripple/
- * particle animation is skipped entirely and a brief, simple fade is
- * shown instead.
+ * Full-viewport Video Intro Animation Screen.
+ * Renders the custom video animation configured in 
+ * App Splash / Intro Drop Background Manager in Admin Dashboard.
+ * 
+ * Smoothly plays the intro video with brand logo and text overlay,
+ * then seamlessly fades out into the main application landing page.
  * ------------------------------------------------------------------
  */
 export default function SplashScreen({ onComplete }) {
   const [exiting, setExiting] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
 
   const [splashBgConfig, setSplashBgConfig] = useState(() => {
     try {
@@ -32,10 +27,10 @@ export default function SplashScreen({ onComplete }) {
       enabled: true,
       mediaType: 'video',
       url: 'https://assets.mixkit.co/videos/preview/mixkit-water-drop-impact-in-slow-motion-41527-large.mp4',
-      opacity: 0.65,
+      opacity: 0.9,
       blur: 0,
       overlayColor: '#030a16',
-      overlayOpacity: 0.5
+      overlayOpacity: 0.4
     };
   });
 
@@ -47,35 +42,9 @@ export default function SplashScreen({ onComplete }) {
     return () => window.removeEventListener('sakshar_auth_bg_updated', handleSplashBgUpdate);
   }, []);
 
-  // Stable, randomized splash-particle burst vectors (computed once).
-  const particles = useMemo(() => {
-    const COUNT = 14;
-    return Array.from({ length: COUNT }, (_, i) => {
-      const angle = (Math.PI * 2 * i) / COUNT + (Math.random() * 0.35 - 0.175);
-      const distance = 60 + Math.random() * 90;
-      const tx = Math.cos(angle) * distance;
-      const ty = Math.sin(angle) * distance * 0.6 - 10; // flatten + slight upward bias
-      const size = 3 + Math.random() * 4;
-      const delay = Math.random() * 0.12;
-      return { id: i, tx, ty, size, delay };
-    });
-  }, []);
-
   useEffect(() => {
-    let mql;
-    let prefersReduced = false;
-    try {
-      mql = window.matchMedia('(prefers-reduced-motion: reduce)');
-      prefersReduced = mql.matches;
-    } catch {
-      prefersReduced = false;
-    }
-    setReducedMotion(prefersReduced);
-
-    // Reduced motion: skip the droplet/ripple choreography, just a
-    // brief, simple fade so there's no jarring instant cut.
-    const FADE_START = prefersReduced ? 150 : 2200;
-    const TOTAL = prefersReduced ? 500 : 2800;
+    const FADE_START = 2200;
+    const TOTAL = 2800;
 
     const exitTimer = setTimeout(() => setExiting(true), FADE_START);
     const doneTimer = setTimeout(() => {
@@ -91,50 +60,40 @@ export default function SplashScreen({ onComplete }) {
   return (
     <div
       aria-hidden="true"
-      className={`splash-root fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden ${
-        exiting ? 'splash-exit' : ''
+      className={`fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden transition-opacity duration-700 bg-slate-950 ${
+        exiting ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >
-      {/* 🎥 Custom Video Background for App Intro Splash Drop Screen */}
+      {/* 🎥 Video Animation Background from App Splash / Intro Drop Background Manager */}
       {splashBgConfig?.enabled !== false && splashBgConfig?.url && (
         <HeroVideoBackground config={splashBgConfig} className="z-0" />
       )}
 
-      {/* Water-surface gradient backdrop */}
-      <div className="splash-water-bg" style={{ opacity: splashBgConfig?.enabled !== false ? 0.35 : 1.0 }} />
-      <div className="splash-water-shimmer" />
+      {/* Darkening Tint Overlay */}
+      <div 
+        className="absolute inset-0 z-10 pointer-events-none transition-all duration-300"
+        style={{
+          backgroundColor: splashBgConfig?.overlayColor || '#030a16',
+          opacity: splashBgConfig?.overlayOpacity ?? 0.4
+        }}
+      />
 
-      {!reducedMotion && (
-        <>
-          {/* Falling droplet */}
-          <div className="splash-droplet" />
-
-          {/* Impact glow */}
-          <div className="splash-glow" />
-
-          {/* Expanding concentric ripples */}
-          <div className="splash-ripple splash-ripple-1" />
-          <div className="splash-ripple splash-ripple-2" />
-          <div className="splash-ripple splash-ripple-3" />
-
-          {/* Splash particles */}
-          <div className="splash-particles">
-            {particles.map((p) => (
-              <span
-                key={p.id}
-                className="splash-particle"
-                style={{
-                  width: `${p.size}px`,
-                  height: `${p.size}px`,
-                  '--tx': `${p.tx}px`,
-                  '--ty': `${p.ty}px`,
-                  animationDelay: `${1.3 + p.delay}s`,
-                }}
-              />
-            ))}
-          </div>
-        </>
-      )}
+      {/* 🌟 Elegant Brand Intro Overlay */}
+      <div className="relative z-20 flex flex-col items-center justify-center text-center px-6 space-y-4 animate-fade-in">
+        <img
+          src="/logo.png"
+          alt="Sakshar AI"
+          className="h-20 sm:h-24 w-auto object-contain drop-shadow-[0_0_25px_rgba(16,185,129,0.5)] animate-scale-up"
+        />
+        <div className="space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight drop-shadow">
+            Sakshar AI
+          </h1>
+          <p className="text-xs sm:text-sm font-semibold text-emerald-300/90 tracking-wide uppercase font-mono drop-shadow">
+            Empowering Multilingual Literacy
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
