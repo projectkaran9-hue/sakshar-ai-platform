@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { subscribeToGlobalSync } from '../services/realtimeSync';
 
 // IndexedDB Helper for storing large custom video background files (no 5MB localStorage limit)
 const DB_NAME = 'SaksharVideoDB';

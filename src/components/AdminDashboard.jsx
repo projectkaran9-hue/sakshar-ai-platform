@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabase';
 import { updateUserProfileTable, fetchAdminStudentsDB, insertStudentDB, deleteStudentDB, fetchAdminCoursesDB, insertCourseDB } from '../services/db';
 import HeroVideoBackground, { saveVideoToIndexedDB } from './HeroVideoBackground';
+import { broadcastAdminUpdate } from '../services/realtimeSync';
 
 /**
  * Sakshar AI Admin Dashboard Component — 100% Fully Workable & Interactive
@@ -186,6 +187,7 @@ const AdminDashboard = ({
       console.warn('Storage notice:', e);
     }
     window.dispatchEvent(new CustomEvent('sakshar_auth_bg_updated', { detail: updated }));
+    broadcastAdminUpdate('AUTH_BG_UPDATED', updated);
     showToast('🖼️ Authentication side background updated live!');
   };
 
