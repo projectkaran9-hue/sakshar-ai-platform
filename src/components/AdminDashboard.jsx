@@ -2359,18 +2359,38 @@ const AdminDashboard = ({
                 )}
 
                 {(activeMediaSection === 'login' || activeMediaSection === 'register' || activeMediaSection === 'assessment' || activeMediaSection === 'splash') && (
-                  <div>
-                    <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                      <span>{activeMediaSection === 'login' ? '🔑' : activeMediaSection === 'register' ? '📝' : activeMediaSection === 'assessment' ? '📋' : '💧'}</span> 
-                      {activeMediaSection === 'login' ? 'Sign In (Login) Page Side Background' : activeMediaSection === 'register' ? 'Create Account (Register) Page Side Background' : activeMediaSection === 'assessment' ? 'Initial Placement Assessment Background' : 'App Splash / Intro Drop Animation Background'}
-                    </h3>
-                    <p className="text-xs text-slate-500 font-medium">
-                      {activeMediaSection === 'splash'
-                        ? 'Upload a custom video/image file or paste YouTube link to render behind the initial drop-like intro animation before the landing page'
-                        : activeMediaSection === 'assessment' 
-                        ? 'Upload a custom video/image file or paste a video URL to render behind the initial placement assessment screen'
-                        : 'Upload a custom image/video file, paste YouTube link or select curated presets for the split-screen authentication panel'}
-                    </p>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm">
+                    <div>
+                      <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                        <span>{activeMediaSection === 'login' ? '🔑' : activeMediaSection === 'register' ? '📝' : activeMediaSection === 'assessment' ? '📋' : '💧'}</span> 
+                        {activeMediaSection === 'login' ? 'Sign In (Login) Page Side Background' : activeMediaSection === 'register' ? 'Create Account (Register) Page Side Background' : activeMediaSection === 'assessment' ? 'Initial Placement Assessment Background' : 'App Splash / Intro Video Animation Background Manager'}
+                      </h3>
+                      <p className="text-xs text-slate-500 font-medium">
+                        {activeMediaSection === 'splash'
+                          ? 'Upload a custom video file or paste YouTube/MP4 URL to render as the full-screen intro video animation at the very beginning of the app'
+                          : activeMediaSection === 'assessment' 
+                          ? 'Upload a custom video/image file or paste a video URL to render behind the initial placement assessment screen'
+                          : 'Upload a custom image/video file, paste YouTube link or select curated presets for the split-screen authentication panel'}
+                      </p>
+                    </div>
+
+                    {activeMediaSection === 'splash' && (
+                      <div className="flex items-center gap-3 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            try {
+                              sessionStorage.removeItem('sakshar_splash_played');
+                            } catch {}
+                            window.dispatchEvent(new CustomEvent('sakshar_trigger_splash'));
+                            showToast('▶️ Replaying Intro Video Animation Screen Now!');
+                          }}
+                          className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-2xl shadow-md shadow-emerald-500/25 transition cursor-pointer flex items-center gap-2"
+                        >
+                          <span>▶️</span> Test & Replay Intro Video
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 

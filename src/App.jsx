@@ -1984,6 +1984,11 @@ export default function App() {
   // touching any auth/routing/API logic below.
   const [showSplash, setShowSplash] = useState(() => {
     try {
+      const savedAuth = localStorage.getItem('sakshar_auth_bg_config');
+      if (savedAuth) {
+        const parsed = JSON.parse(savedAuth);
+        if (parsed?.splash?.playMode === 'always') return true;
+      }
       return sessionStorage.getItem('sakshar_splash_played') !== '1';
     } catch {
       return true;
@@ -2117,6 +2122,18 @@ export default function App() {
 
     window.addEventListener('sakshar_auth_bg_updated', handleAuthBgUpdate);
     return () => window.removeEventListener('sakshar_auth_bg_updated', handleAuthBgUpdate);
+  }, []);
+
+  useEffect(() => {
+    const handleTriggerSplash = () => {
+      try {
+        sessionStorage.removeItem('sakshar_splash_played');
+      } catch {}
+      setShowSplash(true);
+      setContentRevealed(false);
+    };
+    window.addEventListener('sakshar_trigger_splash', handleTriggerSplash);
+    return () => window.removeEventListener('sakshar_trigger_splash', handleTriggerSplash);
   }, []);
 
   // Hero Background Video Config state & listener
