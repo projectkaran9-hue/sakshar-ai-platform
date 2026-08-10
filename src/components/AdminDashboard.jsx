@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabase';
-import { updateUserProfileTable, fetchAdminStudentsDB, insertStudentDB, deleteStudentDB, fetchAdminCoursesDB, insertCourseDB } from '../services/db';
+import { updateUserProfileTable, fetchAdminStudentsDB, insertStudentDB, deleteStudentDB, fetchAdminCoursesDB, insertCourseDB, saveSystemConfigDB, fetchSystemConfigDB } from '../services/db';
 import HeroVideoBackground, { saveVideoToIndexedDB } from './HeroVideoBackground';
 import { broadcastAdminUpdate } from '../services/realtimeSync';
 
@@ -182,7 +182,7 @@ const AdminDashboard = ({
     const updated = { ...authBgConfig, ...newAuthCfg, updatedAt: new Date().toISOString() };
     setAuthBgConfig(updated);
     try {
-      localStorage.setItem('sakshar_auth_bg_config', JSON.stringify(updated));
+      saveSystemConfigDB('auth_bg_config', updated);
     } catch (e) {
       console.warn('Storage notice:', e);
     }

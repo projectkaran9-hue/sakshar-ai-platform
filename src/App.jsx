@@ -4,6 +4,7 @@ import Premium from './components/Premium';
 import AdminDashboard from './components/AdminDashboard';
 import SplashScreen from './components/SplashScreen';
 import { subscribeToGlobalSync } from './services/realtimeSync';
+import { fetchSystemConfigDB } from './services/db';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import HeroVideoBackground from './components/HeroVideoBackground';
 import React, { useState, useEffect, useRef, useCallback } from 'react';

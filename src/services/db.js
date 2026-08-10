@@ -198,3 +198,53 @@ export const saveEvaluationDB = async (uid, evalData) => {
     return { data: null, error: err };
   }
 };
+
+/* ════════════════ GLOBAL APP SETTINGS CLOUD SYNC ════════════════ */
+
+export const saveSystemConfigDB = async (configKey, configValue) => {
+  try {
+    // 1. Save to LocalStorage for instant offline access
+    try {
+      localStorage.setItem(`sakshar_${configKey}`, JSON.stringify(configValue));
+    } catch (e) {}
+    
+    // 2. Save to Supabase Cloud DB table 'app_settings' if configured
+    if (isSupabaseConfigured && supabase) {
+      await supabase
+        .from('app_settings')
+        .upsert({
+          key: configKey,
+          value: configValue,
+          updated_at: new Date().toISOString()
+        });
+    }
+  } catch (err) {
+    console.warn('[DB] saveSystemConfigDB notice:', err);
+  }
+};
+
+export const fetchSystemConfigDB = async (configKey, defaultFallback) => {
+  try {
+    // 1. Attempt to load from Supabase Cloud DB first so mobile phones/new devices get live changes instantly
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('app_settings')
+        .select('value')
+        .eq('key', configKey)
+        .single();
+        
+      if (!error && data?.value) {
+        try { localStorage.setItem(`sakshar_${configKey}`, JSON.stringify(data.value)); } catch {}
+        return data.value;
+      }
+    }
+  } catch (e) {}
+
+  // 2. Fallback to LocalStorage
+  try {
+    const saved = localStorage.getItem(`sakshar_${configKey}`);
+    if (saved) return JSON.parse(saved);
+  } catch (e) {}
+
+  return defaultFallback;
+};
