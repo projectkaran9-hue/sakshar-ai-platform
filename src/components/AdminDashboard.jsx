@@ -2687,7 +2687,7 @@ const AdminDashboard = ({
                 )}
 
                 {/* 🔑 / 📝 AUTH PAGE SIDE BACKGROUND MANAGER (SIGN IN & REGISTER) */}
-                {(activeMediaSection === 'login' || activeMediaSection === 'register' || activeMediaSection === 'assessment') && (
+                {(activeMediaSection === 'login' || activeMediaSection === 'register' || activeMediaSection === 'assessment' || activeMediaSection === 'splash') && (
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     
                     {/* LEFT: FILE UPLOADER & URL INPUT */}
