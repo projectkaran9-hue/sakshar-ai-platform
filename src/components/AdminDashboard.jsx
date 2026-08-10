@@ -2817,7 +2817,7 @@ const AdminDashboard = ({
                         </div>
 
                         {/* Mock Auth Side Panel */}
-                        <div className="relative h-64 rounded-2xl overflow-hidden border border-white/10 flex flex-col justify-end p-6">
+                        <div className="relative h-64 rounded-2xl overflow-hidden border border-white/10 flex flex-col justify-end p-6 pointer-events-none select-none touch-none">
                           {authBgConfig[activeMediaSection]?.mediaType === 'video' || authBgConfig[activeMediaSection]?.mediaType === 'youtube' ? (
                             <HeroVideoBackground config={authBgConfig[activeMediaSection]} />
                           ) : (
