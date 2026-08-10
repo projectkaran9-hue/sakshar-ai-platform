@@ -129,19 +129,20 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
   return (
     <div className={`absolute inset-0 z-0 overflow-hidden pointer-events-none ${className}`}>
       {isYouTube ? (
-        <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden flex items-center justify-center">
+        <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden flex items-center justify-center bg-black">
           <iframe
             src={youtubeEmbedUrl}
             title="Sakshar AI Hero Background Video"
-            className="w-[220%] h-[220%] max-w-none border-0 pointer-events-none select-none"
+            className="w-[300%] h-[300%] max-w-none border-0 pointer-events-none select-none"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             tabIndex={-1}
             aria-hidden="true"
             style={{
               opacity: opacity,
               filter: `blur(${blur}px)`,
-              transform: 'scale(1.4)',
-              pointerEvents: 'none'
+              transform: 'scale(2.2)',
+              pointerEvents: 'none',
+              userSelect: 'none'
             }}
           />
         </div>
