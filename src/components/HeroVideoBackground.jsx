@@ -128,6 +128,36 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
 
   return (
     <div className={`absolute inset-0 z-0 overflow-hidden pointer-events-none ${className}`}>
+      <style>{`
+        @keyframes sakTwinkle {
+          0%, 100% { opacity: 0.15; transform: scale(0.8); }
+          50% { opacity: 0.85; transform: scale(1.2); }
+        }
+      `}</style>
+
+      {/* 🌌 Smooth Instant Background Particle Animation Backdrop (Zero Loading Spinners, Zero Controls) */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden" aria-hidden="true">
+        <div 
+          className="absolute inset-0 opacity-80"
+          style={{
+            background: 'radial-gradient(circle at 50% 50%, rgba(16,185,129,0.12) 0%, rgba(5,150,105,0.05) 50%, transparent 100%)'
+          }}
+        />
+        {[...Array(24)].map((_, i) => (
+          <span
+            key={`bg-star-${i}`}
+            className="absolute rounded-full bg-emerald-300 pointer-events-none"
+            style={{
+              width: `${2 + (i % 3)}px`,
+              height: `${2 + (i % 3)}px`,
+              top: `${(i * 17 + 7) % 90}%`,
+              left: `${(i * 23 + 13) % 95}%`,
+              opacity: 0.2 + (i % 5) * 0.15,
+              animation: `sakTwinkle ${3 + (i % 4)}s ease-in-out infinite ${i * 0.3}s`
+            }}
+          />
+        ))}
+      </div>
       {isYouTube ? (
         <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden flex items-center justify-center">
           <iframe
