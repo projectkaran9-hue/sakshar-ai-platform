@@ -129,18 +129,18 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
   return (
     <div className={`absolute inset-0 z-0 overflow-hidden pointer-events-none ${className}`}>
       {isYouTube ? (
-        <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden flex items-center justify-center bg-black">
+        <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden flex items-center justify-center">
           <iframe
             src={youtubeEmbedUrl}
             title="Sakshar AI Hero Background Video"
-            className="w-[300%] h-[300%] max-w-none border-0 pointer-events-none select-none"
+            className="absolute -top-[50%] -left-[50%] w-[200%] h-[200%] max-w-none border-0 pointer-events-none select-none"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             tabIndex={-1}
             aria-hidden="true"
             style={{
               opacity: opacity,
               filter: `blur(${blur}px)`,
-              transform: 'scale(2.8) translate(-16%, -16%)',
+              transform: 'scale(1.4)',
               transformOrigin: 'center center',
               pointerEvents: 'none',
               userSelect: 'none'
@@ -164,7 +164,7 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
           controls={false}
           tabIndex={-1}
           aria-hidden="true"
-          className="w-full h-full object-cover transition-opacity duration-700 pointer-events-none select-none"
+          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 pointer-events-none select-none"
           style={{
             opacity: opacity,
             filter: `blur(${blur}px)`,
