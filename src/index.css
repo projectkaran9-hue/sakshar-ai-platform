@@ -748,3 +748,16 @@ video::-webkit-media-controls-play-button-container {
   opacity: 0 !important;
   pointer-events: none !important;
 }
+
+/* Multi-color Animated Letter Rainbow Flow Animation */
+@keyframes sakRainbowFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}

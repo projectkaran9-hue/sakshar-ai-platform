@@ -1977,6 +1977,49 @@ function CountUpStat({ value, suffix, label, accent }) {
   );
 }
 
+
+/**
+ * AnimatedRainbowLetters Component
+ * Splits text into individual letters, applying animated gradient colors & delays for a wave effect.
+ */
+function AnimatedRainbowLetters({ text, className = '', letterDelay = 0.03, speed = '5s', gradient = 'linear-gradient(135deg, #10b981 0%, #06b6d4 25%, #8b5cf6 50%, #ec4899 75%, #f59e0b 100%)' }) {
+  if (!text || typeof text !== 'string') return text;
+  
+  const words = text.split(' ');
+
+  return (
+    <span className={`inline-flex flex-wrap items-center gap-x-[0.22em] ${className}`}>
+      {words.map((word, wIdx) => {
+        let charOffset = words.slice(0, wIdx).join('').length;
+        return (
+          <span key={wIdx} className="inline-block whitespace-nowrap">
+            {word.split('').map((char, cIdx) => {
+              const globalIdx = charOffset + cIdx;
+              return (
+                <span
+                  key={cIdx}
+                  className="inline-block transition-all duration-200 hover:scale-125 hover:-translate-y-1 cursor-default"
+                  style={{
+                    background: gradient,
+                    backgroundSize: '300% 300%',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    animation: `sakRainbowFlow ${speed} ease-in-out infinite`,
+                    animationDelay: `${globalIdx * letterDelay}s`,
+                    display: 'inline-block'
+                  }}
+                >
+                  {char}
+                </span>
+              );
+            })}
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
 export default function App() {
   // ── ONE-TIME INTRO SPLASH SCREEN ──
   // Plays once when the app first opens. sessionStorage keeps it from
@@ -2966,19 +3009,40 @@ export default function App() {
                 <div className="lg:col-span-7 space-y-7 text-left" style={{ animation: 'sakFadeUp 0.7s ease-out both' }}>
 
                   <div className="flex items-center gap-3">
-                    <span className="w-8 h-px bg-emerald-500" />
-                    <span className="text-[11px] font-black tracking-[0.3em] text-emerald-800 uppercase">{t.aiCompanionBadge || 'The AI Literacy Companion'}</span>
+                    <span className="w-8 h-px bg-gradient-to-r from-emerald-500 via-cyan-500 to-purple-500" />
+                    <span className="text-[11px] font-black tracking-[0.3em] uppercase">
+                      <AnimatedRainbowLetters 
+                        text={t.aiCompanionBadge || 'The AI Literacy Companion'} 
+                        speed="4s"
+                        gradient="linear-gradient(135deg, #059669 0%, #10b981 25%, #06b6d4 50%, #8b5cf6 75%, #ec4899 100%)"
+                      />
+                    </span>
                   </div>
 
-                  <h1 className="sak-serif text-5xl sm:text-6xl md:text-7xl leading-[1.08] text-[#1C2D1A]">
-                    {t.landingTitleLine1 || 'Empowering Literacy'}<br />
-                    <em className="italic text-emerald-600 font-black" style={{ textShadow: '0 0 30px rgba(16,185,129,0.2)' }}>
-                      {t.landingTitleLine2 || 'Through AI Intelligence'}
+                  <h1 className="sak-serif text-5xl sm:text-6xl md:text-7xl leading-[1.08]">
+                    <AnimatedRainbowLetters 
+                      text={t.landingTitleLine1 || 'Empowering Literacy'} 
+                      speed="5s"
+                      gradient="linear-gradient(135deg, #047857 0%, #10b981 20%, #06b6d4 40%, #3b82f6 60%, #8b5cf6 80%, #f59e0b 100%)"
+                    />
+                    <br />
+                    <em className="italic font-black inline-block mt-1" style={{ textShadow: '0 0 25px rgba(16,185,129,0.3)' }}>
+                      <AnimatedRainbowLetters 
+                        text={t.landingTitleLine2 || 'Through AI Intelligence'} 
+                        speed="4.5s"
+                        letterDelay={0.04}
+                        gradient="linear-gradient(135deg, #10b981 0%, #06b6d4 25%, #8b5cf6 50%, #ec4899 75%, #f59e0b 100%)"
+                      />
                     </em>
                   </h1>
 
-                  <p className="text-gray-700 text-base sm:text-lg max-w-xl leading-relaxed font-semibold">
-                    {t.landingSub}
+                  <p className="text-base sm:text-lg max-w-xl leading-relaxed font-semibold">
+                    <AnimatedRainbowLetters 
+                      text={t.landingSub} 
+                      speed="7s"
+                      letterDelay={0.015}
+                      gradient="linear-gradient(135deg, #065f46 0%, #047857 25%, #0d9488 50%, #2563eb 75%, #7c3aed 100%)"
+                    />
                   </p>
 
                   {/* Secondary interactive element: voice language auto-detect */}
