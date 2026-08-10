@@ -1259,41 +1259,6 @@ const AdminDashboard = ({
             </nav>
           </div>
 
-          {/* 🌟 Floating Bottom AI INSIGHT Card from Screenshot */}
-          <div className="p-4 rounded-3xl bg-gradient-to-b from-purple-950/80 to-slate-900/90 border border-purple-500/30 text-white space-y-3 relative overflow-hidden shadow-xl">
-            <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-amber-400">
-              <span className="flex items-center gap-1">
-                <span>★</span> AI INSIGHT
-              </span>
-              <button 
-                type="button" 
-                onClick={() => showToast('AI Insight dismissed')}
-                className="text-slate-400 hover:text-white"
-              >
-                ✕
-              </button>
-            </div>
-            <p className="text-[11px] font-medium text-purple-100/90 leading-snug">
-              Hindi track is leading this week! Consider increasing resources for Telugu track.
-            </p>
-
-            {/* Sparkline Curve SVG */}
-            <div className="h-8">
-              <svg className="w-full h-full" viewBox="0 0 100 30">
-                <path d="M0,25 Q25,10 50,20 T100,5" fill="none" stroke="#a855f7" strokeWidth="2" />
-                <circle cx="100" cy="5" r="2.5" fill="#e9d5ff" />
-              </svg>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setShowAiInsightModal(true)}
-              className="w-full py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-black rounded-xl transition cursor-pointer shadow-md shadow-purple-500/30"
-            >
-              View Details
-            </button>
-          </div>
-
           {/* Admin Profile Footer Card & Sign Out */}
           <div className="pt-4 border-t border-slate-800 space-y-3">
             <div className="flex items-center gap-3">
@@ -4218,49 +4183,8 @@ const AdminDashboard = ({
       )}
 
 
-      {/* 🌟 AI INSIGHT DETAILS MODAL */}
-      {showAiInsightModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-md animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-lg bg-white rounded-3xl p-6 shadow-2xl border border-purple-100 space-y-5 relative animate-scale-up">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-black text-purple-950 flex items-center gap-2">
-                <span>★</span> AI Recommendation Insights
-              </h3>
-              <button 
-                onClick={() => setShowAiInsightModal(false)}
-                className="text-slate-400 hover:text-slate-700 text-lg font-bold"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-4 text-xs font-medium text-slate-700">
-              <div className="p-4 bg-purple-50 rounded-2xl border border-purple-200 text-purple-900 space-y-1">
-                <p className="font-extrabold">Hindi Track Optimization (40% Load)</p>
-                <p className="text-[11px] text-purple-800">Hindi track assessments are performing with 88% average score. High engagement observed in Phonics and Word Formation modules.</p>
-              </div>
-
-              <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-amber-900 space-y-1">
-                <p className="font-extrabold">Telugu Track Scaling Suggestion (22% Load)</p>
-                <p className="text-[11px] text-amber-800">Telugu track usage increased 14.2% this week. Recommending expanding conversational practice exercises and voice evaluation servers for Telugu learners.</p>
-              </div>
-            </div>
-
-            <div className="pt-2 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowAiInsightModal(false)}
-                className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-black text-xs rounded-2xl shadow-md cursor-pointer"
-              >
-                Close & Apply Optimization
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    
     </div>
   );
-};
+}
 
 export default AdminDashboard;
