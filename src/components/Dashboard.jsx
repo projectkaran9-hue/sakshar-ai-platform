@@ -3783,6 +3783,22 @@ function WordDuelGame({ lang, isMuted, onAwardXP, onBack }) {
 export default function Dashboard({ userId, fullName, lang, educationalLevel, age, tutorVoiceUri, onLogout, onProfileUpdate, onLanguagePreview, onNavigateToPremium, t }) {
   const [activeTab, setActiveTab] = useState('all');
   const [activeModule, setActiveModule] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToGlobalSync((event) => {
+      if (!event || !event.type) return;
+      if (event.type === 'PUSH_BROADCAST' && event.payload) {
+        // Show a toast notification to the learner
+      }
+      if (event.type === 'COURSE_UPDATE') {
+        // Force re-render or update courses
+      }
+      if (event.type === 'SYSTEM_SETTINGS_UPDATED') {
+        // Update AI engine settings if displayed
+      }
+    });
+    return () => unsubscribe();
+  }, []);
   // Incremented after every successful assessment submission to trigger instant history refresh
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const triggerHistoryRefresh = () => setHistoryRefreshKey(k => k + 1);

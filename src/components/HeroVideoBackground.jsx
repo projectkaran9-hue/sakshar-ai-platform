@@ -1,8 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { subscribeToGlobalSync } from '../services/realtimeSync';
-import { fetchSystemConfigDB } from '../services/db';
-
-// IndexedDB Helper for storing large custom video background files (no 5MB localStorage limit)
+import React, { useState, useEffect, useRef } from 'react';// IndexedDB Helper for storing large custom video background files (no 5MB localStorage limit)
 const DB_NAME = 'SaksharVideoDB';
 const DB_VERSION = 1;
 const STORE_NAME = 'video_files';
@@ -68,16 +64,7 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
   const [videoSrc, setVideoSrc] = useState(config?.url || '');
   const [isReady, setIsReady] = useState(false);
 
-    // Fetch latest cloud background config on mount so mobile phones get admin updates instantly
-    useEffect(() => {
-      let isMounted = true;
-      fetchSystemConfigDB('hero_bg_config', null).then((cloudConfig) => {
-        if (isMounted && cloudConfig) {
-          setConfig(cloudConfig);
-        }
-      });
-      return () => { isMounted = false; };
-    }, []);
+
 
   const videoRef = useRef(null);
 

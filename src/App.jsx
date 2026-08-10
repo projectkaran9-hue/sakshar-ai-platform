@@ -2040,6 +2040,12 @@ export default function App() {
         setAuthBgConfig(event.payload);
       } else if (event.type === 'PUSH_BROADCAST' && event.payload) {
         // Broadcast alerts
+      } else if (event.type === 'COURSE_UPDATE') {
+        // Course update
+      } else if (event.type === 'SYSTEM_SETTINGS_UPDATED') {
+        // System settings
+      } else if (event.type === 'STUDENT_UPDATED') {
+        // Student update
       }
     });
 
@@ -2061,6 +2067,18 @@ export default function App() {
   const [contentRevealed, setContentRevealed] = useState(true);
 
   
+  useEffect(() => {
+    const loadCloudConfigs = async () => {
+      try {
+        const cloudHero = await fetchSystemConfigDB('hero_bg_config', null);
+        if (cloudHero) setBgVideoConfig(cloudHero);
+        const cloudAuth = await fetchSystemConfigDB('auth_bg_config', null);
+        if (cloudAuth) setAuthBgConfig(cloudAuth);
+      } catch (e) { console.warn('[Cloud Config] Load notice:', e); }
+    };
+    loadCloudConfigs();
+  }, []);
+
   // Guarantee application is always visible and contentRevealed is true
   useEffect(() => {
     const fallbackTimer = setTimeout(() => {

@@ -392,6 +392,8 @@ const AdminDashboard = ({
         status: 'Delivered'
       };
       setPushHistory(prev => [newLog, ...prev]);
+      saveSystemConfigDB('push_history', [newLog, ...pushHistory]);
+      broadcastAdminUpdate('PUSH_BROADCAST', { title: pushTitle, body: pushBody, target: targetLabel });
 
       showToast(`🚀 Web Push Broadcast Sent to ${newLog.count} Active Learners!`);
     } catch (err) {
@@ -545,6 +547,13 @@ const AdminDashboard = ({
       }
     }
 
+    const updatedStudents = students.map(s => s.id === editingStudent.id ? {
+      ...s,
+      name: editName,
+      lang: editLang,
+      level: editLevel
+    } : s);
+    broadcastAdminUpdate('STUDENT_UPDATED', updatedStudents);
     setEditingStudent(null);
     showToast(`✓ Updated profile for "${editName}"`);
   };
@@ -553,6 +562,7 @@ const AdminDashboard = ({
     if (confirm(`Are you sure you want to remove student "${studentName}"?`)) {
       setStudents(prev => prev.filter(s => s.id !== studentId));
       await deleteStudentDB(studentId);
+      broadcastAdminUpdate('STUDENT_UPDATED', { deleted: studentId });
       showToast(`✓ Deleted student "${studentName}" from Database`);
     }
   };
@@ -745,6 +755,7 @@ const AdminDashboard = ({
     };
     setCourses([newCourse, ...courses]);
     await insertCourseDB(newCourse);
+    broadcastAdminUpdate('COURSE_UPDATE', { action: 'created', course: newCourse });
     setNewCourseTitle('');
     setNewCourseModules([
       { id: 'm-1', title: 'Module 1: Introduction & Alphabet Tracing', type: 'Tracing & Handwriting', xp: 25 },
@@ -761,11 +772,14 @@ const AdminDashboard = ({
 
   const handleSaveCourseEdit = () => {
     if (!editingCourse) return;
-    setCourses(prev => prev.map(c => c.id === editingCourse.id ? {
+    const updatedCourses = courses.map(c => c.id === editingCourse.id ? {
       ...c,
       title: editCourseTitle,
       lessons: Number(editCourseLessons) || 10
-    } : c));
+    } : c);
+    setCourses(updatedCourses);
+    saveSystemConfigDB('courses_list', updatedCourses);
+    broadcastAdminUpdate('COURSE_UPDATE', { action: 'edited', courses: updatedCourses });
     setEditingCourse(null);
     showToast(`✓ Updated course modules!`);
   };
@@ -773,6 +787,7 @@ const AdminDashboard = ({
   const handleDeleteCourse = (courseId, title) => {
     if (confirm(`Are you sure you want to delete course "${title}"?`)) {
       setCourses(prev => prev.filter(c => c.id !== courseId));
+      broadcastAdminUpdate('COURSE_UPDATE', { action: 'deleted', courseId: courseId });
       showToast(`✓ Course "${title}" deleted.`);
     }
   };
@@ -786,6 +801,7 @@ const AdminDashboard = ({
       }
       return c;
     }));
+    broadcastAdminUpdate('COURSE_UPDATE', { action: 'status_toggled' });
   };
 
   // ════════════════ DYNAMIC CALENDAR EVENTS DATA ════════════════
@@ -873,12 +889,16 @@ const AdminDashboard = ({
   const handleSelectAiEngine = (engineName) => {
     setSelectedAiModel(engineName);
     localStorage.setItem('sakshar_active_ai_engine', engineName);
+    saveSystemConfigDB('ai_engine', engineName);
+    broadcastAdminUpdate('SYSTEM_SETTINGS_UPDATED', { setting: 'ai_engine', value: engineName });
     showToast(`✓ Switched Active AI Tutor Engine to "${engineName}" for all Learners!`);
   };
 
   const handleSelectAiEvaluator = (evaluatorName) => {
     setSelectedAiEvaluator(evaluatorName);
     localStorage.setItem('sakshar_active_ai_evaluator', evaluatorName);
+    saveSystemConfigDB('ai_evaluator', evaluatorName);
+    broadcastAdminUpdate('SYSTEM_SETTINGS_UPDATED', { setting: 'ai_evaluator', value: evaluatorName });
     showToast(`✓ Switched AI Evaluation Engine to "${evaluatorName}"!`);
   };
 
@@ -886,6 +906,8 @@ const AdminDashboard = ({
     const nextState = !autoFailoverEnabled;
     setAutoFailoverEnabled(nextState);
     localStorage.setItem('sakshar_auto_token_failover', String(nextState));
+    saveSystemConfigDB('ai_auto_failover', nextState);
+    broadcastAdminUpdate('SYSTEM_SETTINGS_UPDATED', { setting: 'auto_failover', value: nextState });
     showToast(nextState ? '✓ Auto-Failover Enabled: Will switch to Local Engine if Token Limit exhausts' : '⚠️ Auto-Failover Disabled');
   };
 
@@ -987,6 +1009,7 @@ const AdminDashboard = ({
     }));
 
     setEditingModuleContent(null);
+    broadcastAdminUpdate('COURSE_UPDATE', { action: 'module_updated' });
     showToast(`✓ Saved ${moduleContentsList.length} content items (Videos/Reading/Quizzes) for "${targetMod.title}"!`);
   };
 
