@@ -4,6 +4,7 @@ import { updateUserProfileTable } from '../services/db';
 import { supabase } from '../services/supabase';
 import { localStories, languagePhrases } from '../data/contentMatrix';
 import PushNotificationManager from './PushNotificationManager';
+import { subscribeToGlobalSync } from '../services/realtimeSync';
 import CourseFlow from './CourseFlow';
 import LessonPage from './LessonPage';
 import { LESSON_QUIZZES, getQuizForLesson } from '../data/lessonQuizzes';

@@ -479,6 +479,7 @@ const AdminDashboard = ({
     setNewStudentEmail('');
     setShowAddStudentModal(false);
     showToast(`✓ Added student "${newStudent.name}" to Database!`);
+    broadcastAdminUpdate('STUDENT_UPDATED', newStudent);
   };
 
   // Modal 2: Edit Student
