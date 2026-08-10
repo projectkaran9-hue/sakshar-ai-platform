@@ -1235,6 +1235,41 @@ const AdminDashboard = ({
             </nav>
           </div>
 
+          {/* 🌟 Floating Bottom AI INSIGHT Card from Screenshot */}
+          <div className="p-4 rounded-3xl bg-gradient-to-b from-purple-950/80 to-slate-900/90 border border-purple-500/30 text-white space-y-3 relative overflow-hidden shadow-xl">
+            <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-amber-400">
+              <span className="flex items-center gap-1">
+                <span>★</span> AI INSIGHT
+              </span>
+              <button 
+                type="button" 
+                onClick={() => showToast('AI Insight dismissed')}
+                className="text-slate-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-[11px] font-medium text-purple-100/90 leading-snug">
+              Hindi track is leading this week! Consider increasing resources for Telugu track.
+            </p>
+
+            {/* Sparkline Curve SVG */}
+            <div className="h-8">
+              <svg className="w-full h-full" viewBox="0 0 100 30">
+                <path d="M0,25 Q25,10 50,20 T100,5" fill="none" stroke="#a855f7" strokeWidth="2" />
+                <circle cx="100" cy="5" r="2.5" fill="#e9d5ff" />
+              </svg>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowAiInsightModal(true)}
+              className="w-full py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-black rounded-xl transition cursor-pointer shadow-md shadow-purple-500/30"
+            >
+              View Details
+            </button>
+          </div>
+
           {/* Admin Profile Footer Card & Sign Out */}
           <div className="pt-4 border-t border-slate-800 space-y-3">
             <div className="flex items-center gap-3">
@@ -1259,424 +1294,426 @@ const AdminDashboard = ({
         <main className="flex-1 flex flex-col min-w-0 bg-[#F8FAFC]">
           
           {/* TOP HEADER BAR */}
-          <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-6 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0 shadow-sm">
+          <header className="bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-6 py-3.5 flex flex-col lg:flex-row items-center justify-between gap-4 shrink-0 shadow-sm">
             <div className="flex items-center gap-3">
-              <h2 className="text-xl font-black text-slate-900 tracking-tight capitalize">
-                {activeTab === 'dashboard' ? 'Dashboard' :
-                 activeTab === 'students' ? 'Users / Reports' :
-                 activeTab === 'profile' ? 'Profile / Profile Overview' :
-                 activeTab === 'courses' ? 'Applications / Course Manager' :
-                 activeTab === 'calendar' ? 'Applications / Calendar' :
-                 activeTab === 'push-notifications' ? 'Applications / Push Broadcaster' :
-                  activeTab === 'video-bg' ? 'Applications / Backgrounds Control' :
-                 activeTab === 'settings' ? 'Authentication & System Config' : 'Analytics Overview'}
+              <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                Analytics Overview
               </h2>
-              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 flex items-center gap-1.5 shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
                 Live Platform Sync
               </span>
             </div>
 
-            {/* Pill Search Bar */}
-            <div className="relative w-full sm:w-80">
-              <span className="absolute inset-y-0 left-3.5 flex items-center text-slate-400 text-sm">🔍</span>
-              <input
-                type="text"
-                placeholder="Search anything here..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-full text-xs font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 transition"
-              />
-              {searchQuery && (
-                <button 
-                  onClick={() => setSearchQuery('')}
-                  className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 text-xs font-bold"
+            <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+              {/* Pill Search Bar */}
+              <div className="relative flex-1 sm:w-64">
+                <span className="absolute inset-y-0 left-3.5 flex items-center text-slate-400 text-xs">🔍</span>
+                <input
+                  type="text"
+                  placeholder="Search anything here..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-full text-xs font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 transition"
+                />
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery('')}
+                    className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 text-xs font-bold"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {/* Date Range Selector */}
+              <div className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-700 shadow-sm">
+                <span>📅</span>
+                <select
+                  value={dateRangeFilter}
+                  onChange={(e) => {
+                    setDateRangeFilter(e.target.value);
+                    showToast(`✓ Filtered Analytics Date Range: ${e.target.value}`);
+                  }}
+                  className="bg-transparent border-none text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
                 >
-                  ✕
-                </button>
-              )}
+                  <option>May 6 – Jun 5, 2025</option>
+                  <option>Last 7 Days</option>
+                  <option>Last 30 Days</option>
+                  <option>This Month</option>
+                  <option>All Time</option>
+                </select>
+              </div>
+
+              {/* Export Report Button */}
+              <button
+                type="button"
+                onClick={handleExportAnalyticsReport}
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-black text-xs rounded-2xl shadow-md shadow-purple-500/25 transition cursor-pointer flex items-center gap-1.5 shrink-0"
+              >
+                <span>📥</span> Export Report
+              </button>
             </div>
           </header>
 
           {/* VIEW TAB CONTENTS */}
           <div className="flex-1 p-4 sm:p-6 overflow-y-auto scrollbar-thin space-y-6">
             
-            {/* ════════════════ VIEW 1: MAIN DASHBOARD ════════════════ */}
-            {activeTab === 'dashboard' && (
-              <div className="space-y-6 animate-fade-in">
-                
-                {/* TOP GRID: ACTIVE USERS BAR CHART + PLATFORM ACCOMPLISHMENTS CARD */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  
-                  {/* Active Users Right Now Card (2 Cols) */}
-                  <div className="lg:col-span-2 bg-white/95 backdrop-blur-xl rounded-3xl border border-slate-200/80 p-6 shadow-[0_15px_40px_-15px_rgba(0,0,0,0.06)] flex flex-col justify-between space-y-4 hover:shadow-xl transition-all duration-300">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active users right now</p>
-                        <h3 className="text-4xl font-black text-purple-700 mt-1">342</h3>
-                      </div>
-                      <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 animate-pulse">
-                        ⚡ Live Sync Active
-                      </span>
-                    </div>
+            {/* ════════════════ VIEW 1: MAIN DASHBOARD & ANALYTICS OVERVIEW ════════════════ */}
+            {(activeTab === 'dashboard' || activeTab === 'analytics') && (
+              <div className="space-y-6 animate-fade-in text-slate-800">
 
-                    {/* Interactive Sparkline Bar Chart Visualization */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-[11px]">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-semibold text-slate-500">Page views ({sparklineTimeframe})</span>
-                          {hoveredBarIndex !== null && (
-                            <span className="bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded text-[10px] animate-fade-in">
-                              📊 {currentSparklineData[hoveredBarIndex]} views
-                            </span>
-                          )}
-                        </div>
-                        
-                        {/* Timeframe Controls */}
-                        <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
-                          {['30m', '24h', '7d'].map((tf) => (
-                            <button
-                              key={tf}
-                              onClick={() => {
-                                setSparklineTimeframe(tf);
-                                showToast(`✓ Graph updated to ${tf === '30m' ? '30 Mins' : tf === '24h' ? '24 Hours' : '7 Days'}`);
-                              }}
-                              className={`px-2 py-0.5 text-[10px] font-bold rounded-md transition cursor-pointer ${
-                                sparklineTimeframe === tf ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'
-                              }`}
-                            >
-                              {tf}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <div className="h-32 flex items-end justify-between gap-2 pt-4 px-2 border-b border-slate-100 relative">
-                        {currentSparklineData.map((val, i) => (
-                          <div 
-                            key={i} 
-                            onMouseEnter={() => setHoveredBarIndex(i)}
-                            onMouseLeave={() => setHoveredBarIndex(null)}
-                            onClick={() => showToast(`Bar #${i+1}: ${val} active pageviews`)}
-                            className="flex-1 flex flex-col items-center gap-1 group relative cursor-pointer h-full justify-end"
-                          >
-                            {/* Hover Tooltip Popup */}
-                            {hoveredBarIndex === i && (
-                              <div className="absolute -top-7 z-20 bg-slate-900 text-white text-[9px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap animate-scale-up">
-                                {val} Views
-                              </div>
-                            )}
-
-                            <div 
-                              className={`w-full rounded-t-md transition-all duration-300 relative ${
-                                hoveredBarIndex === i ? 'bg-purple-700 ring-2 ring-purple-400' : 'bg-purple-500 group-hover:bg-purple-600'
-                              }`}
-                              style={{ height: `${(val / maxSparklinePeak) * 100}%` }}
-                            >
-                              <div className="w-2 h-2 rounded-full bg-purple-800 absolute -top-1 left-1/2 -translate-x-1/2 shadow-sm" />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <p className="text-[10px] text-slate-400 italic pt-1 flex items-center justify-between">
-                        <span>Click any bar to inspect peak metrics</span>
-                        <span className="font-mono text-purple-700 font-bold">Peak: {maxSparklinePeak} Views</span>
-                      </p>
-                    </div>
-
-                    {/* 4 Bottom KPI Mini Cards */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                      <div className="bg-gradient-to-br from-purple-50/80 to-purple-100/40 border border-purple-200/60 p-3.5 rounded-2xl shadow-sm hover:scale-105 transition-transform duration-200">
-                        <div className="flex items-center gap-2 text-xs font-bold text-purple-700">
-                          <span className="p-1 rounded-lg bg-purple-200/60">👥</span>
-                          <span>Users</span>
-                        </div>
-                        <p className="text-xl font-black text-slate-800 mt-1">{students.length + 35414}</p>
-                        <div className="w-full bg-purple-200 h-1.5 rounded-full mt-2 overflow-hidden">
-                          <div className="bg-purple-600 h-full w-[78%]" />
-                        </div>
-                      </div>
-
-                      <div className="bg-gradient-to-br from-emerald-50/80 to-emerald-100/40 border border-emerald-200/60 p-3.5 rounded-2xl shadow-sm hover:scale-105 transition-transform duration-200">
-                        <div className="flex items-center gap-2 text-xs font-bold text-emerald-700">
-                          <span className="p-1 rounded-lg bg-emerald-200/60">🖱️</span>
-                          <span>Clicks</span>
-                        </div>
-                        <p className="text-xl font-black text-slate-800 mt-1">1.2m</p>
-                        <div className="w-full bg-emerald-200 h-1.5 rounded-full mt-2 overflow-hidden">
-                          <div className="bg-emerald-500 h-full w-[65%]" />
-                        </div>
-                      </div>
-
-                      <div className="bg-gradient-to-br from-rose-50/80 to-rose-100/40 border border-rose-200/60 p-3.5 rounded-2xl shadow-sm hover:scale-105 transition-transform duration-200">
-                        <div className="flex items-center gap-2 text-xs font-bold text-rose-700">
-                          <span className="p-1 rounded-lg bg-rose-200/60">🏷️</span>
-                          <span>Assessed</span>
-                        </div>
-                        <p className="text-xl font-black text-slate-800 mt-1">2.8k</p>
-                        <div className="w-full bg-rose-200 h-1.5 rounded-full mt-2 overflow-hidden">
-                          <div className="bg-rose-500 h-full w-[88%]" />
-                        </div>
-                      </div>
-
-                      <div className="bg-gradient-to-br from-cyan-50/80 to-cyan-100/40 border border-cyan-200/60 p-3.5 rounded-2xl shadow-sm hover:scale-105 transition-transform duration-200">
-                        <div className="flex items-center gap-2 text-xs font-bold text-cyan-700">
-                          <span className="p-1 rounded-lg bg-cyan-200/60">📦</span>
-                          <span>Courses</span>
-                        </div>
-                        <p className="text-xl font-black text-slate-800 mt-1">{courses.length}</p>
-                        <div className="w-full bg-cyan-200 h-1.5 rounded-full mt-2 overflow-hidden">
-                          <div className="bg-cyan-500 h-full w-[65%]" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Learning Accomplishments Summary Card (1 Col) */}
-                  <div className="bg-white/95 backdrop-blur-xl rounded-3xl border border-slate-200/80 p-6 shadow-[0_15px_40px_-15px_rgba(0,0,0,0.06)] flex flex-col justify-between space-y-6 hover:shadow-xl transition-all duration-300">
+                {/* ── SECTION 1: PLATFORM ANALYTICS & INTERACTIVE LANGUAGE GRAPHS ── */}
+                <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                      <h4 className="text-sm font-bold text-slate-500">Total Assessments Passed</h4>
-                      <p className="text-4xl font-black text-purple-700 mt-2">2,845</p>
-                      <p className="text-xs text-slate-400 mt-2 leading-relaxed">84.5% overall placement accuracy across 20 regional languages.</p>
-                    </div>
-
-                    <div className="p-4 bg-purple-50 rounded-2xl border border-purple-100 space-y-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600 block font-mono">Platform Health</span>
-                      <p className="text-xs font-black text-purple-900">20 Regional Languages Active</p>
-                    </div>
-
-                    <div className="border-t border-slate-100 pt-4 space-y-3">
-                      <h5 className="text-xs font-bold text-slate-700">Top Performing Modules</h5>
-                      
-                      {[
-                        { title: 'Devanagari Tracing Kit', desc: 'Popular alphabet module', icon: '✍️', color: 'bg-purple-100 text-purple-600' },
-                        { title: 'Phonics Audio Match', desc: 'Speech recognition set', icon: '🔊', color: 'bg-emerald-100 text-emerald-600' },
-                        { title: 'Marketplace Dialogues', desc: 'Conversational phrasing', icon: '🗣️', color: 'bg-rose-100 text-rose-600' },
-                      ].map((item, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition cursor-pointer">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-9 h-9 rounded-xl ${item.color} flex items-center justify-center font-bold text-sm shrink-0`}>
-                              {item.icon}
-                            </div>
-                            <div>
-                              <p className="text-xs font-bold text-slate-800 leading-tight">{item.title}</p>
-                              <p className="text-[10px] text-slate-400">{item.desc}</p>
-                            </div>
-                          </div>
-                          <span className="text-slate-400 text-xs">›</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                </div>
-
-                {/* BOTTOM GRID: USAGE BY AGE CHART & BEST TIME BAR CHART */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  
-                  {/* Interactive Learners by Age Group */}
-                  <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-bold text-slate-800">Learners & Usage by Age</h4>
-                      <div className="flex items-center gap-1">
-                        {selectedAgeGroup && (
-                          <button 
-                            onClick={() => setSelectedAgeGroup(null)}
-                            className="text-[10px] font-bold text-purple-600 hover:underline mr-2"
-                          >
-                            Reset Filter
-                          </button>
-                        )}
-                        <span className="text-xs text-purple-600 font-bold">● Active Learners</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4 pt-2">
-                      {[
-                        { group: '18 to 24', pct: '45%', count: '15,800 students', score: '94% Pass Rate', color: 'bg-purple-600' },
-                        { group: '25 to 34', pct: '32%', count: '11,200 students', score: '88% Pass Rate', color: 'bg-[#58CC02]' },
-                        { group: '35 to 44', pct: '15%', count: '5,300 students', score: '82% Pass Rate', color: 'bg-[#1CB0F6]' },
-                        { group: '45+', pct: '8%', count: '2,800 students', score: '76% Pass Rate', color: 'bg-[#FF9600]' },
-                      ].map((item, i) => {
-                        const isSelected = selectedAgeGroup === item.group;
-
-                        return (
-                          <div 
-                            key={i} 
-                            onClick={() => {
-                              setSelectedAgeGroup(isSelected ? null : item.group);
-                              showToast(`Filter: ${item.group} (${item.count} · ${item.score})`);
-                            }}
-                            className={`space-y-1.5 p-2.5 rounded-2xl transition cursor-pointer border ${
-                              isSelected ? 'bg-purple-50 border-purple-300 ring-2 ring-purple-400/20 shadow-sm' : 'border-transparent hover:bg-slate-50'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                              <div className="flex items-center gap-2">
-                                <span>{item.group}</span>
-                                {isSelected && <span className="text-[10px] bg-purple-200 text-purple-800 px-2 py-0.5 rounded-full">Active Filter</span>}
-                              </div>
-                              <span className="text-slate-500">{item.pct} ({item.count}) · <strong className="text-purple-700">{item.score}</strong></span>
-                            </div>
-                            <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden p-0.5 border border-slate-200/60">
-                              <div className={`${item.color} h-full rounded-full transition-all duration-500`} style={{ width: item.pct }} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Interactive Peak Platform Activity Hours Bar Chart */}
-                  <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-bold text-slate-800">Peak Platform Activity</h4>
-                      
-                      {/* View Mode Toggle Controls */}
-                      <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-bold">
-                        <button
-                          onClick={() => {
-                            setActivityViewMode('days');
-                            showToast('✓ Switched graph to Weekly Days View');
-                          }}
-                          className={`px-2.5 py-0.5 rounded-md transition cursor-pointer ${
-                            activityViewMode === 'days' ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'
-                          }`}
-                        >
-                          Days
-                        </button>
-                        <button
-                          onClick={() => {
-                            setActivityViewMode('hours');
-                            showToast('✓ Switched graph to Hourly Peak View');
-                          }}
-                          className={`px-2.5 py-0.5 rounded-md transition cursor-pointer ${
-                            activityViewMode === 'hours' ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'
-                          }`}
-                        >
-                          Hours
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="h-44 flex items-end justify-between gap-3 pt-6 px-2 border-b border-slate-100">
-                      {currentActivityData.map((item, i) => (
-                        <div 
-                          key={i} 
-                          onClick={() => showToast(`Peak Traffic on ${item.label}: ${item.count} active learners`)}
-                          className="flex-1 flex flex-col items-center gap-2 group cursor-pointer h-full justify-end"
-                        >
-                          <div 
-                            className="w-full bg-purple-200 group-hover:bg-purple-600 rounded-xl transition-all duration-300 relative"
-                            style={{ height: `${item.pct}%` }}
-                          >
-                            <div className="opacity-0 group-hover:opacity-100 absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow-md whitespace-nowrap transition">
-                              {item.count} Users
-                            </div>
-                          </div>
-                          <span className="text-[10px] font-bold text-slate-500 group-hover:text-purple-700">
-                            {item.label}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-[10px] text-slate-400 italic">Click any bar to inspect exact student traffic count</p>
-                  </div>
-
-                </div>
-
-              </div>
-            )}
-
-            {/* ════════════════ VIEW 2: ANALYTICS OVERVIEW ════════════════ */}
-            {activeTab === 'analytics' && (
-              <div className="space-y-6 animate-fade-in">
-                <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-6">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                      <h3 className="text-base font-black text-slate-900">Platform Analytics & Interactive Language Graphs</h3>
-                      <p className="text-xs text-slate-500 font-medium">Select any regional language track to filter pass rates & engagement metrics</p>
+                      <h3 className="text-lg font-black text-slate-900">Platform Analytics & Interactive Language Graphs</h3>
+                      <p className="text-xs text-slate-500 font-semibold">Select any regional language track to filter pass rates & engagement metrics</p>
                     </div>
                     
-                    {/* Interactive Language Filter Dropdown */}
-                    <select
-                      value={selectedAnalyticsLang}
-                      onChange={(e) => {
-                        setSelectedAnalyticsLang(e.target.value);
-                        showToast(`✓ Filtered analytics graph for ${e.target.value} Track`);
-                      }}
-                      className="px-3.5 py-2 bg-purple-50 border border-purple-200 rounded-xl text-xs font-bold text-purple-700 focus:outline-none cursor-pointer"
-                    >
-                      <option value="Hindi">Hindi Track (40%)</option>
-                      <option value="Telugu">Telugu Track (22%)</option>
-                      <option value="Bengali">Bengali Track (18%)</option>
-                      <option value="Tamil">Tamil Track (12%)</option>
-                      <option value="Marathi">Marathi Track (8%)</option>
-                    </select>
+                    {/* Track Dropdown Filter */}
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={activeLanguageTrack}
+                        onChange={(e) => {
+                          setActiveLanguageTrack(e.target.value);
+                          showToast(`✓ Filtered Analytics to ${e.target.value.toUpperCase()} Track`);
+                        }}
+                        className="px-4 py-2 bg-purple-50/70 border border-purple-200 rounded-2xl text-xs font-black text-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500/30 cursor-pointer"
+                      >
+                        <option value="hindi">Hindi Track (40%)</option>
+                        <option value="telugu">Telugu Track (22%)</option>
+                        <option value="bengali">Bengali Track (18%)</option>
+                        <option value="tamil">Tamil Track (12%)</option>
+                        <option value="marathi">Marathi Track (8%)</option>
+                      </select>
+                    </div>
                   </div>
 
+                  {/* 3 LANGUAGE TRACK CARDS GRID */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {[
-                      { lang: 'Hindi', count: '14,200', pct: 40, color: 'bg-purple-600', bg: 'bg-purple-50', border: 'border-purple-100', text: 'text-purple-600' },
-                      { lang: 'Telugu', count: '7,800', pct: 22, color: 'bg-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', text: 'text-emerald-600' },
-                      { lang: 'Bengali', count: '6,400', pct: 18, color: 'bg-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', text: 'text-blue-600' },
-                    ].map((track) => {
-                      const isSelected = selectedAnalyticsLang === track.lang;
-
-                      return (
-                        <div 
-                          key={track.lang} 
-                          onClick={() => {
-                            setSelectedAnalyticsLang(track.lang);
-                            showToast(`Selected ${track.lang} Track: ${track.count} active learners`);
-                          }}
-                          className={`p-4 rounded-2xl border transition cursor-pointer ${track.bg} ${track.border} ${
-                            isSelected ? 'ring-2 ring-purple-500 shadow-md scale-102' : 'hover:opacity-90'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className={`text-[10px] font-bold uppercase ${track.text}`}>{track.lang} Track</span>
-                            {isSelected && <span className="text-[9px] bg-white px-2 py-0.5 rounded-full font-bold shadow-sm">Selected</span>}
-                          </div>
-                          <p className="text-2xl font-black text-slate-800 mt-1">{track.count} <span className={`text-xs ${track.text}`}>({track.pct}%)</span></p>
-                          <div className="w-full bg-white/80 h-2 rounded-full overflow-hidden mt-3 border border-black/5">
-                            <div className={`${track.color} h-full rounded-full transition-all duration-500`} style={{ width: `${track.pct}%` }} />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="pt-4 border-t border-slate-100 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-bold text-slate-700">Assessment Pass Rates ({selectedAnalyticsLang} Track)</h4>
-                      <span className="text-xs font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-full border border-purple-100">
-                        Average Score: {selectedAnalyticsLang === 'Hindi' ? '88%' : selectedAnalyticsLang === 'Telugu' ? '85%' : '82%'}
-                      </span>
+                    
+                    {/* HINDI TRACK CARD */}
+                    <div
+                      onClick={() => {
+                        setActiveLanguageTrack('hindi');
+                        showToast('Selected Hindi Track');
+                      }}
+                      className={`p-5 rounded-3xl border transition-all duration-300 cursor-pointer relative overflow-hidden ${
+                        activeLanguageTrack === 'hindi'
+                          ? 'bg-purple-50/70 border-purple-400 ring-2 ring-purple-500/20 shadow-md scale-[1.02]'
+                          : 'bg-slate-50/60 border-slate-200/80 hover:bg-slate-100/80'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-700">HINDI TRACK</span>
+                        {activeLanguageTrack === 'hindi' && (
+                          <span className="text-[10px] font-black bg-purple-600 text-white px-2 py-0.5 rounded-full flex items-center gap-1">
+                            ✓ Selected
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-2 flex items-baseline gap-2">
+                        <h4 className="text-3xl font-black text-slate-900">14,200</h4>
+                        <span className="text-sm font-bold text-purple-600">(40%)</span>
+                      </div>
+                      <div className="w-full bg-slate-200 h-2 rounded-full mt-3 overflow-hidden">
+                        <div className="bg-purple-600 h-full w-[40%] transition-all duration-500" />
+                      </div>
+                      <p className="text-[11px] text-slate-400 font-medium mt-2">40% of total assessments</p>
                     </div>
 
-                    <div className="space-y-3">
+                    {/* TELUGU TRACK CARD */}
+                    <div
+                      onClick={() => {
+                        setActiveLanguageTrack('telugu');
+                        showToast('Selected Telugu Track');
+                      }}
+                      className={`p-5 rounded-3xl border transition-all duration-300 cursor-pointer relative overflow-hidden ${
+                        activeLanguageTrack === 'telugu'
+                          ? 'bg-emerald-50/70 border-emerald-400 ring-2 ring-emerald-500/20 shadow-md scale-[1.02]'
+                          : 'bg-slate-50/60 border-slate-200/80 hover:bg-slate-100/80'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">TELUGU TRACK</span>
+                        {activeLanguageTrack === 'telugu' && (
+                          <span className="text-[10px] font-black bg-emerald-600 text-white px-2 py-0.5 rounded-full flex items-center gap-1">
+                            ✓ Selected
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-2 flex items-baseline gap-2">
+                        <h4 className="text-3xl font-black text-slate-900">7,800</h4>
+                        <span className="text-sm font-bold text-emerald-600">(22%)</span>
+                      </div>
+                      <div className="w-full bg-slate-200 h-2 rounded-full mt-3 overflow-hidden">
+                        <div className="bg-emerald-500 h-full w-[22%] transition-all duration-500" />
+                      </div>
+                      <p className="text-[11px] text-slate-400 font-medium mt-2">22% of total assessments</p>
+                    </div>
+
+                    {/* BENGALI TRACK CARD */}
+                    <div
+                      onClick={() => {
+                        setActiveLanguageTrack('bengali');
+                        showToast('Selected Bengali Track');
+                      }}
+                      className={`p-5 rounded-3xl border transition-all duration-300 cursor-pointer relative overflow-hidden ${
+                        activeLanguageTrack === 'bengali'
+                          ? 'bg-blue-50/70 border-blue-400 ring-2 ring-blue-500/20 shadow-md scale-[1.02]'
+                          : 'bg-slate-50/60 border-slate-200/80 hover:bg-slate-100/80'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-700">BENGALI TRACK</span>
+                        {activeLanguageTrack === 'bengali' && (
+                          <span className="text-[10px] font-black bg-blue-600 text-white px-2 py-0.5 rounded-full flex items-center gap-1">
+                            ✓ Selected
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-2 flex items-baseline gap-2">
+                        <h4 className="text-3xl font-black text-slate-900">6,400</h4>
+                        <span className="text-sm font-bold text-blue-600">(18%)</span>
+                      </div>
+                      <div className="w-full bg-slate-200 h-2 rounded-full mt-3 overflow-hidden">
+                        <div className="bg-blue-600 h-full w-[18%] transition-all duration-500" />
+                      </div>
+                      <p className="text-[11px] text-slate-400 font-medium mt-2">18% of total assessments</p>
+                    </div>
+
+                  </div>
+                </div>
+
+
+                {/* ── SECTION 2: ASSESSMENT PASS RATES (SELECTED TRACK) ── */}
+                <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                      <span className="text-purple-600">📈</span> Assessment Pass Rates ({activeLanguageTrack.toUpperCase()} Track)
+                    </h3>
+                    <span className="text-xs font-black text-purple-700 bg-purple-100/80 border border-purple-200 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                      <span>★</span> Average Score: {activeLanguageTrack === 'hindi' ? '88%' : activeLanguageTrack === 'telugu' ? '84%' : '82%'}
+                    </span>
+                  </div>
+
+                  {/* MODULE PASS RATE BARS */}
+                  <div className="space-y-5">
+                    
+                    {/* MODULE 1 */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-3 font-extrabold text-slate-800">
+                          <span className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-sm shadow-sm">📖</span>
+                          <span>Foundational Line Tracing</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-black text-slate-900">95% <span className="text-[10px] text-slate-400 font-normal">Pass Rate</span></span>
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">↑ 5% vs last 7 days</span>
+                        </div>
+                      </div>
+                      <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden p-0.5">
+                        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 h-full rounded-full w-[95%] transition-all duration-700" />
+                      </div>
+                    </div>
+
+                    {/* MODULE 2 */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-3 font-extrabold text-slate-800">
+                          <span className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-sm shadow-sm">🗣️</span>
+                          <span>Phonics Sound Scout</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-black text-slate-900">88% <span className="text-[10px] text-slate-400 font-normal">Pass Rate</span></span>
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">↑ 3% vs last 7 days</span>
+                        </div>
+                      </div>
+                      <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden p-0.5">
+                        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 h-full rounded-full w-[88%] transition-all duration-700" />
+                      </div>
+                    </div>
+
+                    {/* MODULE 3 */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-3 font-extrabold text-slate-800">
+                          <span className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-sm shadow-sm">💬</span>
+                          <span>Conversational Sentence Assembly</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-black text-slate-900">81% <span className="text-[10px] text-slate-400 font-normal">Pass Rate</span></span>
+                          <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">↓ 2% vs last 7 days</span>
+                        </div>
+                      </div>
+                      <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden p-0.5">
+                        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 h-full rounded-full w-[81%] transition-all duration-700" />
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* Axis Legend */}
+                  <div className="flex justify-between text-[10px] font-semibold text-slate-400 pt-2 border-t border-slate-100">
+                    <span>0%</span>
+                    <span>50%</span>
+                    <span>100%</span>
+                  </div>
+                </div>
+
+
+                {/* ── SECTION 3: BOTTOM 3 ANALYTICS CARDS GRID ── */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                  {/* CARD 1: PASS RATE TREND */}
+                  <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm flex flex-col justify-between space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-extrabold text-slate-900">Pass Rate Trend ({activeLanguageTrack.toUpperCase()} Track)</h4>
+                      <select className="px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-xl text-[10px] font-bold text-slate-700 cursor-pointer">
+                        <option>30 Days</option>
+                        <option>7 Days</option>
+                        <option>90 Days</option>
+                      </select>
+                    </div>
+
+                    {/* Smooth Area Chart SVG Graph */}
+                    <div className="h-44 relative flex items-end pt-6">
+                      <svg className="w-full h-full overflow-visible" viewBox="0 0 300 120">
+                        <defs>
+                          <linearGradient id="purpleGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.4" />
+                            <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.0" />
+                          </linearGradient>
+                        </defs>
+                        {/* Grid lines */}
+                        <line x1="0" y1="20" x2="300" y2="20" stroke="#f1f5f9" strokeDasharray="3 3" />
+                        <line x1="0" y1="60" x2="300" y2="60" stroke="#f1f5f9" strokeDasharray="3 3" />
+                        <line x1="0" y1="100" x2="300" y2="100" stroke="#f1f5f9" strokeDasharray="3 3" />
+
+                        {/* Area fill */}
+                        <path
+                          d="M0,70 Q60,55 120,30 T240,45 T300,35 L300,120 L0,120 Z"
+                          fill="url(#purpleGradient)"
+                        />
+                        {/* Smooth Line */}
+                        <path
+                          d="M0,70 Q60,55 120,30 T240,45 T300,35"
+                          fill="none"
+                          stroke="#8b5cf6"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                        />
+                        {/* Peak Dot */}
+                        <circle cx="120" cy="30" r="5" fill="#8b5cf6" stroke="#ffffff" strokeWidth="2" />
+                      </svg>
+
+                      {/* Tooltip Overlay over Peak */}
+                      <div className="absolute top-1 left-[36%] bg-purple-900 text-white text-[9px] font-extrabold px-2 py-0.5 rounded-md shadow-md">
+                        May 20, 2025: 88%
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between text-[9px] font-bold text-slate-400 pt-2 border-t border-slate-100">
+                      <span>May 6</span>
+                      <span>May 13</span>
+                      <span>May 20</span>
+                      <span>May 27</span>
+                      <span>Jun 3</span>
+                    </div>
+                  </div>
+
+                  {/* CARD 2: TRACK DISTRIBUTION (DONUT CHART) */}
+                  <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm flex flex-col justify-between space-y-4">
+                    <h4 className="text-xs font-extrabold text-slate-900">Track Distribution</h4>
+
+                    {/* Donut Chart SVG */}
+                    <div className="relative flex items-center justify-center h-44">
+                      <svg className="w-36 h-36 transform -rotate-90" viewBox="0 0 100 100">
+                        {/* Hindi (40%) */}
+                        <circle cx="50" cy="50" r="38" fill="transparent" stroke="#8b5cf6" strokeWidth="14" strokeDasharray="95.5 143.2" strokeDashoffset="0" />
+                        {/* Telugu (22%) */}
+                        <circle cx="50" cy="50" r="38" fill="transparent" stroke="#10b981" strokeWidth="14" strokeDasharray="52.5 186.2" strokeDashoffset="-95.5" />
+                        {/* Bengali (18%) */}
+                        <circle cx="50" cy="50" r="38" fill="transparent" stroke="#3b82f6" strokeWidth="14" strokeDasharray="43.0 195.7" strokeDashoffset="-148" />
+                        {/* Others (20%) */}
+                        <circle cx="50" cy="50" r="38" fill="transparent" stroke="#f59e0b" strokeWidth="14" strokeDasharray="47.7 191" strokeDashoffset="-191" />
+                      </svg>
+
+                      <div className="absolute text-center">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total</span>
+                        <span className="text-base font-black text-slate-900 leading-none">28,400</span>
+                        <span className="text-[9px] font-semibold text-slate-400 block mt-0.5">Assessments</span>
+                      </div>
+                    </div>
+
+                    {/* Donut Chart Legend */}
+                    <div className="space-y-1.5 text-[10px] font-bold text-slate-600 border-t border-slate-100 pt-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-purple-600" />
+                          <span>Hindi Track</span>
+                        </div>
+                        <span className="font-mono font-black text-slate-900">14,200 (40%)</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                          <span>Telugu Track</span>
+                        </div>
+                        <span className="font-mono font-black text-slate-900">7,800 (22%)</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                          <span>Bengali Track</span>
+                        </div>
+                        <span className="font-mono font-black text-slate-900">6,400 (18%)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CARD 3: TOP PERFORMING SKILLS */}
+                  <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm flex flex-col justify-between space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-extrabold text-slate-900">Top Performing Skills ({activeLanguageTrack.toUpperCase()})</h4>
+                      <button 
+                        type="button" 
+                        onClick={() => showToast(`Displaying all skills for ${activeLanguageTrack.toUpperCase()} track`)} 
+                        className="text-[10px] font-extrabold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full hover:bg-purple-100 cursor-pointer"
+                      >
+                        View All
+                      </button>
+                    </div>
+
+                    <div className="space-y-2.5">
                       {[
-                        { title: 'Foundational Line Tracing', pass: selectedAnalyticsLang === 'Hindi' ? 95 : 91 },
-                        { title: 'Phonics Sound Scout', pass: selectedAnalyticsLang === 'Hindi' ? 88 : 83 },
-                        { title: 'Conversational Sentence Assembly', pass: selectedAnalyticsLang === 'Hindi' ? 81 : 76 },
-                      ].map((item, idx) => (
-                        <div key={idx} className="space-y-1">
-                          <div className="flex items-center justify-between text-xs font-medium text-slate-700">
-                            <span>{item.title}</span>
-                            <span className="font-bold text-purple-700">{item.pass}% Pass Rate</span>
+                        { icon: '🎴', name: 'Letter Recognition', score: '96%', change: '+6%' },
+                        { icon: '✍️', name: 'Word Formation', score: '93%', change: '+4%' },
+                        { icon: '🔊', name: 'Sound Identification', score: '91%', change: '+5%' },
+                        { icon: '📐', name: 'Line Tracing', score: '89%', change: '+3%' },
+                        { icon: '💬', name: 'Sentence Building', score: '84%', change: '-1%' }
+                      ].map((skill, sIdx) => (
+                        <div key={sIdx} className="flex items-center justify-between p-2.5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-slate-100/60 transition">
+                          <div className="flex items-center gap-2.5 text-xs font-bold text-slate-800">
+                            <span className="w-7 h-7 rounded-xl bg-purple-100/80 text-purple-700 flex items-center justify-center text-xs shrink-0">{skill.icon}</span>
+                            <span className="truncate max-w-[120px]">{skill.name}</span>
                           </div>
-                          <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                            <div className="bg-purple-600 h-full rounded-full transition-all duration-500" style={{ width: `${item.pass}%` }} />
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-black text-slate-900">{skill.score}</span>
+                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${skill.change.startsWith('+') ? 'text-emerald-700 bg-emerald-50 border border-emerald-200' : 'text-rose-700 bg-rose-50 border border-rose-200'}`}>
+                              {skill.change}
+                            </span>
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
+
                 </div>
+
               </div>
             )}
-
             {/* ════════════════ VIEW 3: USERS & REPORTS TABLE ════════════════ */}
             {activeTab === 'students' && (
               <div className="space-y-6 animate-fade-in">
@@ -4156,6 +4193,48 @@ const AdminDashboard = ({
         </div>
       )}
 
+
+      {/* 🌟 AI INSIGHT DETAILS MODAL */}
+      {showAiInsightModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-md animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-lg bg-white rounded-3xl p-6 shadow-2xl border border-purple-100 space-y-5 relative animate-scale-up">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-black text-purple-950 flex items-center gap-2">
+                <span>★</span> AI Recommendation Insights
+              </h3>
+              <button 
+                onClick={() => setShowAiInsightModal(false)}
+                className="text-slate-400 hover:text-slate-700 text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs font-medium text-slate-700">
+              <div className="p-4 bg-purple-50 rounded-2xl border border-purple-200 text-purple-900 space-y-1">
+                <p className="font-extrabold">Hindi Track Optimization (40% Load)</p>
+                <p className="text-[11px] text-purple-800">Hindi track assessments are performing with 88% average score. High engagement observed in Phonics and Word Formation modules.</p>
+              </div>
+
+              <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-amber-900 space-y-1">
+                <p className="font-extrabold">Telugu Track Scaling Suggestion (22% Load)</p>
+                <p className="text-[11px] text-amber-800">Telugu track usage increased 14.2% this week. Recommending expanding conversational practice exercises and voice evaluation servers for Telugu learners.</p>
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowAiInsightModal(false)}
+                className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-black text-xs rounded-2xl shadow-md cursor-pointer"
+              >
+                Close & Apply Optimization
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    
     </div>
   );
 };
