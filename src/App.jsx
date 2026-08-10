@@ -2040,13 +2040,17 @@ export default function App() {
       return true;
     }
   });
-  const [contentRevealed, setContentRevealed] = useState(() => {
-    try {
-      return sessionStorage.getItem('sakshar_splash_played') === '1';
-    } catch {
-      return false;
-    }
-  });
+  const [contentRevealed, setContentRevealed] = useState(true);
+
+  
+  // Guarantee application is always visible and contentRevealed is true
+  useEffect(() => {
+    const fallbackTimer = setTimeout(() => {
+      setContentRevealed(true);
+      setShowSplash(false);
+    }, 3500);
+    return () => clearTimeout(fallbackTimer);
+  }, []);
 
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false);
@@ -2847,7 +2851,7 @@ export default function App() {
 
       {/* Wrapper that fades the whole app in and slides it up once the splash
           screen finishes, so the transition into the landing page is seamless. */}
-      <div className={contentRevealed ? 'animate-content-reveal' : 'opacity-0'}>
+      <div className={contentRevealed ? 'animate-content-reveal' : 'animate-fade-in'}>
 
       {/* Global Application Loading State Mask Overlay */}
       {isLoading && view === 'landing' && (
