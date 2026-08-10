@@ -439,6 +439,7 @@ const AdminDashboard = ({
   useEffect(() => {
     const loadDatabaseRecords = async () => {
       try {
+        // 1. Fetch live Students & Courses from Supabase Cloud DB
         const dbStudents = await fetchAdminStudentsDB();
         if (dbStudents && dbStudents.length > 0) {
           setStudents(prev => {
@@ -451,6 +452,24 @@ const AdminDashboard = ({
         if (dbCourses && dbCourses.length > 0) {
           setCourses(dbCourses);
         }
+
+        // 2. Fetch live Hero & Auth Background Configs from Supabase Cloud DB
+        const cloudHero = await fetchSystemConfigDB('hero_bg_config', null);
+        if (cloudHero) setBgVideoConfig(cloudHero);
+
+        const cloudAuth = await fetchSystemConfigDB('auth_bg_config', null);
+        if (cloudAuth) setAuthBgConfig(cloudAuth);
+
+        // 3. Fetch live Push History & AI Engine Configs from Supabase Cloud DB
+        const cloudPush = await fetchSystemConfigDB('push_history', null);
+        if (cloudPush) setPushHistory(cloudPush);
+
+        const cloudAiEngine = await fetchSystemConfigDB('ai_engine', null);
+        if (cloudAiEngine) setSelectedAiModel(cloudAiEngine);
+
+        const cloudEvaluator = await fetchSystemConfigDB('ai_evaluator', null);
+        if (cloudEvaluator) setSelectedAiEvaluator(cloudEvaluator);
+
       } catch (err) {
         console.warn("[Admin DB Sync] Loaded with local session persistence:", err.message);
       }
