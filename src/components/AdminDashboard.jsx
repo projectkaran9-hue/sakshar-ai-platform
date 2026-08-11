@@ -143,6 +143,17 @@ const AdminDashboard = ({
         overlayOpacity: 0.5,
         blur: 0,
         overlayColor: '#030a16'
+      },
+      dashboard: {
+        enabled: true,
+        mediaType: 'video',
+        sourceType: 'preset',
+        url: 'https://assets.mixkit.co/videos/preview/mixkit-stars-in-the-night-sky-4000-large.mp4',
+        fileName: 'Cosmic Night Sky Stars Video',
+        opacity: 0.35,
+        overlayOpacity: 0.65,
+        blur: 1,
+        overlayColor: '#0b1021'
       }
     };
   });
@@ -2402,6 +2413,17 @@ const AdminDashboard = ({
                   </button>
                   <button
                     type="button"
+                    onClick={() => setActiveMediaSection('dashboard')}
+                    className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-2 ${
+                      activeMediaSection === 'dashboard'
+                        ? 'bg-purple-600 text-white shadow-md shadow-purple-500/25'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                    }`}
+                  >
+                    <span>🎓</span> Learner Dashboard Entire Background
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setActiveMediaSection('splash')}
                     className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-2 ${
                       activeMediaSection === 'splash'
@@ -2438,12 +2460,12 @@ const AdminDashboard = ({
                   </div>
                 )}
 
-                {(activeMediaSection === 'login' || activeMediaSection === 'register' || activeMediaSection === 'assessment' || activeMediaSection === 'splash') && (
+                {(activeMediaSection === 'login' || activeMediaSection === 'register' || activeMediaSection === 'assessment' || activeMediaSection === 'splash' || activeMediaSection === 'dashboard') && (
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm">
                     <div>
                       <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
                         <span>{activeMediaSection === 'login' ? '🔑' : activeMediaSection === 'register' ? '📝' : activeMediaSection === 'assessment' ? '📋' : '💧'}</span> 
-                        {activeMediaSection === 'login' ? 'Sign In (Login) Page Side Background' : activeMediaSection === 'register' ? 'Create Account (Register) Page Side Background' : activeMediaSection === 'assessment' ? 'Initial Placement Assessment Background' : 'App Splash / Intro Video Animation Background Manager'}
+                        {activeMediaSection === 'login' ? 'Sign In (Login) Page Side Background' : activeMediaSection === 'register' ? 'Create Account (Register) Page Side Background' : activeMediaSection === 'assessment' ? 'Initial Placement Assessment Background' : activeMediaSection === 'dashboard' ? 'Entire Learner Dashboard Video / Image Background' : 'App Splash / Intro Video Animation Background Manager'}
                       </h3>
                       <p className="text-xs text-slate-500 font-medium">
                         {activeMediaSection === 'splash'
@@ -2787,7 +2809,7 @@ const AdminDashboard = ({
                 )}
 
                 {/* 🔑 / 📝 AUTH PAGE SIDE BACKGROUND MANAGER (SIGN IN & REGISTER) */}
-                {(activeMediaSection === 'login' || activeMediaSection === 'register' || activeMediaSection === 'assessment' || activeMediaSection === 'splash') && (
+                {(activeMediaSection === 'login' || activeMediaSection === 'register' || activeMediaSection === 'assessment' || activeMediaSection === 'splash' || activeMediaSection === 'dashboard') && (
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     
                     {/* LEFT: FILE UPLOADER & URL INPUT */}

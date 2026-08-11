@@ -3781,12 +3781,55 @@ function WordDuelGame({ lang, isMuted, onAwardXP, onBack }) {
 // 4. MAIN DASHBOARD VIEW LAYER WITH ADAPTIVE MATRIX
 // ============================================================================
 export default function Dashboard({ userId, fullName, lang, educationalLevel, age, tutorVoiceUri, onLogout, onProfileUpdate, onLanguagePreview, onNavigateToPremium, t }) {
+  // 🎬 Video / Image Background Config State for Entire Learner Dashboard
+  const [dashVideoBgConfig, setDashVideoBgConfig] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sakshar_auth_bg_config');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.dashboard) return parsed.dashboard;
+      }
+    } catch (e) {}
+    return {
+      enabled: true,
+      mediaType: 'video',
+      url: 'https://assets.mixkit.co/videos/preview/mixkit-stars-in-the-night-sky-4000-large.mp4',
+      opacity: 0.35,
+      blur: 1,
+      overlayColor: '#0b1021',
+      overlayOpacity: 0.65
+    };
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchSystemConfigDB('auth_bg_config', null).then(cloudAuth => {
+      if (isMounted && cloudAuth?.dashboard) {
+        setDashVideoBgConfig(cloudAuth.dashboard);
+      }
+    });
+    return () => { isMounted = false; };
+  }, []);
+
+  useEffect(() => {
+    const handleAuthBgUpdate = (e) => {
+      if (e.detail?.dashboard) {
+        setDashVideoBgConfig(e.detail.dashboard);
+      }
+    };
+    window.addEventListener('sakshar_auth_bg_updated', handleAuthBgUpdate);
+    return () => window.removeEventListener('sakshar_auth_bg_updated', handleAuthBgUpdate);
+  }, []);
+
   const [activeTab, setActiveTab] = useState('all');
   const [activeModule, setActiveModule] = useState(null);
 
   useEffect(() => {
     const unsubscribe = subscribeToGlobalSync((event) => {
       if (!event || !event.type) return;
+      if (event.type === 'AUTH_BG_UPDATED' && event.payload?.dashboard) {
+        setDashVideoBgConfig(event.payload.dashboard);
+      }
       if (event.type === 'PUSH_BROADCAST' && event.payload) {
         // Show a toast notification to the learner
       }
@@ -5215,6 +5258,12 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
       style={themeStyles}
       className={`min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] flex flex-col lg:flex-row p-5 gap-5 family-${dashboardFont} theme-custom overflow-y-auto lg:overflow-hidden select-none relative`}
     >
+            {/* 🎬 Optional Full-Screen Learner Dashboard Background Video (Managed from Admin Portal) */}
+      {dashVideoBgConfig?.enabled && (dashVideoBgConfig?.url || dashVideoBgConfig?.streamUrl) && (
+        <div className="fixed inset-0 overflow-hidden pointer-events-none select-none z-0">
+          <HeroVideoBackground config={dashVideoBgConfig} />
+        </div>
+      )}
       {/* 🌟 Soft Ambient Floating Background Animation for Learner Dashboard */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0">
         <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-emerald-400/20 blur-3xl animate-ambient-orb-1" />
