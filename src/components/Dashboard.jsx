@@ -5213,8 +5213,15 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
   return (
     <div 
       style={themeStyles}
-      className={`min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] flex flex-col lg:flex-row p-5 gap-5 family-${dashboardFont} theme-custom overflow-y-auto lg:overflow-hidden select-none`}
+      className={`min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] flex flex-col lg:flex-row p-5 gap-5 family-${dashboardFont} theme-custom overflow-y-auto lg:overflow-hidden select-none relative`}
     >
+      {/* 🌟 Soft Ambient Floating Background Animation for Learner Dashboard */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0">
+        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-emerald-400/20 blur-3xl animate-ambient-orb-1" />
+        <div className="absolute top-1/2 -right-24 w-[28rem] h-[28rem] rounded-full bg-cyan-400/15 blur-3xl animate-ambient-orb-2" />
+        <div className="absolute -bottom-24 left-1/3 w-[30rem] h-[30rem] rounded-full bg-purple-400/15 blur-3xl animate-ambient-orb-3" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.03)_0%,transparent_70%)]" />
+      </div>
       <style>{`
         /* ── Background overrides ── */
         .theme-custom .bg-white {
