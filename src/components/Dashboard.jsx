@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { signOutUser, updateUserAuthProfile } from '../services/auth';
-import { updateUserProfileTable } from '../services/db';
+import { updateUserProfileTable, fetchSystemConfigDB } from '../services/db';
 import { supabase } from '../services/supabase';
 import { localStories, languagePhrases } from '../data/contentMatrix';
 import PushNotificationManager from './PushNotificationManager';
