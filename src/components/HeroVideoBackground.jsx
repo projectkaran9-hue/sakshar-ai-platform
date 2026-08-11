@@ -240,6 +240,7 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
           loop
           muted
           playsInline
+          preload="auto"
           webkit-playsinline="true"
           x5-playsinline="true"
           x5-video-player-type="h5"
@@ -252,7 +253,10 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
           className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 pointer-events-none select-none"
           style={{
             opacity: opacity,
-            filter: `blur(${blur}px)`,
+            filter: blur > 0 ? `blur(${blur}px)` : 'none',
+            transform: 'translateZ(0)',
+            willChange: 'transform',
+            backfaceVisibility: 'hidden',
             pointerEvents: 'none'
           }}
         >
@@ -270,14 +274,7 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
           opacity: overlayOpacity
         }}
       />
-      <div 
-        className="absolute inset-0 z-20 pointer-events-auto select-none touch-none bg-transparent cursor-default" 
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-        onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); }}
-        onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
-        onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); }}
-        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
-      />
+      <div className="absolute inset-0 z-20 pointer-events-none select-none touch-none bg-transparent" />
     </div>
   );
 }
