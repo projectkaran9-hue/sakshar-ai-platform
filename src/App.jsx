@@ -3565,7 +3565,7 @@ export default function App() {
 
         {/* LOGIN VIEW */}
         {view === 'login' && (
-          <div className="flex min-h-[calc(100vh-80px)]">
+          <div className="flex min-h-[calc(100vh-80px)] page-transition">
             <div className="w-1/2 relative hidden md:block animate-auth-panel overflow-hidden pointer-events-none select-none touch-none">
               {authBgConfig?.login?.mediaType === 'video' || authBgConfig?.login?.mediaType === 'youtube' || authBgConfig?.login?.url?.includes('.mp4') ? (
                 <HeroVideoBackground config={authBgConfig.login} />
@@ -3700,7 +3700,7 @@ export default function App() {
 
         {/* REGISTER VIEW */}
         {view === 'register' && (
-          <div className="flex min-h-[calc(100vh-80px)]">
+          <div className="flex min-h-[calc(100vh-80px)] page-transition">
             <div className="w-1/2 relative hidden md:block animate-auth-panel overflow-hidden pointer-events-none select-none touch-none">
               {authBgConfig?.register?.mediaType === 'video' || authBgConfig?.register?.mediaType === 'youtube' || authBgConfig?.register?.url?.includes('.mp4') ? (
                 <HeroVideoBackground config={authBgConfig.register} />
