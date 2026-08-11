@@ -6,6 +6,7 @@ import { localStories, languagePhrases } from '../data/contentMatrix';
 import PushNotificationManager from './PushNotificationManager';
 import { subscribeToGlobalSync } from '../services/realtimeSync';
 import CourseFlow from './CourseFlow';
+import HeroVideoBackground from './HeroVideoBackground';
 import LessonPage from './LessonPage';
 import { LESSON_QUIZZES, getQuizForLesson } from '../data/lessonQuizzes';
 import { LESSON_YOUTUBE } from '../data/lessonVideos';
