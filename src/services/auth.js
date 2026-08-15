@@ -130,34 +130,26 @@ export const signOutUser = async () => {
  * Initiates Google OAuth sign-in via Supabase.
  */
 export const signInWithGoogle = async () => {
-  try {
-    if (isSupabaseConfigured) {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'select_account',
-          },
-        },
-      });
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}`,
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'select_account',
+      },
+    },
+  });
 
-      if (error) {
-        console.warn('[Auth] Supabase Google OAuth provider notice:', error.message || error);
-        return createLocalSession('google.user@sakshar.ai', 'Google Learner');
-      }
-
-      if (data?.url) {
-        window.location.href = data.url;
-        return data;
-      }
-    }
-    return createLocalSession('google.user@sakshar.ai', 'Google Learner');
-  } catch (error) {
-    console.warn('[Auth] Supabase Google OAuth fallback notice:', error.message || error);
-    return createLocalSession('google.user@sakshar.ai', 'Google Learner');
+  if (error) {
+    throw error;
   }
+
+  if (data?.url) {
+    window.location.href = data.url;
+    return data;
+  }
+  return data;
 };
 
 /**

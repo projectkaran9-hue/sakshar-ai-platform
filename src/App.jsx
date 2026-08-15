@@ -2868,37 +2868,28 @@ export default function App() {
     setAuthError('');
     try {
       const res = await signInWithGoogle();
-      const userObj = res?.user || res?.data?.user;
-      const uid = userObj?.id || `google-${Date.now()}`;
-      const gName = res?.fullName || userObj?.user_metadata?.full_name || userObj?.user_metadata?.name || 'Google Learner';
-      
-      setUserId(uid);
-      setFullName(gName);
-      if (res?.language) setLang(res.language);
-      if (res?.educationalLevel) setEducationalLevel(res.educationalLevel);
-
-      // Save local session backup so session persists on refresh
-      try {
-        localStorage.setItem('sakshar_demo_user', JSON.stringify({
-          user: { id: uid, email: userObj?.email || 'google.user@sakshar.ai' },
-          fullName: gName,
-          language: lang || 'english',
-          educationalLevel: educationalLevel || 'none',
-          initialAssessmentCompleted: true
-        }));
-      } catch (e) {}
-
-      setIsLoading(false);
-      // Directly navigate into Learner Dashboard
-      setView('dashboard');
+      if (res?.url) {
+        // Redirecting directly to Google Accounts OAuth login...
+        return;
+      }
+      if (res?.user || res?.data?.user) {
+        const userObj = res?.user || res?.data?.user;
+        const uid = userObj?.id || `google-${Date.now()}`;
+        const gName = userObj?.user_metadata?.full_name || userObj?.user_metadata?.name || 'Google Learner';
+        setUserId(uid);
+        setFullName(gName);
+        setIsLoading(false);
+        setView('dashboard');
+      }
     } catch (err) {
-      console.warn('[Auth] Google sign-in fallback triggered:', err);
-      // Fallback session so user is never blocked by provider configuration
-      const fallbackUid = `google-${Date.now()}`;
-      setUserId(fallbackUid);
-      setFullName('Google Learner');
+      console.error('[Auth] Real Google Sign-In notice:', err);
+      const errMsg = err?.message || String(err);
+      if (errMsg.includes('provider is not enabled') || errMsg.includes('validation_failed')) {
+        setAuthError('⚠️ Google OAuth Provider is not enabled in your Supabase backend yet. Please enable Google Provider in Supabase Dashboard -> Authentication -> Providers.');
+      } else {
+        setAuthError(errMsg || 'Google sign-in failed. Please try again.');
+      }
       setIsLoading(false);
-      setView('dashboard');
     }
   };
 
