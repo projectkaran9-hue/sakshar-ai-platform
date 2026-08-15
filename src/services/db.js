@@ -248,3 +248,92 @@ export const fetchSystemConfigDB = async (configKey, defaultFallback) => {
 
   return defaultFallback;
 };
+
+
+/**
+ * Helper to register a new user account into local persistence registry
+ */
+export const registerAccountLocally = (email, fullName, language = 'english', educationalLevel = 'none', age = 12, uid = null) => {
+  try {
+    const existingStr = localStorage.getItem('sakshar_registered_accounts');
+    let regList = existingStr ? JSON.parse(existingStr) : [];
+    if (!Array.isArray(regList)) regList = [];
+    
+    const newRecord = {
+      id: uid || `user-${Date.now()}`,
+      email: email,
+      name: fullName,
+      fullName: fullName,
+      language: language,
+      educational_level: educationalLevel,
+      educationalLevel: educationalLevel,
+      age: age,
+      created_at: new Date().toISOString()
+    };
+
+    const index = regList.findIndex(u => u.email && email && u.email.toLowerCase() === email.toLowerCase());
+    if (index >= 0) {
+      regList[index] = { ...regList[index], ...newRecord };
+    } else {
+      regList.push(newRecord);
+    }
+
+    localStorage.setItem('sakshar_registered_accounts', JSON.stringify(regList));
+    return newRecord;
+  } catch (e) {
+    return null;
+  }
+};
+
+/**
+ * Checks if an account ALREADY EXISTS in Supabase profiles table or local account registry
+ */
+export const checkUserAccountExists = async (email, uid) => {
+  // 1. Check Supabase profiles table
+  if (isSupabaseConfigured) {
+    try {
+      if (uid) {
+        const { data: pById } = await supabase.from('profiles').select('*').eq('id', uid).maybeSingle();
+        if (pById && pById.id) return pById;
+      }
+      if (email) {
+        const { data: pByEmail } = await supabase.from('profiles').select('*').eq('email', email).maybeSingle();
+        if (pByEmail && pByEmail.id) return pByEmail;
+      }
+    } catch (e) {}
+  }
+  
+  // 2. Check local registered accounts registry
+  try {
+    const regStr = localStorage.getItem('sakshar_registered_accounts');
+    if (regStr) {
+      const regList = JSON.parse(regStr);
+      if (Array.isArray(regList)) {
+        const found = regList.find(u => 
+          (email && u.email && u.email.toLowerCase() === email.toLowerCase()) || 
+          (uid && u.id === uid)
+        );
+        if (found) return found;
+      }
+    }
+  } catch (e) {}
+
+  // 3. Check demo user fallback
+  try {
+    const demo = localStorage.getItem('sakshar_demo_user');
+    if (demo) {
+      const parsed = JSON.parse(demo);
+      if (parsed?.user?.email && email && parsed.user.email.toLowerCase() === email.toLowerCase()) {
+        return {
+          id: parsed.user.id,
+          name: parsed.fullName,
+          email: parsed.user.email,
+          language: parsed.language,
+          educational_level: parsed.educationalLevel
+        };
+      }
+    }
+  } catch (e) {}
+
+  return null;
+};
