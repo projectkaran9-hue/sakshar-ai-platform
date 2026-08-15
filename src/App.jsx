@@ -2696,7 +2696,7 @@ export default function App() {
         if (meta.language) setLang(meta.language);
         if (user.id) setUserId(user.id);
 
-        // Hydrate user profile data into React state, but preserve landing view when opening the app
+        // Hydrate user profile data into React state
         try {
           const profile = await fetchUserProfile(user.id);
           if (profile) {
@@ -2707,6 +2707,15 @@ export default function App() {
           }
         } catch (profileErr) {
           console.warn('Profile fetch skipped (non-blocking):', profileErr.message);
+        }
+
+        setIsLoading(false);
+        // Switch view to learner dashboard if user just returned from Google OAuth redirect
+        if (window.location.hash.includes('access_token') || window.location.search.includes('code')) {
+          setView('dashboard');
+          try {
+            window.history.replaceState(null, '', window.location.pathname);
+          } catch (e) {}
         }
       }
     });
@@ -2861,14 +2870,26 @@ export default function App() {
       const res = await signInWithGoogle();
       if (res?.user || res?.isDemoSession) {
         const uid = res?.user?.id || `google-${Date.now()}`;
+        const gName = res?.fullName || res?.user?.user_metadata?.full_name || res?.user?.user_metadata?.name || 'Google Learner';
+        
         setUserId(uid);
-        if (res?.fullName) setFullName(res.fullName);
-        else setFullName('Google Learner');
+        setFullName(gName);
         if (res?.language) setLang(res.language);
         if (res?.educationalLevel) setEducationalLevel(res.educationalLevel);
 
+        // Save local session backup so session persists on refresh
+        try {
+          localStorage.setItem('sakshar_demo_user', JSON.stringify({
+            user: { id: uid, email: res?.user?.email || 'google.user@sakshar.ai' },
+            fullName: gName,
+            language: lang || 'english',
+            educationalLevel: educationalLevel || 'none',
+            initialAssessmentCompleted: true
+          }));
+        } catch (e) {}
+
         setIsLoading(false);
-        // Logging in via Google directly opens the Learner Dashboard
+        // Directly navigate into Learner Dashboard
         setView('dashboard');
       }
     } catch (err) {

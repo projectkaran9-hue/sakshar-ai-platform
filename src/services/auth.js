@@ -131,20 +131,26 @@ export const signOutUser = async () => {
  */
 export const signInWithGoogle = async () => {
   try {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin,
-      },
-    });
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'select_account',
+          },
+        },
+      });
 
-    if (error) throw error;
+      if (error) throw error;
 
-    if (data?.url) {
-      window.location.href = data.url;
-      return data;
+      if (data?.url) {
+        window.location.href = data.url;
+        return data;
+      }
     }
-    return data;
+    return createLocalSession('google.user@sakshar.ai', 'Google Learner');
   } catch (error) {
     console.warn('[Auth] Supabase Google OAuth notice:', error.message);
     return createLocalSession('google.user@sakshar.ai', 'Google Learner');
