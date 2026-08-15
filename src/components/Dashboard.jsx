@@ -4861,11 +4861,37 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
     setIsTutorLoading(true);
 
     try {
-      const response = await fetch('${API_BASE_URL}/api/tutor/chat', {
+      // 🤖 Direct Google Gemini 2.0 Flash AI API Engine Call
+      const geminiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY;
+      if (geminiKey) {
+        const promptText = `You are Sakshar AI Tutor, a warm, encouraging foundational literacy tutor for adult and first-generation learners studying in ${lang || 'English'}. The learner's name is ${fullName || 'Learner'}, literacy level is '${educationalLevel || 'beginner'}'. Respond helpfully, encouragingly, and simply in 2-3 short sentences. User message: "${userMsgText}"`;
+
+        const geminiRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+          }
+        );
+
+        if (geminiRes.ok) {
+          const geminiData = await geminiRes.json();
+          const reply = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (reply) {
+            const newId = Date.now() + 1;
+            setAiTutorMessages(prev => [...prev, { id: newId, text: reply, isBot: true }]);
+            setIsTutorLoading(false);
+            if (isTtsEnabled) speakText(reply, newId);
+            return;
+          }
+        }
+      }
+
+      // Backend API fallback
+      const response = await fetch(`${API_BASE_URL}/api/tutor/chat`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userMsgText,
           name: fullName || 'Learner',
@@ -4884,7 +4910,6 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
         if (isTtsEnabled) speakText(resData.reply, newId);
         return;
       }
-      throw new Error("Invalid backend chat payload response");
     } catch (err) {
       console.warn("AI Tutor Live Fetch error. Invoking resilient offline engine:", err);
       // Resilient local rule-based offline fallback engine
