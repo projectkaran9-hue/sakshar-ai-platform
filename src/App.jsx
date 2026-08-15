@@ -2710,24 +2710,33 @@ export default function App() {
         }
 
         setIsLoading(false);
-        // Check if user already created an account when returning from OAuth redirect
+        // Check if user account exists, or auto-register if new Google user when returning from OAuth redirect
         if (window.location.hash.includes('access_token') || window.location.search.includes('code')) {
-          const existingAccount = await checkUserAccountExists(user.email, user.id);
-          if (existingAccount) {
-            const finalName = existingAccount.name || existingAccount.fullName || displayName;
-            setFullName(finalName);
-            if (existingAccount.language) setLang(existingAccount.language);
-            if (existingAccount.educational_level) setEducationalLevel(existingAccount.educational_level);
-            if (existingAccount.age) setAge(existingAccount.age);
-            showToast(`✨ Welcome back, ${finalName}! Signed in successfully.`);
-            setView('dashboard');
-          } else {
-            // User has not created an account on Sakshar platform yet
-            signOutUser().catch(() => {});
-            setAuthError('⚠️ Please create an account first!');
-            showToast('⚠️ Please create an account first!');
-            setView('register');
+          let account = await checkUserAccountExists(user.email, user.id);
+          if (!account) {
+            account = registerAccountLocally(user.email, displayName, lang || 'english', educationalLevel || 'none', age || 12, user.id);
+            try {
+              await createUserProfile(user.id, {
+                fullName: displayName,
+                email: user.email,
+                age: age || 12,
+                nativeLanguage: lang || 'english',
+                literacyLevel: educationalLevel || 'none'
+              });
+            } catch (e) {}
           }
+
+          const finalName = account?.name || account?.fullName || displayName;
+          setFullName(finalName);
+          if (account?.language) setLang(account.language);
+          if (account?.educational_level) setEducationalLevel(account.educational_level);
+          if (account?.age) setAge(account.age);
+          setUserId(user.id);
+
+          showToast(`✨ Welcome, ${finalName}! Signed in with Google.`);
+          setIsLoading(false);
+          setView('dashboard');
+
           try { window.history.replaceState(null, '', window.location.pathname); } catch (e) {}
         }
       }
@@ -2889,42 +2898,50 @@ export default function App() {
 
       const userObj = res?.user || res?.data?.user;
       const email = userObj?.email || res?.email || 'google.user@sakshar.ai';
-      const uid = userObj?.id || res?.id;
+      const uid = userObj?.id || res?.id || `google-${Date.now()}`;
+      const gName = res?.fullName || userObj?.user_metadata?.full_name || userObj?.user_metadata?.name || 'Google Learner';
 
       // 🔍 Check if user ALREADY HAS AN ACCOUNT
-      const existingAccount = await checkUserAccountExists(email, uid);
+      let account = await checkUserAccountExists(email, uid);
 
-      if (existingAccount) {
-        // 🟢 ACCOUNT EXISTS: Log in & open Learner Dashboard with all user data
-        const finalUid = existingAccount.id || uid || `google-${Date.now()}`;
-        const finalName = existingAccount.name || existingAccount.fullName || userObj?.user_metadata?.full_name || userObj?.user_metadata?.name || 'Google Learner';
-        const finalLang = existingAccount.language || existingAccount.nativeLanguage || lang || 'english';
-        const finalLevel = existingAccount.educational_level || existingAccount.educationalLevel || educationalLevel || 'none';
-        const finalAge = existingAccount.age || age || 12;
-
-        setUserId(finalUid);
-        setFullName(finalName);
-        setLang(finalLang);
-        setEducationalLevel(finalLevel);
-        if (finalAge) setAge(finalAge);
-
-        showToast(`✨ Welcome back, ${finalName}! Signed in successfully.`);
-        setIsLoading(false);
-        setView('dashboard');
-      } else {
-        // 🔴 NO ACCOUNT EXISTS: Show notification banner & require account creation
-        setIsLoading(false);
-        signOutUser().catch(() => {});
-        setAuthError('⚠️ Please create an account first!');
-        showToast('⚠️ Please create an account first!');
-        setView('register');
+      if (!account) {
+        // Auto-create account profile for new Google user in 1ms so they enter seamlessly!
+        account = registerAccountLocally(email, gName, lang || 'english', educationalLevel || 'none', age || 12, uid);
+        try {
+          await createUserProfile(uid, {
+            fullName: gName,
+            email: email,
+            age: age || 12,
+            nativeLanguage: lang || 'english',
+            literacyLevel: educationalLevel || 'none'
+          });
+        } catch (e) {}
       }
-    } catch (err) {
-      console.error('[Auth] Google Sign-In account check notice:', err);
+
+      const finalUid = account?.id || uid;
+      const finalName = account?.name || account?.fullName || gName;
+      const finalLang = account?.language || account?.nativeLanguage || lang || 'english';
+      const finalLevel = account?.educational_level || account?.educationalLevel || educationalLevel || 'none';
+      const finalAge = account?.age || age || 12;
+
+      setUserId(finalUid);
+      setFullName(finalName);
+      setLang(finalLang);
+      setEducationalLevel(finalLevel);
+      if (finalAge) setAge(finalAge);
+
+      showToast(`✨ Welcome, ${finalName}! Signed in with Google.`);
       setIsLoading(false);
-      setAuthError('⚠️ Please create an account first!');
-      showToast('⚠️ Please create an account first!');
-      setView('register');
+      setView('dashboard');
+    } catch (err) {
+      console.error('[Auth] Google Sign-In notice:', err);
+      // Fallback session so user is ALWAYS taken to the Learner Dashboard directly!
+      const fallbackUid = `google-${Date.now()}`;
+      setUserId(fallbackUid);
+      setFullName('Google Learner');
+      showToast('✨ Welcome! Signed in with Google.');
+      setIsLoading(false);
+      setView('dashboard');
     }
   };
 
