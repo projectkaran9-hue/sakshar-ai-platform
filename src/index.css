@@ -919,3 +919,45 @@ button, input, select, a {
 .animate-waveform-2 { animation: waveformPulse 1.5s ease-in-out infinite 0.2s; }
 .animate-waveform-3 { animation: waveformPulse 1.3s ease-in-out infinite 0.4s; }
 .animate-waveform-4 { animation: waveformPulse 1.6s ease-in-out infinite 0.1s; }
+
+
+/* ---------------------------------------------------------------
+   📱 MOBILE UX, TOUCH & SAFE AREA COMPATIBILITY UTILITIES
+--------------------------------------------------------------- */
+html, body {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  overscroll-behavior-y: contain;
+}
+
+/* Safe area insets for iOS Notch & Android gesture bars */
+.safe-top {
+  padding-top: max(1rem, env(safe-area-inset-top));
+}
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* Canvas drawing helper: prevents page drag while letter tracing on mobile */
+canvas {
+  touch-action: none !important;
+}
+
+/* Mobile responsive horizontal touch-scrolling chips container */
+.mobile-touch-scroll {
+  display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.mobile-touch-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Tactile mobile button minimum height & touch target */
+@media (max-width: 768px) {
+  button, a {
+    touch-action: manipulation;
+  }
+}
