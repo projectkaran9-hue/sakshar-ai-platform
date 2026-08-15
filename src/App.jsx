@@ -2227,12 +2227,17 @@ export default function App() {
   const [bgVideoConfig, setBgVideoConfig] = useState(() => {
     try {
       const saved = localStorage.getItem('sakshar_bg_video_config');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed) return { ...parsed, enabled: true };
+      }
     } catch {}
     return {
       enabled: true,
+      mediaType: 'video',
       sourceType: 'preset',
       url: 'https://assets.mixkit.co/videos/preview/mixkit-stars-in-the-night-sky-4000-large.mp4',
+      streamUrl: 'https://assets.mixkit.co/videos/preview/mixkit-water-drop-impact-in-slow-motion-41527-large.mp4',
       opacity: 0.45,
       blur: 0,
       overlayColor: '#0c1a10',

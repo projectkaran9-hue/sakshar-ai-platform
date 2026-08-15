@@ -5259,12 +5259,23 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
       style={themeStyles}
       className={`min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] flex flex-col lg:flex-row p-5 gap-5 family-${dashboardFont} theme-custom overflow-y-auto lg:overflow-hidden select-none relative`}
     >
-            {/* 🎬 Optional Full-Screen Learner Dashboard Background Video (Managed from Admin Portal) */}
-      {dashVideoBgConfig?.enabled && (dashVideoBgConfig?.url || dashVideoBgConfig?.streamUrl) && (
-        <div className="fixed inset-0 overflow-hidden pointer-events-none select-none z-0">
-          <HeroVideoBackground config={dashVideoBgConfig} />
-        </div>
-      )}
+            {/* 🎬 Fixed Full-Screen Learner Dashboard Background Video for Everyone (Always Active & Synced) */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none select-none z-0">
+        <HeroVideoBackground 
+          config={{
+            enabled: true,
+            mediaType: 'video',
+            url: dashVideoBgConfig?.url || 'https://assets.mixkit.co/videos/preview/mixkit-stars-in-the-night-sky-4000-large.mp4',
+            streamUrl: dashVideoBgConfig?.streamUrl || 'https://assets.mixkit.co/videos/preview/mixkit-water-drop-impact-in-slow-motion-41527-large.mp4',
+            opacity: dashVideoBgConfig?.opacity ?? 0.35,
+            blur: dashVideoBgConfig?.blur ?? 1,
+            overlayColor: dashVideoBgConfig?.overlayColor || '#0b1021',
+            overlayOpacity: dashVideoBgConfig?.overlayOpacity ?? 0.65,
+            ...dashVideoBgConfig,
+            enabled: true
+          }} 
+        />
+      </div>
       {/* 🌟 Soft Ambient Floating Background Animation for Learner Dashboard */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0">
         <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-emerald-400/20 blur-3xl animate-ambient-orb-1" />
