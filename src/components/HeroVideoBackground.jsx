@@ -101,7 +101,7 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
     return () => { isMounted = false; };
   }, [config?.url, config?.sourceType, config?.mediaType, config?.updatedAt]);
 
-  // Programmatically enforce muted autoplay & clear MediaSession OS controls
+  // 🔄 Stable Auto-Resume & Re-Open Playback Manager
   useEffect(() => {
     if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
       try {
@@ -113,40 +113,47 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
       } catch {}
     }
 
-    if (videoRef.current) {
-      videoRef.current.defaultMuted = true;
-      videoRef.current.muted = true;
-      videoRef.current.volume = 0;
-      const playPromise = videoRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((err) => {
-          console.log('[HeroVideo] Autoplay notice:', err);
-        });
-      }
-    }
-  }, [videoSrc]);
-
-  
-  // Mobile OS Autoplay Unblocker: If mobile browser blocks silent autoplay, first tap/scroll plays video
-  useEffect(() => {
-    const unblockAutoplay = () => {
+    const ensureVideoPlaying = () => {
       if (videoRef.current) {
+        videoRef.current.defaultMuted = true;
         videoRef.current.muted = true;
-        videoRef.current.play().catch(() => {});
+        videoRef.current.volume = 0;
+        if (videoRef.current.paused) {
+          const playPromise = videoRef.current.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(() => {});
+          }
+        }
       }
-      window.removeEventListener('touchstart', unblockAutoplay);
-      window.removeEventListener('scroll', unblockAutoplay);
-      window.removeEventListener('click', unblockAutoplay);
     };
 
-    window.addEventListener('touchstart', unblockAutoplay, { passive: true });
-    window.addEventListener('scroll', unblockAutoplay, { passive: true });
-    window.addEventListener('click', unblockAutoplay, { passive: true });
+    // Ensure playback immediately on mount and video source change
+    ensureVideoPlaying();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        ensureVideoPlaying();
+      }
+    };
+
+    const handleFocus = () => ensureVideoPlaying();
+    const handlePageShow = () => ensureVideoPlaying();
+
+    // Persistent event listeners for tab re-open, window focus, page show, touch, scroll & click
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener('touchstart', ensureVideoPlaying, { passive: true });
+    window.addEventListener('click', ensureVideoPlaying, { passive: true });
+    window.addEventListener('scroll', ensureVideoPlaying, { passive: true });
 
     return () => {
-      window.removeEventListener('touchstart', unblockAutoplay);
-      window.removeEventListener('scroll', unblockAutoplay);
-      window.removeEventListener('click', unblockAutoplay);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener('touchstart', ensureVideoPlaying);
+      window.removeEventListener('click', ensureVideoPlaying);
+      window.removeEventListener('scroll', ensureVideoPlaying);
     };
   }, [videoSrc]);
 
@@ -250,6 +257,17 @@ export default function HeroVideoBackground({ config = {}, className = "" }) {
           controls={false}
           tabIndex={-1}
           aria-hidden="true"
+          onEnded={() => {
+            if (videoRef.current) {
+              videoRef.current.currentTime = 0;
+              videoRef.current.play().catch(() => {});
+            }
+          }}
+          onPause={() => {
+            if (videoRef.current && document.visibilityState === 'visible') {
+              videoRef.current.play().catch(() => {});
+            }
+          }}
           className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 pointer-events-none select-none"
           style={{
             opacity: opacity,
