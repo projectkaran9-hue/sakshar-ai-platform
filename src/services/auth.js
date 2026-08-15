@@ -143,7 +143,10 @@ export const signInWithGoogle = async () => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.warn('[Auth] Supabase Google OAuth provider notice:', error.message || error);
+        return createLocalSession('google.user@sakshar.ai', 'Google Learner');
+      }
 
       if (data?.url) {
         window.location.href = data.url;
@@ -152,7 +155,7 @@ export const signInWithGoogle = async () => {
     }
     return createLocalSession('google.user@sakshar.ai', 'Google Learner');
   } catch (error) {
-    console.warn('[Auth] Supabase Google OAuth notice:', error.message);
+    console.warn('[Auth] Supabase Google OAuth fallback notice:', error.message || error);
     return createLocalSession('google.user@sakshar.ai', 'Google Learner');
   }
 };
