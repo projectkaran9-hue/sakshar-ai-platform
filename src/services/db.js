@@ -225,13 +225,13 @@ export const saveSystemConfigDB = async (configKey, configValue) => {
 
 export const fetchSystemConfigDB = async (configKey, defaultFallback) => {
   try {
-    // 1. Attempt to load from Supabase Cloud DB first so mobile phones/new devices get live changes instantly
+    // 1. Attempt to load from Supabase Cloud DB first using maybeSingle() (prevents PGRST116 PostgREST 406 errors)
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase
         .from('app_settings')
         .select('value')
         .eq('key', configKey)
-        .single();
+        .maybeSingle();
         
       if (!error && data?.value) {
         try { localStorage.setItem(`sakshar_${configKey}`, JSON.stringify(data.value)); } catch {}
