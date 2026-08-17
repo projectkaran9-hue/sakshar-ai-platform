@@ -510,7 +510,7 @@ function ReadingPracticeView({ lang, t, getLanguageNativeLabel, handleBack, onAs
     saveHistoryToLocal(userId, 'reading', storyTitle, vocabScore, lang);
     await logToSupabaseAssessments(userId, vocabScore);
     // Try Flask in background — don't block completion
-    fetch('${API_BASE_URL}/api/assessment/reading', {
+    fetch(`${API_BASE_URL}/api/assessment/reading`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -730,7 +730,7 @@ function WritingPracticeView({ lang, t, getLanguageNativeLabel, handleBack, onAs
     const dataUrl = canvas.toDataURL('image/png');
 
     try {
-      const response = await fetch('${API_BASE_URL}/api/assessment/writing', {
+      const response = await fetch(`${API_BASE_URL}/api/assessment/writing`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -920,7 +920,7 @@ function SpeakingAssessmentView({ lang, t, getLanguageNativeLabel, handleBack, o
       saveHistoryToLocal(userId, 'speaking', targetPhrase.substring(0, 25), calculatedAccuracy, lang);
       await logToSupabaseAssessments(userId, calculatedAccuracy);
       // Try Flask in background — don't block completion
-      fetch('${API_BASE_URL}/api/voice_assessment', {
+      fetch(`${API_BASE_URL}/api/voice_assessment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -4649,6 +4649,11 @@ Do not use complex jargon or overly long paragraphs. Keep instructions direct an
       const text = event.results[0][0].transcript;
       if (text) {
         setAiTutorInput(text);
+        // Auto-send voice input to Gemini AI Tutor
+        setTimeout(() => {
+          const fakeEvent = { preventDefault: () => {} };
+          handleTutorSubmit(fakeEvent);
+        }, 300);
       }
     };
 
